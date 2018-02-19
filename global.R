@@ -37,3 +37,5 @@ if(system('hostname', intern=T)%in%c('phenocam')&
    system('whoami', intern=T)%in%c('shiny')) LOCAL_RUN <- F
 
 PRINT_LOGS <- T
+
+dir.create('images')
