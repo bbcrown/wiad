@@ -21,6 +21,9 @@ list.of.packages <- c(
   'rgdal',
   'raster',
   'jpeg',
+  'png',
+  'tiff',
+  'tools',
   'data.table'
 )
 

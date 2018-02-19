@@ -7,16 +7,18 @@ fluidPage(
     }
     "))
   ),
-  titlePanel("Tree Ring Image Analysis"),
+  titlePanel("TRIAD: Tree Ring Image Analysis and Dataset"),
   
   sidebarLayout(
     
     sidebarPanel(
       
-      fileInput("image", "Choose JPG File",
+      fileInput("image", "Choose the image file",
                 multiple = TRUE,
                 accept = c("image/jpeg",
-                           ".jpg")),
+                           "image/png",
+                           "image/tiff",
+                           "image/tiff")),
       
       # Horizontal line ----
       tags$hr(),
@@ -32,9 +34,25 @@ fluidPage(
     ),
     
     mainPanel(
-      
       # Output: Data file ----
-      plotOutput("image")
+      plotOutput("imageOrig"),
+      hr(),
+      fluidRow(column(1, actionButton('Red', 'R', width = '100%')),
+               column(1, actionButton('Green', 'G', width = '100%')),
+               column(1, actionButton('Blue', 'B', width = '100%')),
+               column(1, actionButton('Hue', 'H', width = '100%')),
+               column(1, actionButton('Sat', 'S', width = '100%')),
+               column(1, actionButton('Value', 'V', width = '100%')),
+               column(1, actionButton('Bright', 'Bri', width = '100%')),
+               column(1, actionButton('Dark', 'Drk', width = '100%')),
+               column(1, actionButton('totBr', 'tBR', width = '100%')),
+               column(1, actionButton('Clusted', 'Clus', width = '100%')),
+               column(1, actionButton('Inverse', 'Inv', width = '100%')),
+               column(1, actionButton('Inverse', 'Inv', width = '100%'))
+               
+      ),
+      br(),
+      plotOutput("imageProc")
       
     )
     
