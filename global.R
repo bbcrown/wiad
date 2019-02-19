@@ -10,6 +10,8 @@ source('aux.R')
 
 
 list.of.packages <- c(
+  # 'adimpro',
+  'abind',
   'data.table',
   'imager',
   'jpeg',

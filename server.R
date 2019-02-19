@@ -9,11 +9,28 @@
 shinyServer(function(input, output, session)
 {
   
-  rv <- reactiveValues(imgAsp=1, 
-                       procband = 'RGB')
+  rv <- reactiveValues(
+    imgMat = readPNG('not_loaded.png')[,,1:3],
+    notLoaded = TRUE,
+    procband = 'RGB',
+    ringTable = data.table(no = integer(),
+                           x = numeric(),
+                           y = numeric(),
+                           relx = numeric(),
+                           rely = numeric(),
+                           type = character()
+    ))
   
-#=================================================================
-# 
+  observeEvent(rv$imgMat,
+               {
+                 imgDim <- dim(rv$imgMat)
+                 rv$imgAsp <- imgDim[2] /imgDim[1]  
+               }
+               
+  )
+  
+  #=================================================================
+  # 
   
   observeEvent(input$image,
                {
@@ -35,14 +52,27 @@ shinyServer(function(input, output, session)
                      rv$imgMat <- readTIFF(rv$imgPath)
                  else 
                    if(rv$imgExt%in%c('png')) 
-                     rv$imgMat <- readPNG(rv$imgPath)
-                 else 
-                   stop('wrong extension!')
+                     rv$imgMat <- readPNG(rv$imgPath)[,,1:3]
+                 else   {      
+                   showModal(strong(
+                     modalDialog("Only JPEG, TIFF or PNG files are accpeted.",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 's',
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 footer = NULL
+                     )))
+                   return()
+                 }
                  
-                 rv$imgDim <- dim(rv$imgMat)
+                 rv$notLoaded <- FALSE
                  
-                 rv$imgAsp <- rv$imgDim[1] /
-                   rv$imgDim[2]
+                 imgDim <- dim(rv$imgMat)
+                 
+                 if(imgDim[2]<imgDim[1]) {
+                   rv$imgMat <- rotateRGB(rv$imgMat)
+                 }
+                 
                  
                  writePNG(rv$imgMat,  
                           paste0(rv$wrkDir, 'orig-',rv$wrkID, '.png'))
@@ -83,42 +113,30 @@ shinyServer(function(input, output, session)
                }
   )
   
-  output$imageOrig <- renderPlot(
-    # height = function()
-    # {
-    #   floor(session$clientData$output_imageOrig_width/rv$imgAsp)
-    # }
-    # ,
-    width = function()
-    {
-      floor(session$clientData$output_imageOrig_height/rv$imgAsp)
-    },
-    
-    {
-      if(is.null(rv$imgMat)) 
-        return()
-      
-      # plotIMG(rv$outPath)
-      plotIMGMat(rv$imgMat)
-    }
-  )
-  
   output$imageProc <- renderPlot(
-    # height = function(){
-    #   floor(session$clientData$output_imageOrig_width/rv$imgAsp)
-    # },
-    
-    width = function(){
-      floor(session$clientData$output_imageOrig_height/rv$imgAsp)
+    height = function(){
+      floor(session$clientData$output_imageProc_width/rv$imgAsp)
     },
     {
-      if(is.null(imgProcessed()))
-        return()
+      imgtmp <- imgProcessed()
+      if(is.null(imgtmp)) return()
       
-      dummy <- 0
-      dummy <- 0
+      imgDim <- dim(imgtmp)
+      par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
+      plot(NA, 
+           xlim = c(1,imgDim[1]),
+           ylim = c(1,imgDim[2]),
+           type='n', axes= FALSE, xlab= '', ylab = '')
+      window <- par()$usr
+      rasterImage(imgtmp, window[1], window[3], window[2], window[4])
+      ring_tbl <- rv$ringTable[, .(x, y)]
+      ring_tbl[, points(x, y, pch = 19, cex = 2, col = 'yellow')]
       
-      plotIMGMat(imgProcessed())
+      if(nrow(ring_tbl)>1){
+        ab <- lm(ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)],
+                 formula = y~x)
+        abline(ab, col = 'yellow', lwd = 2, lty = 2)
+      }
     })
   
   
@@ -181,7 +199,13 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$selTotBr,
                {
-                 rv$procband <- 'TotBrightness'
+                 rv$procband <- 'Total Brightness'
+               }
+  )
+  
+  observeEvent(input$selRGB,
+               {
+                 rv$procband <- 'RGB'
                }
   )
   
@@ -260,10 +284,73 @@ shinyServer(function(input, output, session)
              'Brightness' = brightness(),
              'Darkness' =darkness(),
              'Contrast' = contrast(),
-             'TotBrightness' = totbrightness()
+             
+             'Total Brightness' = totbrightness()
       )
       
     }
+  )
+  
+  observeEvent(input$clearCanvas, {
+    # printLog(paste('input$clearCanvas was changed to:', '\t',input$clearCanvas))
+    if(rv$notLoaded==TRUE) return()
+    
+    rv$slideShow <- 0 
+    rv$ringTable <- data.table(no = integer(),
+                               x = numeric(),
+                               y = numeric(),
+                               relx = numeric(),
+                               rely = numeric(),
+                               type = character()
+    )
+  })
+  
+  
+  observeEvent(input$undoCanvas, {
+    
+    # printLog(paste('input$undoCanvas was changed to:', '\t',input$undoCanvas))
+    if(rv$notLoaded==TRUE) return()
+    
+    if (nrow(rv$ringTable) > 1)
+      rv$ringTable <- rv$ringTable[-nrow(rv$ringTable),]
+    # else 
+    #   if (nrow(rv$ringTable) == 2)
+    #     rv$ringTable <- matrix(rv$ringTable[1,], 1, 5)
+    else
+      # if (nrow(rv$ringTable) == 1)
+      rv$ringTable <- data.table(no = integer(),
+                                 x = numeric(),
+                                 y = numeric(),
+                                 relx = numeric(),
+                                 rely = numeric(),
+                                 type = character()
+      )
+  })
+  
+  observeEvent(input$ring_point,{
+    # printLog(paste('input$ring_point was updated with:', '\t',input$ring_point$x, input$ring_point$y))
+    
+    if(rv$notLoaded==TRUE) return()
+    dummy =0
+    
+    no <- ifelse(is.null(rv$ringTable), 1, nrow(rv$ringTable) + 1)
+    
+    newPoint <- data.table(no = no,
+                           x = input$ring_point$x,
+                           y = input$ring_point$y,
+                           relx = input$ring_point$x/input$ring_point$domain$right,
+                           rely = input$ring_point$y/input$ring_point$domain$top,
+                           type = 'normal'
+    )
+    
+    rv$ringTable <- rbind(rv$ringTable, 
+                          newPoint)
+    dummy =0
+    
+  })
+  
+  output$ring_table <- renderDataTable(rv$ringTable,
+                                       options = list(pageLength = 5)
   )
   
   

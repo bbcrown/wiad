@@ -32,61 +32,61 @@ plotJPEG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
 
 
 # plot jpeg image using as raster given image path.
-plotIMG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
-{
-  ext <- file_ext(path)
-  
-  if(ext%in%c('jpg', 'jpeg')) 
-    mat <- readJPEG(path)
-  else
-    if(ext%in%c('tiff', 'tif')) 
-      mat <- readTIFF(path)
-      else 
-    if(ext%in%c('png'))
-      mat <- readPNG(path)
-  else 
-    stop('wrong extension!')
-  
-  res <-  dim(mat)[2:1] # get the resolution
-  
-  if(is.null(xlim)) 
-    xlim <- c(1,res[1])
-  
-  if(is.null(ylim)) 
-    ylim <- c(1,res[2])
-  
-  if (!add) # initialize an empty plot area if add==FALSE
-  { 
-    par(oma=c(0,0,0,0), mar=c(0,0,0,0))
-    
-    plot(NA, 
-         xlim = xlim, 
-         ylim = ylim,
-         type='n',
-         xaxs='i',
-         yaxs='i',
-         xaxt='n',
-         yaxt='n',
-         xlab='',
-         ylab='',
-         bty='o')
-  }
-  rasterImage(mat,1,1, res[1], res[2])
-  
-  invisible(list(res=res,
-                 mat = mat))
-}
-
-
-
-plotIMGMat <- function(imgMat)
-  {
-  tmp <- tempfile(fileext = '.png')
-  
-  writePNG(imgMat, target = tmp)  
-  
-  plotIMG(tmp)
-}
+# plotIMG <- function(path, add=FALSE, xlim = NULL, ylim = NULL)
+# {
+#   ext <- file_ext(path)
+#   
+#   if(ext%in%c('jpg', 'jpeg')) 
+#     mat <- readJPEG(path)
+#   else
+#     if(ext%in%c('tiff', 'tif')) 
+#       mat <- readTIFF(path)
+#       else 
+#     if(ext%in%c('png'))
+#       mat <- readPNG(path)
+#   else 
+#     stop('wrong extension!')
+#   
+#   res <-  dim(mat)[2:1] # get the resolution
+#   
+#   if(is.null(xlim)) 
+#     xlim <- c(1,res[1])
+#   
+#   if(is.null(ylim)) 
+#     ylim <- c(1,res[2])
+#   
+#   if (!add) # initialize an empty plot area if add==FALSE
+#   { 
+#     par(oma=c(0,0,0,0), mar=c(0,0,0,0))
+#     
+#     plot(NA, 
+#          xlim = xlim, 
+#          ylim = ylim,
+#          type='n',
+#          xaxs='i',
+#          yaxs='i',
+#          xaxt='n',
+#          yaxt='n',
+#          xlab='',
+#          ylab='',
+#          bty='o')
+#   }
+#   rasterImage(mat,1,1, res[1], res[2])
+#   
+#   invisible(list(res=res,
+#                  mat = mat))
+# }
+# 
+# 
+# 
+# plotIMGMat <- function(imgMat)
+#   {
+#   tmp <- tempfile(fileext = '.png')
+#   
+#   writePNG(imgMat, target = tmp)  
+#   
+#   plotIMG(tmp)
+# }
 
 
 
@@ -235,4 +235,16 @@ addMaskPlot <- function(mask, add = T, col='black'){
   plot(rmask,legend=F, add=T, col=col)
   # file.remove('tmp.tif')
   setwd(wd)
+}
+
+rotate <- function(x) t(apply(x, 2, rev))
+
+rotateRGB <- function(imgMat){
+  if(dim(imgMat)[3]!=3) stop('matrix must have 3 layers in the 3rd dimension!')
+  r <- rotate(imgMat[,,1])
+  g <- rotate(imgMat[,,2])
+  b <- rotate(imgMat[,,3])
+  
+  rot <- abind(r, g, b, along = 3)
+  rot
 }
