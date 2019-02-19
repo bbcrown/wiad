@@ -43,13 +43,16 @@ fluidPage(
       textInput('spp', "Species", placeholder = 'What genus/species?'),
       
       textInput('sampleDate', "Sample Date", placeholder = 'When was the sample collected?'),
+      dateInput('sampleDate', "Sample Date"),
       
       textInput('sampleLoc', "Sample Location", placeholder = 'Where was the sample collected from?'),
       
       textInput('sampleNote', "Sample note", placeholder = 'Any additional note?'),
       
-      hr(),
       
+      hr(),
+      radioButtons('confirmMeta', label = NULL, choices = c('Metadata Not Confirmed!', 'Metadata Confirmed!')),
+      hr(),
       actionButton('saveData', 'Save', width = '100%', icon = icon('save'))
     ),
     
@@ -69,12 +72,12 @@ fluidPage(
         column(4, actionButton('selHue', 'Hue', width = '100%') ),
         
         column(4, actionButton('selBright', 'Brightness', width = '100%', icon=icon("sun-o"), 
-                            style="color: yellow; background-color: yellow; border-color: black;"))
+                               style="color: yellow; background-color: yellow; border-color: black;"))
       ),
       
       fluidRow(
         column(4, actionButton('selGreen', 'Green', width = '100%', icon=icon("bitbucket"),
-                            style="color: green; background-color: green; border-color: black;")),
+                               style="color: green; background-color: green; border-color: black;")),
         
         column(4, actionButton('selSat', 'Saturation', width = '100%')),
         
@@ -84,7 +87,7 @@ fluidPage(
       
       fluidRow(
         column(4, actionButton('selBlue', 'Blue', width = '100%', icon=icon("bitbucket"),
-                            style="color: blue; background-color: blue; border-color: black;")),
+                               style="color: blue; background-color: blue; border-color: black;")),
         
         column(4, actionButton('selValue', 'Value', width = '100%')),
         
@@ -99,22 +102,30 @@ fluidPage(
       
       hr(),
       fluidRow(
-        column(6, actionButton("clearCanvas", "Erase", 
+        column(4, actionButton("clearCanvas", "Erase", 
                                icon = icon('eraser'), 
                                class="btn-primary", width = "100%",
                                style='font-weight: bold;')),
         
-        column(6,  actionButton("undoCanvas", "Undo",
+        column(4,  actionButton("undoCanvas", "Undo",
                                 icon = icon('undo'), 
+                                class="btn-primary", 
+                                width = "100%", 
+                                style='font-weight: bold;')),
+        
+        column(4,  actionButton("linkerPoint", "Linker On/Off",
+                                icon = icon('link'), 
                                 class="btn-primary", 
                                 width = "100%", 
                                 style='font-weight: bold;'))
       ),
       
+      br(),
+      radioButtons('barkSide', label = NULL, choices = c('First Bark', 'Last Bark'), inline = TRUE, width = '100%'),
       hr(),
-      dataTableOutput('ring_table')
-    
+      dataTableOutput('ring_table'),
+      downloadButton('downloadCSV', label = 'Download CSV'),
+      downloadButton('downloadJSON', label = 'Download JSON')
     )
-    
   )
 )

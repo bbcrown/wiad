@@ -13,12 +13,14 @@ shinyServer(function(input, output, session)
     imgMat = readPNG('not_loaded.png')[,,1:3],
     notLoaded = TRUE,
     procband = 'RGB',
+    check_table = 0, 
     ringTable = data.table(no = integer(),
                            x = numeric(),
                            y = numeric(),
                            relx = numeric(),
                            rely = numeric(),
-                           type = character()
+                           type = character(),
+                           year = integer()
     ))
   
   observeEvent(rv$imgMat,
@@ -34,7 +36,7 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$image,
                {
-                 
+                 updateRadioButtons(session, 'confirmMeta', selected = 'Metadata Not Confirmed!')
                  rv$wrkID <- gsub(as.character(Sys.time()), pattern = ' |:', replacement = '-')
                  
                  rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
@@ -62,6 +64,7 @@ shinyServer(function(input, output, session)
                                  style='background-color:#3b3a35; color:#fce319; ',
                                  footer = NULL
                      )))
+                   
                    return()
                  }
                  
@@ -86,9 +89,10 @@ shinyServer(function(input, output, session)
       meta <- list(ownerName = input$ownerName, 
                    ownerEmail = input$ownerEmail,
                    species = input$spp,
-                   sampleDate = input$sampleDate,
+                   sampleDate = as.Date(input$sampleDate),
                    sampleLoc = input$sampleLoc,
-                   sampleNote = input$sampleNote
+                   sampleNote = input$sampleNote,
+                   ringData = rv$ringTable
       )
       
       toJSON(meta)
@@ -301,10 +305,47 @@ shinyServer(function(input, output, session)
                                y = numeric(),
                                relx = numeric(),
                                rely = numeric(),
-                               type = character()
+                               type = character(),
+                               year = integer()
     )
   })
   
+  observeEvent(input$linkerPoint, {
+    if(rv$notLoaded==TRUE) return()
+    
+    if (nrow(rv$ringTable) == 0)
+    {
+      showModal(strong(
+        modalDialog("No ring point is identified yet!",
+                    easyClose = T,
+                    fade = T,
+                    size = 's',
+                    style='background-color:#3b3a35; color:#fce319; ',
+                    footer = NULL
+        )))
+      return()
+      
+    }else if (nrow(rv$ringTable) == 1){
+      showModal(strong(
+        modalDialog("First point cannot be a linker!",
+                    easyClose = T,
+                    fade = T,
+                    size = 's',
+                    style='background-color:#3b3a35; color:#fce319; ',
+                    footer = NULL
+        )))
+      return()
+    }else {
+      dummy <- 0
+      rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
+                                                        'Linker' = 'Normal',
+                                                        'Normal' = 'Linker')
+                                                        ]
+      rv$check_table <- rv$check_table + 1
+      print(rv$ringTable)
+      dummy <- 0
+    }
+  })
   
   observeEvent(input$undoCanvas, {
     
@@ -323,7 +364,8 @@ shinyServer(function(input, output, session)
                                  y = numeric(),
                                  relx = numeric(),
                                  rely = numeric(),
-                                 type = character()
+                                 type = character(),
+                                 year = integer()
       )
   })
   
@@ -331,6 +373,19 @@ shinyServer(function(input, output, session)
     # printLog(paste('input$ring_point was updated with:', '\t',input$ring_point$x, input$ring_point$y))
     
     if(rv$notLoaded==TRUE) return()
+    
+    if(input$confirmMeta=='Metadata Not Confirmed!') {
+      showModal(strong(
+        modalDialog("First review and confirm the metadata!",
+                    easyClose = T,
+                    fade = T,
+                    size = 's',
+                    style='background-color:#3b3a35; color:#fce319; ',
+                    footer = NULL
+        )))
+      return()
+    }
+    
     dummy =0
     
     no <- ifelse(is.null(rv$ringTable), 1, nrow(rv$ringTable) + 1)
@@ -340,19 +395,69 @@ shinyServer(function(input, output, session)
                            y = input$ring_point$y,
                            relx = input$ring_point$x/input$ring_point$domain$right,
                            rely = input$ring_point$y/input$ring_point$domain$top,
-                           type = 'normal'
+                           type = 'Normal',
+                           year = NA
     )
-    
+    if(nrow(rv$ringTable)>0){
+      last <- rv$ringTable[nrow(rv$ringTable)]
+      if(newPoint$x==last$x&newPoint$y==last$y) return()
+    }
     rv$ringTable <- rbind(rv$ringTable, 
                           newPoint)
-    dummy =0
+    
+
+      
+    
     
   })
-  
-  output$ring_table <- renderDataTable(rv$ringTable,
-                                       options = list(pageLength = 5)
+  observe({
+    req(input$barkSide)
+    req(rv$ringTable)
+    
+    if(input$barkSide=='First Bark'){
+      rv$ringTable$year <- seq(year(input$sampleDate),
+                               by = -1, 
+                               length.out = nrow(rv$ringTable))
+    }else{
+      rv$ringTable$year <- rev(seq(year(input$sampleDate),
+                                   by = -1, 
+                                   length.out = nrow(rv$ringTable)))
+    }
+    
+  })
+  output$ring_table <- renderDataTable(
+    {
+      req(rv$check_table)
+      rv$ringTable[order(-no)]
+    },
+    
+    options = list(pageLength = 5)
   )
   
+  output$downloadCSV <- downloadHandler(
+    filename = function() {
+      paste0('ringdata-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".csv")
+      
+    },
+    content = function(file) {
+      if(nrow(rv$ringTable)==0) return()
+      write.table(rv$ringTable, file, sep = ',', row.names = F)
+      
+    }
+  )
+  
+  output$downloadJSON <- downloadHandler(
+    filename = function() {
+      paste0('ringdata-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".json")
+      
+    },
+    content = function(file) {
+      if(nrow(rv$ringTable)==0) return()
+      rv$ringTable %>% 
+        toJSON() %>%
+        write_lines(file)
+    }
+  )
   
 }
 )
