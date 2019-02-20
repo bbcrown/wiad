@@ -69,3 +69,28 @@ rotateRGB <- function(imgMat){
   rot <- abind(r, g, b, along = 3)
   rot
 }
+
+
+# print a message into konsole given the message string for logging purposes
+printLog <- function(msg=NULL, init=F, finit=F){
+  if(!PRINT_LOGS) return()
+  systime <- Sys.time()
+  
+  if(init){
+    message(paste('\n--------------------------------------------------------------------\n', 
+                  as.character(systime),'New session just started!',
+                  '\n--------------------------------------------------------------------\n'))
+    return()
+  }
+  
+  if(finit){
+    message(paste('\n--------------------------------------------------------------------\n', 
+                  as.character(systime),'Initial setup was completed!',
+                  '\n--------------------------------------------------------------------\n'))
+    return()
+  }
+  
+  message(paste(as.character(systime), 
+                signif(as.numeric(systime)-floor(as.numeric(systime)),3),
+                msg, '\t'))
+}
