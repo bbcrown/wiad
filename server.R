@@ -140,17 +140,45 @@ shinyServer(function(input, output, session)
       plot(NA, 
            xlim = c(1,imgDim[1]),
            ylim = c(1,imgDim[2]),
-           type='n', axes= FALSE, xlab= '', ylab = '')
+           type='n', 
+           axes= FALSE, 
+           xlab= '',
+           ylab = '')
+      
       window <- par()$usr
       
-      rasterImage(imgtmp, window[1], window[3], window[2], window[4])
+      rasterImage(imgtmp, 
+                  window[1], 
+                  window[3], 
+                  window[2], 
+                  window[4])
+      
       ring_tbl <- rv$ringTable[, .(x, y)]
-      ring_tbl[, points(x, y, pch = 19, cex = 2, col = 'yellow')]
+      
+      ring_tbl[, points(x,
+                        y, 
+                        pch = 19, 
+                        cex = 2, 
+                        col = 'yellow')]
+      
+      wLinkers <- which(rv$ringTable$type=='Linker')
+      
+      segments(x0 = rv$ringTable[wLinkers, x], 
+               y0 = rv$ringTable[wLinkers, y],
+               x1 = rv$ringTable[wLinkers - 1, x], 
+               y1 = rv$ringTable[wLinkers - 1, y], 
+               lwd = 2, 
+               col = 'yellow')
       
       if(nrow(ring_tbl)>1){
+        
         ab <- lm(ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)],
                  formula = y~x)
-        abline(ab, col = 'yellow', lwd = 2, lty = 2)
+        
+        abline(ab, 
+               col = 'yellow',
+               lwd = 2, 
+               lty = 2)
       }
     })
   
@@ -470,24 +498,37 @@ shinyServer(function(input, output, session)
   )
   
   output$downloadCSV <- downloadHandler(
+    
     filename = function() {
-      paste0('ringdata-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".csv")
+      paste0('ringdata-', 
+             format(Sys.time(),
+                    format = '%Y-%m-%d-%H%M%S'),
+             ".csv")
       
     },
     content = function(file) {
       tbl <- growthTable()
       if(nrow(tbl)==0) return()
       
-      write.table(tbl, file, sep = ',', row.names = F)
+      write.table(tbl, 
+                  file, 
+                  sep = ',',
+                  row.names = F)
       
     }
   )
   
   output$downloadJSON <- downloadHandler(
+    
     filename = function() {
-      paste0('ringdata-', format(Sys.time(), format = '%Y-%m-%d-%H%M%S'), ".json")
+      
+      paste0('ringdata-', 
+             format(Sys.time(),
+                    format = '%Y-%m-%d-%H%M%S'),
+             ".json")
       
     },
+    
     content = function(file) {
       
       tbl <- growthTable()
@@ -501,9 +542,13 @@ shinyServer(function(input, output, session)
   )
   
   observeEvent(input$confirmMeta, {
+    
     if(input$confirmMeta=='Metadata Not Confirmed!') return()
+    
     if(year(input$sampleDate)!=input$sampleYear){
+      
       showModal(strong(
+        
         modalDialog("Year does not match the sample's date!",
                     easyClose = T,
                     fade = T,
@@ -512,11 +557,14 @@ shinyServer(function(input, output, session)
                     footer = NULL
         )))
       
-      updateRadioButtons(session, inputId = 'confirmMeta', selected = 'Metadata Not Confirmed!')
+      updateRadioButtons(session, 
+                         inputId = 'confirmMeta', 
+                         selected = 'Metadata Not Confirmed!')
     }
   })
   
   output$ring_plot <- renderPlotly({
+    
     tbl <- growthTable()
     
     if(nrow(tbl)==0) return()
@@ -546,12 +594,13 @@ shinyServer(function(input, output, session)
                  color = '#e26828',
                  type = 'bar'
                  # mode = 'lines+markers'
-                 ) %>%
-      layout(xaxis = xAxis, yaxis = yAxis)
+    ) %>%
+      layout(xaxis = xAxis,
+             yaxis = yAxis)
     return(p)
     
   }
-    
+  
   )
 }
 )
