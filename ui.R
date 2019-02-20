@@ -173,7 +173,7 @@ fluidPage(
       
       hr(),
       
-      plotOutput(inputId = 'imageProc', 
+      plotOutput(outputId = 'imageProc', 
                  click = 'ring_point', 
                  width = '100%', 
                  height = '100%'),
@@ -217,12 +217,12 @@ fluidPage(
       
       hr(),
       
-      dataTableOutput(inputId = 'ring_table'),
+      dataTableOutput(outputId = 'ring_table'),
       
-      downloadButton(inputId = 'downloadCSV', 
+      downloadButton(outputId = 'downloadCSV', 
                      label = 'Download CSV'),
       
-      downloadButton(inputId = 'downloadJSON', 
+      downloadButton(outputId = 'downloadJSON', 
                      label = 'Download JSON')
     )
   )
