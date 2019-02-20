@@ -17,6 +17,7 @@ list.of.packages <- c(
   'jsonlite',
   'jpeg',
   'png',
+  'plotly',
   'shiny',
   'shinyFiles',
   'shinyjs',
