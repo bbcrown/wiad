@@ -16,120 +16,214 @@ fluidPage(
   shinyjs::useShinyjs(),
   
   tags$head(
-    tags$style(HTML("
+    tags$style(HTML('
     .shiny-output-error-validation {
     color: red;
     }
-    "))
+    '))
   ),
   
-  titlePanel("TRIAD: Tree Ring Image Analysis and Dataset"),
+  titlePanel('TRIAD: Tree Ring Image Analysis and Dataset'),
   
   sidebarLayout(
     
     sidebarPanel(
       
-      fileInput("image", "Choose the image file",
+      fileInput('image', 'Choose the image file',
                 multiple = FALSE,
-                accept = c("image/jpeg",
-                           "image/png",
-                           "image/tiff")),
+                accept = c('image/jpeg',
+                           'image/png',
+                           'image/tiff')),
       
       # Horizontal line ----
       tags$hr(),
       
-      textInput('ownerName', "Name", placeholder = 'Your name'),
+      textInput(inputId = 'ownerName', 
+                label = 'Name', 
+                placeholder = 'Your name'),
       
-      textInput('ownerEmail', "Email address", placeholder = 'email address'),
+      textInput(inputId = 'ownerEmail', 
+                label = 'Email address', 
+                placeholder = 'email address'),
       
-      textInput('spp', "Species", placeholder = 'What genus/species?'),
+      textInput(inputId = 'spp', 
+                label = 'Species', 
+                placeholder = 'What genus/species?'),
       
-      # textInput('sampleDate', "Sample Date", placeholder = 'When was the sample collected?'),
-      dateInput('sampleDate', "Sample Date"),
+      dateInput(inputId = 'sampleDate', 
+                label = 'Sample Date'),
       
-      numericInput('sampleYear', label = "Sample Year", max = year(Sys.Date()), min = 1800, value = 2000),
+      numericInput(inputId = 'sampleYear', 
+                   label = 'Sample Year', 
+                   min = 1800, 
+                   max = year(Sys.Date()),
+                   value = 2000),
       
-      textInput('sampleLoc', "Sample Location", placeholder = 'Where was the sample collected from?'),
+      textInput(inputId = 'sampleLoc',
+                label = 'Sample Location', 
+                placeholder = 'Where was the sample collected from?'),
       
-      textInput('sampleNote', "Sample note", placeholder = 'Any additional note?'),
-      
+      textInput(inputId = 'sampleNote', 
+                label = 'Sample note',
+                placeholder = 'Any additional note?'),
       
       hr(),
-      radioButtons('confirmMeta', label = NULL, choices = c('Metadata Not Confirmed!', 'Metadata Confirmed!')),
+      
+      radioButtons(inputId = 'confirmMeta', 
+                   label = NULL, 
+                   choices = c('Metadata Not Confirmed!', 'Metadata Confirmed!')),
+      
       hr(),
-      actionButton('saveData', 'Save', width = '100%', icon = icon('save'))
+      
+      actionButton(inputId = 'saveData', 
+                   label = 'Save', 
+                   width = '100%', icon = icon('save'))
     ),
     
     mainPanel(
       
       fluidRow(
-        column(6, actionButton('selRGB', 'RGB', width = '100%', icon=icon("bell"))),
-        column(6, actionButton('selTotBr', 'Total Brightness', width = '100%', icon=icon("bell")) )
+        column(6, 
+               actionButton(inputId = 'selRGB', 
+                            label = 'RGB',
+                            width = '100%', 
+                            icon=icon('bell'))
+        ),
+        
+        column(6, 
+               actionButton(inputId = 'selTotBr', 
+                            label = 'Total Brightness',
+                            width = '100%', 
+                            icon=icon('bell')) 
+        )
       ),
       
       br(),
       
       fluidRow(
-        column(4, actionButton('selRed', 'Red', width = '100%', icon=icon("bitbucket"), 
-                               style="color: red; background-color: red; border-color: black;")),
+        column(4, 
+               actionButton(inputId = 'selRed', 
+                            label = 'Red', 
+                            width = '100%', 
+                            icon=icon('bitbucket'), 
+                            style='color: red; background-color: red; border-color: black;')
+        ),
         
-        column(4, actionButton('selHue', 'Hue', width = '100%') ),
+        column(4,
+               actionButton(inputId = 'selHue', 
+                            label = 'Hue',
+                            width = '100%') 
+        ),
         
-        column(4, actionButton('selBright', 'Brightness', width = '100%', icon=icon("sun-o"), 
-                               style="color: yellow; background-color: yellow; border-color: black;"))
+        column(4, 
+               actionButton(inputId = 'selBright', 
+                            label = 'Brightness', 
+                            width = '100%', 
+                            icon=icon('sun-o'), 
+                            style='color: yellow; background-color: yellow; border-color: black;')
+        )
       ),
       
       fluidRow(
-        column(4, actionButton('selGreen', 'Green', width = '100%', icon=icon("bitbucket"),
-                               style="color: green; background-color: green; border-color: black;")),
+        column(4, 
+               actionButton(inputId = 'selGreen', 
+                            label = 'Green',
+                            width = '100%',
+                            icon=icon('bitbucket'),
+                            style='color: green; background-color: green; border-color: black;')
+        ),
         
-        column(4, actionButton('selSat', 'Saturation', width = '100%')),
+        column(4, 
+               actionButton(inputId = 'selSat', 
+                            label = 'Saturation',
+                            width = '100%')
+        ),
         
-        column(4, actionButton('selDark', 'Darkness', width = '100%', icon=icon("moon-o"), 
-                               style="color: black; background-color: black; border-color: black;"))
+        column(4, 
+               actionButton(inputId = 'selDark', 
+                            label = 'Darkness', 
+                            width = '100%', 
+                            icon=icon('moon-o'), 
+                            style='color: black; background-color: black; border-color: black;')
+        )
       ),
       
       fluidRow(
-        column(4, actionButton('selBlue', 'Blue', width = '100%', icon=icon("bitbucket"),
-                               style="color: blue; background-color: blue; border-color: black;")),
+        column(4, 
+               actionButton(inputId = 'selBlue', 
+                            label = 'Blue', 
+                            width = '100%', 
+                            icon=icon('bitbucket'),
+                            style='color: blue; background-color: blue; border-color: black;')
+        ),
         
-        column(4, actionButton('selValue', 'Value', width = '100%')),
+        column(4, 
+               actionButton(inputId = 'selValue', 
+                            label = 'Value', 
+                            width = '100%')
+        ),
         
-        column(4, actionButton('selContrast', 'Contrast', width = '100%', icon=icon("moon"), 
-                               style="color: gray; background-color: gray; border-color: black;")
+        column(4, actionButton(inputId = 'selContrast', 
+                               label = 'Contrast',
+                               width = '100%', 
+                               icon=icon('moon'), 
+                               style='color: gray; background-color: gray; border-color: black;')
         )
       ),
       
       hr(),
       
-      plotOutput("imageProc", click = "ring_point", width = '100%', height = '100%'),
+      plotOutput(inputId = 'imageProc', 
+                 click = 'ring_point', 
+                 width = '100%', 
+                 height = '100%'),
       
       hr(),
       fluidRow(
-        column(4, actionButton("clearCanvas", "Erase", 
-                               icon = icon('eraser'), 
-                               class="btn-primary", width = "100%",
-                               style='font-weight: bold;')),
+        column(4, 
+               actionButton(inputId = 'clearCanvas', 
+                            label = 'Erase', 
+                            icon = icon('eraser'), 
+                            class='btn-primary',
+                            width = '100%',
+                            style='font-weight: bold;')),
         
-        column(4,  actionButton("undoCanvas", "Undo",
-                                icon = icon('undo'), 
-                                class="btn-primary", 
-                                width = "100%", 
-                                style='font-weight: bold;')),
+        column(4,  
+               actionButton(inputId = 'undoCanvas', 
+                            label = 'Undo',
+                            icon = icon('undo'), 
+                            class='btn-primary', 
+                            width = '100%', 
+                            style='font-weight: bold;')
+        ),
         
-        column(4,  actionButton("linkerPoint", "Linker On/Off",
-                                icon = icon('link'), 
-                                class="btn-primary", 
-                                width = "100%", 
-                                style='font-weight: bold;'))
+        column(4, 
+               actionButton(inputId = 'linkerPoint', 
+                            label = 'Linker On/Off',
+                            icon = icon('link'), 
+                            class='btn-primary', 
+                            width = '100%', 
+                            style='font-weight: bold;')
+        )
       ),
       
       br(),
-      radioButtons('barkSide', label = NULL, choices = c('Bark First', 'Bark Last'), inline = TRUE, width = '100%'),
+      
+      radioButtons(inputId = 'barkSide', 
+                   label = NULL, 
+                   choices = c('Bark First', 'Bark Last'), 
+                   inline = TRUE, 
+                   width = '100%'),
+      
       hr(),
-      dataTableOutput('ring_table'),
-      downloadButton('downloadCSV', label = 'Download CSV'),
-      downloadButton('downloadJSON', label = 'Download JSON')
+      
+      dataTableOutput(inputId = 'ring_table'),
+      
+      downloadButton(inputId = 'downloadCSV', 
+                     label = 'Download CSV'),
+      
+      downloadButton(inputId = 'downloadJSON', 
+                     label = 'Download JSON')
     )
   )
 )
