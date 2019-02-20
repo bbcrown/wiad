@@ -16,7 +16,7 @@ list.of.packages <- c(
   'imager',
   'jsonlite',
   'jpeg',
-  'lubridate',
+  # 'lubridate',
   'png',
   'shiny',
   'shinyFiles',
