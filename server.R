@@ -515,5 +515,43 @@ shinyServer(function(input, output, session)
       updateRadioButtons(session, inputId = 'confirmMeta', selected = 'Metadata Not Confirmed!')
     }
   })
+  
+  output$ring_plot <- renderPlotly({
+    tbl <- growthTable()
+    
+    if(nrow(tbl)==0) return()
+    
+    
+    fontList <- list(
+      family = "Courier New, monospace",
+      size = 16,
+      color = "#7f7f7f"
+    )
+    xAxis <- list(
+      title = "Year",
+      titlefont = fontList
+    )
+    
+    yAxis <- list(
+      title = "Growth (pixels)",
+      titlefont = fontList
+    )
+    
+    tbl[,year:=as.factor(year)]
+    
+    p <- plot_ly(data = tbl[type!='Linker'], 
+                 x=~year, 
+                 y= ~growth,
+                 # color = ~band,
+                 color = '#e26828',
+                 type = 'bar'
+                 # mode = 'lines+markers'
+                 ) %>%
+      layout(xaxis = xAxis, yaxis = yAxis)
+    return(p)
+    
+  }
+    
+  )
 }
 )
