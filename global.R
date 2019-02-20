@@ -12,13 +12,10 @@ source('aux.R')
 
 
 list.of.packages <- c(
-  # 'adimpro',
-  'abind',
   'data.table',
   'imager',
   'jsonlite',
   'jpeg',
-  # 'lubridate',
   'png',
   'shiny',
   'shinyFiles',
@@ -26,9 +23,7 @@ list.of.packages <- c(
   'shinythemes',
   'raster',
   'rgdal',
-  # 'rjson',
   'readr',
-  'RJSONIO',
   'sp',
   'tiff',
   'tools'
@@ -40,7 +35,7 @@ if(length(new.packages))
   install.packages(new.packages, 
                    repos='http://cran.rstudio.com/')
 
-for(p in list.of.packages) library(p, character.only = T)
+sapply(list.of.packages, library, character.only = T)
 
 LOCAL_RUN <- T
 if(system('hostname', intern=T)%in%c('phenocam')&
@@ -49,4 +44,4 @@ if(system('hostname', intern=T)%in%c('phenocam')&
 
 PRINT_LOGS <- T
 
-dir.create('images')
+dir.create('images', showWarnings = FALSE)
