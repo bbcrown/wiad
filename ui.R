@@ -223,7 +223,11 @@ fluidPage(
                      label = 'Download CSV'),
       
       downloadButton(outputId = 'downloadJSON', 
-                     label = 'Download JSON')
+                     label = 'Download JSON'),
+      
+      plotlyOutput(outputId = 'ring_plot', 
+                   height = "500px", 
+                   width = "100%")
     )
   )
 )
