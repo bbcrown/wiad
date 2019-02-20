@@ -11,26 +11,28 @@
 shinyServer(function(input, output, session)
 {
   
+  # declaring reactive value
   rv <- reactiveValues(
-    imgMat = readPNG('not_loaded.png')[,,1:3],
-    notLoaded = TRUE,
-    procband = 'RGB',
-    check_table = 0, 
-    ringTable = data.table(no = integer(),
-                           x = numeric(),
-                           y = numeric(),
-                           relx = numeric(),
-                           rely = numeric(),
-                           type = character(),
-                           year = integer()
+    imgMat = readPNG('not_loaded.png')[,,1:3], #RGB matrix loaded based on the image
+    notLoaded = TRUE, # whether the first image is loaded
+    procband = 'RGB', # processed matrix from the raw RGB
+    check_table = 0, # a flag to update the table
+    ringTable = data.table( # data.table contains the ring data
+      no = integer(), # no ID
+      x = numeric(), # x
+      y = numeric(), # y
+      relx = numeric(), # relative x
+      rely = numeric(), # relative y
+      type = character(), # type
+      year = integer() # year
     ))
   
+  # update the image aspect ratio
   observeEvent(rv$imgMat,
                {
                  imgDim <- dim(rv$imgMat)
                  rv$imgAsp <- imgDim[2] /imgDim[1]  
                }
-               
   )
   
   #=================================================================
@@ -38,8 +40,13 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$image,
                {
-                 updateRadioButtons(session, 'confirmMeta', selected = 'Metadata Not Confirmed!')
-                 rv$wrkID <- gsub(as.character(Sys.time()), pattern = ' |:', replacement = '-')
+                 updateRadioButtons(session = session, 
+                                    inputId = 'confirmMeta', 
+                                    selected = 'Metadata Not Confirmed!')
+                 
+                 rv$wrkID <- gsub(x = as.character(Sys.time()), 
+                                  pattern = ' |:', 
+                                  replacement = '-')
                  
                  rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
                  
@@ -135,6 +142,7 @@ shinyServer(function(input, output, session)
            ylim = c(1,imgDim[2]),
            type='n', axes= FALSE, xlab= '', ylab = '')
       window <- par()$usr
+      
       rasterImage(imgtmp, window[1], window[3], window[2], window[4])
       ring_tbl <- rv$ringTable[, .(x, y)]
       ring_tbl[, points(x, y, pch = 19, cex = 2, col = 'yellow')]
@@ -358,11 +366,7 @@ shinyServer(function(input, output, session)
     
     if (nrow(rv$ringTable) > 1)
       rv$ringTable <- rv$ringTable[-nrow(rv$ringTable),]
-    # else 
-    #   if (nrow(rv$ringTable) == 2)
-    #     rv$ringTable <- matrix(rv$ringTable[1,], 1, 5)
     else
-      # if (nrow(rv$ringTable) == 1)
       rv$ringTable <- data.table(no = integer(),
                                  x = numeric(),
                                  y = numeric(),
@@ -424,7 +428,7 @@ shinyServer(function(input, output, session)
     
     growth_table[type=='Linker', growth:=NA]  
     growth_table
-    })
+  })
   
   observe({
     req(input$barkSide)
@@ -442,7 +446,7 @@ shinyServer(function(input, output, session)
                            ifelse(types[i]=='Linker', 
                                   years[i-1],
                                   years[i-1] - 1)
-                           )
+        )
     }else{
       for(i in n:1)
         years[i] <- ifelse(i==n,
@@ -473,7 +477,7 @@ shinyServer(function(input, output, session)
     content = function(file) {
       tbl <- growthTable()
       if(nrow(tbl)==0) return()
-
+      
       write.table(tbl, file, sep = ',', row.names = F)
       
     }
@@ -495,7 +499,7 @@ shinyServer(function(input, output, session)
         write_lines(file)
     }
   )
- 
+  
   observeEvent(input$confirmMeta, {
     if(input$confirmMeta=='Metadata Not Confirmed!') return()
     if(year(input$sampleDate)!=input$sampleYear){
@@ -510,9 +514,6 @@ shinyServer(function(input, output, session)
       
       updateRadioButtons(session, inputId = 'confirmMeta', selected = 'Metadata Not Confirmed!')
     }
-      
-    
   })
-  
 }
 )
