@@ -87,7 +87,11 @@ shinyServer(function(input, output, session)
                  
                  
                  writePNG(rv$imgMat,  
-                          paste0(rv$wrkDir, 'orig-',rv$wrkID, '.png'))
+                          
+                          paste0(rv$wrkDir,
+                                 'orig-',
+                                 rv$wrkID,
+                                 '.png'))
                  
                }
   )
