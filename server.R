@@ -89,7 +89,8 @@ shinyServer(function(input, output, session)
       meta <- list(ownerName = input$ownerName, 
                    ownerEmail = input$ownerEmail,
                    species = input$spp,
-                   sampleDate = as.Date(input$sampleDate),
+                   sampleDate = input$sampleDate,
+                   sampleYear = input$sampleYear,
                    sampleLoc = input$sampleLoc,
                    sampleNote = input$sampleNote,
                    ringData = rv$ringTable
@@ -220,7 +221,7 @@ shinyServer(function(input, output, session)
         rv$imgMat[,,2] + 
         rv$imgMat[,,3]
       
-      tmp
+      tmp/3
     }
   )
   
@@ -308,6 +309,7 @@ shinyServer(function(input, output, session)
                                type = character(),
                                year = integer()
     )
+    rv$check_table <- rv$check_table + 1
   })
   
   observeEvent(input$linkerPoint, {
@@ -340,10 +342,10 @@ shinyServer(function(input, output, session)
       rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
                                                         'Linker' = 'Normal',
                                                         'Normal' = 'Linker')
-                                                        ]
+                   ]
       rv$check_table <- rv$check_table + 1
-      print(rv$ringTable)
-      dummy <- 0
+      # print(rv$ringTable)
+      # dummy <- 0
     }
   })
   
@@ -367,6 +369,7 @@ shinyServer(function(input, output, session)
                                  type = character(),
                                  year = integer()
       )
+    rv$check_table <- rv$check_table + 1
   })
   
   observeEvent(input$ring_point,{
@@ -404,31 +407,57 @@ shinyServer(function(input, output, session)
     }
     rv$ringTable <- rbind(rv$ringTable, 
                           newPoint)
-    
-
-      
-    
-    
   })
+  
+  growthTable <- reactive({
+    req(rv$check_table)
+    growth_table <- rv$ringTable
+    
+    growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
+    
+    if(input$barkSide=='Bark First')
+      growth_table$growth <- c(0, growth)
+    else
+      growth_table$growth <- c(growth, 0)
+    
+    growth_table[type=='Linker', growth:=NA]  
+    growth_table
+    })
+  
   observe({
     req(input$barkSide)
     req(rv$ringTable)
+    req(rv$check_table)
     
-    if(input$barkSide=='First Bark'){
-      rv$ringTable$year <- seq(year(input$sampleDate),
-                               by = -1, 
-                               length.out = nrow(rv$ringTable))
+    types <- rv$ringTable$type
+    n <- length(types)
+    years <- rep(NA, n)
+    
+    if(input$barkSide=='Bark First'){
+      for(i in 1:n)
+        years[i] <- ifelse(i==1,
+                           input$sampleYear,
+                           ifelse(types[i]=='Linker', 
+                                  years[i-1],
+                                  years[i-1] - 1)
+                           )
     }else{
-      rv$ringTable$year <- rev(seq(year(input$sampleDate),
-                                   by = -1, 
-                                   length.out = nrow(rv$ringTable)))
+      for(i in n:1)
+        years[i] <- ifelse(i==n,
+                           input$sampleYear,
+                           ifelse(types[i]=='Linker', 
+                                  years[i+1],
+                                  years[i+1] - 1))
     }
-    
+    rv$ringTable$year <- years
   })
+  
   output$ring_table <- renderDataTable(
     {
+      tbl <- growthTable()
+      if(nrow(tbl)==0) return()
       req(rv$check_table)
-      rv$ringTable[order(-no)]
+      tbl[order(-no)]
     },
     
     options = list(pageLength = 5)
@@ -440,8 +469,10 @@ shinyServer(function(input, output, session)
       
     },
     content = function(file) {
-      if(nrow(rv$ringTable)==0) return()
-      write.table(rv$ringTable, file, sep = ',', row.names = F)
+      tbl <- growthTable()
+      if(nrow(tbl)==0) return()
+
+      write.table(tbl, file, sep = ',', row.names = F)
       
     }
   )
@@ -452,12 +483,34 @@ shinyServer(function(input, output, session)
       
     },
     content = function(file) {
-      if(nrow(rv$ringTable)==0) return()
-      rv$ringTable %>% 
+      
+      tbl <- growthTable()
+      
+      if(nrow(tbl)==0) return()
+      
+      tbl %>% 
         toJSON() %>%
         write_lines(file)
     }
   )
+ 
+  observeEvent(input$confirmMeta, {
+    if(input$confirmMeta=='Metadata Not Confirmed!') return()
+    if(year(input$sampleDate)!=input$sampleYear){
+      showModal(strong(
+        modalDialog("Year does not match the sample's date!",
+                    easyClose = T,
+                    fade = T,
+                    size = 's',
+                    style='background-color:#3b3a35; color:#fce319; ',
+                    footer = NULL
+        )))
+      
+      updateRadioButtons(session, inputId = 'confirmMeta', selected = 'Metadata Not Confirmed!')
+    }
+      
+    
+  })
   
 }
 )
