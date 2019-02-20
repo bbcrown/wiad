@@ -42,8 +42,10 @@ fluidPage(
       
       textInput('spp', "Species", placeholder = 'What genus/species?'),
       
-      textInput('sampleDate', "Sample Date", placeholder = 'When was the sample collected?'),
+      # textInput('sampleDate', "Sample Date", placeholder = 'When was the sample collected?'),
       dateInput('sampleDate', "Sample Date"),
+      
+      numericInput('sampleYear', label = "Sample Year", max = year(Sys.Date()), min = 1800, value = 2000),
       
       textInput('sampleLoc', "Sample Location", placeholder = 'Where was the sample collected from?'),
       
@@ -121,7 +123,7 @@ fluidPage(
       ),
       
       br(),
-      radioButtons('barkSide', label = NULL, choices = c('First Bark', 'Last Bark'), inline = TRUE, width = '100%'),
+      radioButtons('barkSide', label = NULL, choices = c('Bark First', 'Bark Last'), inline = TRUE, width = '100%'),
       hr(),
       dataTableOutput('ring_table'),
       downloadButton('downloadCSV', label = 'Download CSV'),
