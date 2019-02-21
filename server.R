@@ -11,6 +11,8 @@
 shinyServer(function(input, output, session)
 {
   
+  printLog(init = TRUE)
+  
   # declaring reactive value
   rv <- reactiveValues(
     
@@ -32,6 +34,8 @@ shinyServer(function(input, output, session)
   # update the image aspect ratio
   observeEvent(rv$imgMat,
                {
+                 printLog('observeEvent rv$imgMat')
+                 
                  imgDim <- dim(rv$imgMat)
                  rv$imgAsp <- imgDim[2] /imgDim[1]  
                }
@@ -42,6 +46,8 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$image,
                {
+                 printLog('observeEvent input$image')
+                 
                  updateRadioButtons(session = session, 
                                     inputId = 'confirmMeta', 
                                     selected = 'Not Confirmed')
@@ -111,6 +117,7 @@ shinyServer(function(input, output, session)
   
   metaData <- reactive(
     {
+      printLog('metaData reactive')
       
       meta <- list(ownerName = input$ownerName, 
                    ownerEmail = input$ownerEmail,
@@ -129,6 +136,8 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$saveData,
                {
+                 printLog('observeEvent input$saveData')
+                 
                  write(metaData(), 
                        paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
                  
@@ -149,6 +158,8 @@ shinyServer(function(input, output, session)
       floor(session$clientData$output_imageProc_width/rv$imgAsp)
     },
     {
+      printLog('output$imageProc renderPlot')
+      
       imgtmp <- imgProcessed()
       if(is.null(imgtmp)) return()
       
@@ -202,6 +213,8 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$selRed,
                {
+                 printLog('observeEvent input$selRed')
+                 
                  rv$procband <- 'Red'
                }
   )
@@ -209,6 +222,8 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$selBlue,
                {
+                 printLog('observeEvent input$selBlue')
+                 
                  rv$procband <- 'Blue'
                }
   )
@@ -216,12 +231,16 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$selGreen,
                {
+                 printLog('observeEvent input$selGreen')
+                 
                  rv$procband <- 'Green'
                }
   )
   
   observeEvent(input$selHue,
                {
+                 printLog('observeEvent input$selHue')
+                 
                  rv$procband <- 'Hue'
                }
   )
@@ -229,48 +248,64 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$selSat,
                {
+                 printLog('observeEvent input$selSat')
+                 
                  rv$procband <- 'Saturation'
                }
   )
   
   observeEvent(input$selValue,
                {
+                 printLog('observeEvent input$selValue')
+                 
                  rv$procband <- 'Value'
                }
   )
   
   observeEvent(input$selBright,
                {
+                 printLog('observeEvent input$selBright')
+                 
                  rv$procband <- 'Brightness'
                }
   )
   
   observeEvent(input$selDark,
                {
+                 printLog('observeEvent input$selDark')
+                 
                  rv$procband <- 'Darkness'
                }
   )
   
   observeEvent(input$selContrast,
                {
+                 printLog('observeEvent input$selContrast')
+                 
                  rv$procband <- 'Contrast'
                }
   )
   
   observeEvent(input$selTotBr,
                {
+                 printLog('observeEvent input$selTotBr')
+                 
                  rv$procband <- 'Total Brightness'
                }
   )
   
   observeEvent(input$selRGB,
                {
+                 printLog('observeEvent input$selRGB')
+                 
                  rv$procband <- 'RGB'
                }
   )
   
   totbrightness <- reactive(
     {
+      printLog('totbrightness reactive')
+      
       tmp <- 
         rv$imgMat[,,1] + 
         rv$imgMat[,,2] + 
@@ -282,6 +317,8 @@ shinyServer(function(input, output, session)
   
   brightness <- reactive(
     {
+      printLog('brightness reactive')
+      
       if(is.null(rv$imgMat)) 
         return()
       tmp <- getBrightness(rv$imgMat)
@@ -291,6 +328,8 @@ shinyServer(function(input, output, session)
   
   darkness <- reactive(
     {
+      printLog('darkness reactive')
+      
       if(is.null(rv$imgMat)) 
         return()
       tmp <- getDarkness(rv$imgMat)
@@ -301,6 +340,8 @@ shinyServer(function(input, output, session)
   
   contrast <- reactive(
     {
+      printLog('contrast reactive')
+      
       if(is.null(rv$imgMat)) 
         return()
       tmp <- getContrast(rv$imgMat)
@@ -311,6 +352,7 @@ shinyServer(function(input, output, session)
   
   imgProcessed <- reactive(
     {
+      printLog('imgProcessed reactive')
       
       if(is.null(rv$imgMat)) 
         return()
@@ -351,114 +393,126 @@ shinyServer(function(input, output, session)
     }
   )
   
-  observeEvent(input$clearCanvas, {
-    # printLog(paste('input$clearCanvas was changed to:', '\t',input$clearCanvas))
-    if(rv$notLoaded==TRUE) return()
-    
-    rv$slideShow <- 0 
-    rv$ringTable <- data.table(no = integer(),
-                               x = numeric(),
-                               y = numeric(),
-                               relx = numeric(),
-                               rely = numeric(),
-                               type = character(),
-                               year = integer()
-    )
-    rv$check_table <- rv$check_table + 1
-  })
+  observeEvent(input$clearCanvas, 
+               {
+                 printLog('observeEvent input$clearCanvas')
+                 
+                 printLog(paste('input$clearCanvas was changed to:', '\t',input$clearCanvas))
+                 
+                 if(rv$notLoaded==TRUE) return()
+                 
+                 rv$slideShow <- 0 
+                 rv$ringTable <- data.table(no = integer(),
+                                            x = numeric(),
+                                            y = numeric(),
+                                            relx = numeric(),
+                                            rely = numeric(),
+                                            type = character(),
+                                            year = integer()
+                 )
+                 rv$check_table <- rv$check_table + 1
+               })
   
-  observeEvent(input$linkerPoint, {
-    if(rv$notLoaded==TRUE) return()
-    
-    if (nrow(rv$ringTable) == 0)
-    {
-      showModal(strong(
-        modalDialog("No ring point is identified yet!",
-                    easyClose = T,
-                    fade = T,
-                    size = 's',
-                    style='background-color:#3b3a35; color:#fce319; ',
-                    footer = NULL
-        )))
-      return()
-      
-    }else if (nrow(rv$ringTable) == 1){
-      showModal(strong(
-        modalDialog("First point cannot be a linker!",
-                    easyClose = T,
-                    fade = T,
-                    size = 's',
-                    style='background-color:#3b3a35; color:#fce319; ',
-                    footer = NULL
-        )))
-      return()
-    }else {
-      dummy <- 0
-      rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
-                                                        'Linker' = 'Normal',
-                                                        'Normal' = 'Linker')
-                   ]
-      rv$check_table <- rv$check_table + 1
-      # print(rv$ringTable)
-      # dummy <- 0
-    }
-  })
+  observeEvent(input$linkerPoint, 
+               {
+                 printLog('observeEvent input$linkerPoint')
+                 
+                 if(rv$notLoaded==TRUE) return()
+                 
+                 if (nrow(rv$ringTable) == 0)
+                 {
+                   showModal(strong(
+                     modalDialog("No ring point is identified yet!",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 's',
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 footer = NULL
+                     )))
+                   return()
+                   
+                 }else if (nrow(rv$ringTable) == 1){
+                   showModal(strong(
+                     modalDialog("First point cannot be a linker!",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 's',
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 footer = NULL
+                     )))
+                   return()
+                 }else {
+                   dummy <- 0
+                   rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
+                                                                     'Linker' = 'Normal',
+                                                                     'Normal' = 'Linker')
+                                ]
+                   rv$check_table <- rv$check_table + 1
+                   # print(rv$ringTable)
+                   # dummy <- 0
+                 }
+               })
   
-  observeEvent(input$undoCanvas, {
-    
-    # printLog(paste('input$undoCanvas was changed to:', '\t',input$undoCanvas))
-    if(rv$notLoaded==TRUE) return()
-    
-    if (nrow(rv$ringTable) > 1)
-      rv$ringTable <- rv$ringTable[-nrow(rv$ringTable),]
-    else
-      rv$ringTable <- data.table(no = integer(),
-                                 x = numeric(),
-                                 y = numeric(),
-                                 relx = numeric(),
-                                 rely = numeric(),
-                                 type = character(),
-                                 year = integer()
-      )
-    rv$check_table <- rv$check_table + 1
-  })
+  observeEvent(input$undoCanvas, 
+               {
+                 
+                 printLog('observeEvent input$undoCanvas')
+                 
+                 if(rv$notLoaded==TRUE) return()
+                 
+                 if (nrow(rv$ringTable) > 1)
+                   rv$ringTable <- rv$ringTable[-nrow(rv$ringTable),]
+                 else
+                   rv$ringTable <- data.table(no = integer(),
+                                              x = numeric(),
+                                              y = numeric(),
+                                              relx = numeric(),
+                                              rely = numeric(),
+                                              type = character(),
+                                              year = integer()
+                   )
+                 rv$check_table <- rv$check_table + 1
+               })
   
-  observeEvent(input$ring_point,{
-    # printLog(paste('input$ring_point was updated with:', '\t',input$ring_point$x, input$ring_point$y))
-    
-    if(rv$notLoaded==TRUE) return()
-    
-    if(input$confirmMeta=='Not Confirmed') {
-      showModal(strong(
-        modalDialog("First review and confirm the metadata!",
-                    easyClose = T,
-                    fade = T,
-                    size = 's',
-                    style='background-color:#3b3a35; color:#fce319; ',
-                    footer = NULL
-        )))
-      return()
-    }
-    
-    dummy =0
-    
-    no <- ifelse(is.null(rv$ringTable), 1, nrow(rv$ringTable) + 1)
-    
-    newPoint <- data.table(no = no,
-                           x = input$ring_point$x,
-                           y = input$ring_point$y,
-                           relx = input$ring_point$x/input$ring_point$domain$right,
-                           rely = input$ring_point$y/input$ring_point$domain$top,
-                           type = 'Normal',
-                           year = NA
-    )
-    if(nrow(rv$ringTable)>0){
-      last <- rv$ringTable[nrow(rv$ringTable)]
-      if(newPoint$x==last$x&newPoint$y==last$y) return()
-    }
-    rv$ringTable <- rbind(rv$ringTable, 
-                          newPoint)
-  })
+  observeEvent(input$ring_point,
+               {
+                 
+                 printLog('observeEvent input$ring_point')
+                 
+                 if(rv$notLoaded==TRUE) return()
+                 
+                 if(input$confirmMeta=='Not Confirmed') {
+                   showModal(strong(
+                     modalDialog("First review and confirm the metadata!",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 's',
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 footer = NULL
+                     )))
+                   return()
+                 }
+                 
+                 dummy =0
+                 
+                 no <- ifelse(is.null(rv$ringTable), 1, nrow(rv$ringTable) + 1)
+                 
+                 newPoint <- data.table(no = no,
+                                        x = input$ring_point$x,
+                                        y = input$ring_point$y,
+                                        relx = input$ring_point$x/input$ring_point$domain$right,
+                                        rely = input$ring_point$y/input$ring_point$domain$top,
+                                        type = 'Normal',
+                                        year = NA
+                 )
+                 if(nrow(rv$ringTable)>0){
+                   last <- rv$ringTable[nrow(rv$ringTable)]
+                   if(newPoint$x==last$x&newPoint$y==last$y) return()
+                 }
+                 rv$ringTable <- rbind(rv$ringTable, 
+                                       newPoint)
+               })
+  
   
   growthTable <- reactive({
     req(rv$check_table)
@@ -475,39 +529,48 @@ shinyServer(function(input, output, session)
     growth_table
   })
   
-  observe({
-    req(input$barkSide)
-    req(rv$ringTable)
-    req(rv$check_table)
-    
-    types <- rv$ringTable$type
-    n <- length(types)
-    years <- rep(NA, n)
-    
-    if(input$barkSide=='Bark First'){
-      for(i in 1:n)
-        years[i] <- ifelse(i==1,
-                           input$sampleYear,
-                           ifelse(types[i]=='Linker', 
-                                  years[i-1],
-                                  years[i-1] - 1)
-        )
-    }else{
-      for(i in n:1)
-        years[i] <- ifelse(i==n,
-                           input$sampleYear,
-                           ifelse(types[i]=='Linker', 
-                                  years[i+1],
-                                  years[i+1] - 1))
-    }
-    rv$ringTable$year <- years
-  })
+  observe(
+    {
+      printLog('rv$ringTable$year <- years')
+      
+      req(input$barkSide)
+      req(rv$ringTable)
+      req(rv$check_table)
+      
+      types <- rv$ringTable$type
+      n <- length(types)
+      years <- rep(NA, n)
+      
+      if(input$barkSide=='Bark First'){
+        for(i in 1:n)
+          years[i] <- ifelse(i==1,
+                             input$sampleYear,
+                             ifelse(types[i]=='Linker', 
+                                    years[i-1],
+                                    years[i-1] - 1)
+          )
+      }else{
+        for(i in n:1)
+          years[i] <- ifelse(i==n,
+                             input$sampleYear,
+                             ifelse(types[i]=='Linker', 
+                                    years[i+1],
+                                    years[i+1] - 1))
+      }
+      rv$ringTable$year <- years
+    })
   
   output$ring_table <- renderDataTable(
     {
+      printLog('output$ring_table renderDataTable')
+      
       tbl <- growthTable()
-      if(nrow(tbl)==0) return()
+      
+      if(nrow(tbl)==0) 
+        return()
+      
       req(rv$check_table)
+      
       tbl[order(-no)]
     },
     
@@ -517,6 +580,9 @@ shinyServer(function(input, output, session)
   output$downloadCSV <- downloadHandler(
     
     filename = function() {
+      
+      printLog('output$downloadCSV downloadHandler filename')
+      
       paste0('ringdata-', 
              format(Sys.time(),
                     format = '%Y-%m-%d-%H%M%S'),
@@ -524,8 +590,13 @@ shinyServer(function(input, output, session)
       
     },
     content = function(file) {
+      
+      printLog('output$downloadCSV downloadHandler content')
+      
       tbl <- growthTable()
-      if(nrow(tbl)==0) return()
+      
+      if(nrow(tbl)==0) 
+        return()
       
       write.table(tbl, 
                   file, 
@@ -539,6 +610,8 @@ shinyServer(function(input, output, session)
     
     filename = function() {
       
+      printLog('output$downloadJSON downloadHandler filename')
+      
       paste0('ringdata-', 
              format(Sys.time(),
                     format = '%Y-%m-%d-%H%M%S'),
@@ -548,9 +621,12 @@ shinyServer(function(input, output, session)
     
     content = function(file) {
       
+      printLog('output$downloadJSON downloadHandler content')
+      
       tbl <- growthTable()
       
-      if(nrow(tbl)==0) return()
+      if(nrow(tbl)==0) 
+        return()
       
       tbl %>% 
         toJSON() %>%
@@ -559,6 +635,8 @@ shinyServer(function(input, output, session)
   )
   
   observeEvent(input$confirmMeta, {
+    
+    printLog('observeEvent input$confirmMeta')
     
     if(input$confirmMeta=='Not Confirmed') return()
     
@@ -582,9 +660,12 @@ shinyServer(function(input, output, session)
   
   output$ring_plot <- renderPlotly({
     
+    printLog('output$ring_plot renderPlotly')
+    
     tbl <- growthTable()
     
-    if(nrow(tbl)==0) return()
+    if(nrow(tbl)==0) 
+      return()
     
     
     fontList <- list(
@@ -592,6 +673,7 @@ shinyServer(function(input, output, session)
       size = 16,
       color = "#7f7f7f"
     )
+    
     xAxis <- list(
       title = "Year",
       titlefont = fontList
@@ -605,8 +687,6 @@ shinyServer(function(input, output, session)
     tbl[,year:=as.factor(year)]
     
     data <- tbl[type!='Linker']
-    
-    print(data)
     
     p <- plot_ly(data = data, 
                  x=~year, 
@@ -624,5 +704,6 @@ shinyServer(function(input, output, session)
   }
   
   )
+  printLog(finit = TRUE)
 }
 )
