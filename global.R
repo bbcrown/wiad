@@ -12,6 +12,7 @@ source('aux.R')
 
 
 list.of.packages <- c(
+  'abind',
   'data.table',
   'imager',
   'jsonlite',
