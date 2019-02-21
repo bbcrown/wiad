@@ -13,10 +13,12 @@ shinyServer(function(input, output, session)
   
   # declaring reactive value
   rv <- reactiveValues(
+    
     imgMat = readPNG('not_loaded.png')[,,1:3], #RGB matrix loaded based on the image
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to update the table
+    
     ringTable = data.table( # data.table contains the ring data
       no = integer(), # no ID
       x = numeric(), # x
@@ -42,7 +44,7 @@ shinyServer(function(input, output, session)
                {
                  updateRadioButtons(session = session, 
                                     inputId = 'confirmMeta', 
-                                    selected = 'Metadata Not Confirmed!')
+                                    selected = 'Not Confirmed')
                  
                  rv$wrkID <- gsub(x = as.character(Sys.time()), 
                                   pattern = ' |:', 
@@ -93,6 +95,17 @@ shinyServer(function(input, output, session)
                                  rv$wrkID,
                                  '.png'))
                  
+                 
+                 
+                 rv$ringTable <-  data.table( # data.table contains the ring data
+                   no = integer(), # no ID
+                   x = numeric(), # x
+                   y = numeric(), # y
+                   relx = numeric(), # relative x
+                   rely = numeric(), # relative y
+                   type = character(), # type
+                   year = integer() # year
+                 )
                }
   )
   
@@ -415,7 +428,7 @@ shinyServer(function(input, output, session)
     
     if(rv$notLoaded==TRUE) return()
     
-    if(input$confirmMeta=='Metadata Not Confirmed!') {
+    if(input$confirmMeta=='Not Confirmed') {
       showModal(strong(
         modalDialog("First review and confirm the metadata!",
                     easyClose = T,
@@ -547,7 +560,7 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$confirmMeta, {
     
-    if(input$confirmMeta=='Metadata Not Confirmed!') return()
+    if(input$confirmMeta=='Not Confirmed') return()
     
     if(year(input$sampleDate)!=input$sampleYear){
       
@@ -563,7 +576,7 @@ shinyServer(function(input, output, session)
       
       updateRadioButtons(session, 
                          inputId = 'confirmMeta', 
-                         selected = 'Metadata Not Confirmed!')
+                         selected = 'Not Confirmed!')
     }
   })
   
@@ -591,16 +604,21 @@ shinyServer(function(input, output, session)
     
     tbl[,year:=as.factor(year)]
     
-    p <- plot_ly(data = tbl[type!='Linker'], 
+    data <- tbl[type!='Linker']
+    
+    print(data)
+    
+    p <- plot_ly(data = data, 
                  x=~year, 
                  y= ~growth,
-                 # color = ~band,
-                 color = '#e26828',
-                 type = 'bar'
-                 # mode = 'lines+markers'
+                 type = 'bar',
+                 marker=list(color='#e26828')
     ) %>%
       layout(xaxis = xAxis,
              yaxis = yAxis)
+    
+    p$elementId <- NULL
+    
     return(p)
     
   }
