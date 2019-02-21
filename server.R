@@ -576,7 +576,7 @@ shinyServer(function(input, output, session)
       
       updateRadioButtons(session, 
                          inputId = 'confirmMeta', 
-                         selected = 'Not Confirmed!')
+                         selected = 'Not Confirmed')
     }
   })
   
