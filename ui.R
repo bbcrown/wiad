@@ -226,13 +226,20 @@ fluidPage(
                               label = 'Download CSV'),
                
                downloadButton(outputId = 'downloadJSON', 
-                              label = 'Download JSON'),
+                              label = 'Download JSON')
                
-               plotlyOutput(outputId = 'ring_plot', 
-                            height = "500px", 
-                            width = "100%")
              )
     ),
+    
+    tabPanel('TRIAD Plot Board',
+             {
+               mainPanel(
+                 hr(),
+                 plotlyOutput(outputId = 'ring_plot', 
+                              height = "500px", 
+                              width = "100%")
+               )
+             }),
     
     tabPanel('About TRIAD',{
       includeHTML( textConnection('<div id="readme" class="readme blob instapaper_body">
