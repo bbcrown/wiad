@@ -57,7 +57,7 @@ fluidPage(
                    label = 'Sample Year', 
                    min = 1800, 
                    max = year(Sys.Date()),
-                   value = 2000),
+                   value = 2010),
       
       textInput(inputId = 'sampleLoc',
                 label = 'Sample Location', 
@@ -70,8 +70,9 @@ fluidPage(
       hr(),
       
       radioButtons(inputId = 'confirmMeta', 
-                   label = NULL, 
-                   choices = c('Metadata Not Confirmed!', 'Metadata Confirmed!')),
+                   label = 'Metadata', 
+                   choices = c('Not Confirmed', 'Confirmed'), 
+                   inline = TRUE),
       
       hr(),
       
