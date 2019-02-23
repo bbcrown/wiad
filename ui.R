@@ -251,7 +251,6 @@ fluidPage(
                                     &nbsp; &nbsp; &nbsp; 3) .<br/> <br/>
                                     However, these steps are painstaking, and need special accuracy. The TRIAD toolbox provides an interactive web interface to facilitate these process on large imagery datasets.</p>
                                     <br/>
-                                    <p>The web interface is developed and maintained by <a href="https://github.com/bnasr" target="_blank">Bijan Seyednarollah</a>.</p>
                                     
                                     </article>
                                     </div>'))
@@ -259,3 +258,7 @@ fluidPage(
     )
   )
 )
+
+
+# <p>The web interface is developed and maintained by <a href="https://github.com/bnasr" target="_blank">Bijan Seyednarollah</a>.</p>
+  
