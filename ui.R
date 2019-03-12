@@ -245,13 +245,16 @@ fluidPage(
       includeHTML( textConnection('<div id="readme" class="readme blob instapaper_body">
                                     <article class="markdown-body entry-content" itemprop="text">
                                     <br/>
-                                    <p>In order to extract meaningful dendrochronological data from tree ring digital images, one needs to : <br/>
-                                    &nbsp; &nbsp; &nbsp; 1) ; <br/>
-                                    &nbsp; &nbsp; &nbsp; 2) ; and<br/>
-                                    &nbsp; &nbsp; &nbsp; 3) .<br/> <br/>
-                                    However, these steps are painstaking, and need special accuracy. The TRIAD toolbox provides an interactive web interface to facilitate these process on large imagery datasets.</p>
+                                    &nbsp;<p style="margin-left: 40px">In order to extract meaningful data from digital images of wood, one needs to : <br/>
+                                    &nbsp; &nbsp; &nbsp; 1) collect and prepare the wood sample; <br/>
+                                    &nbsp; &nbsp; &nbsp; 2) measure variables such as ring width; and<br/>
+                                    &nbsp; &nbsp; &nbsp; 3) cross-date the resulting time series.<br/> <br/>
+                                    However, these steps are painstaking, and lack transparency and reproducibility, if performed with a linear table, thus could hugely profit from traceable automation.</p> 
+                                    <p style="margin-left: 40px">In its first version, the TRIAD toolbox provides an simple interactive web interface to facilitate the measurement of tree ring widths from scanned images and save the results in the online repository. The tool is freely avaiable online and stores the images and data series for easy sharing with collaborators and the public access after an embargo period of five years.</p>
+                                    <p style="margin-left: 40px">While images are accummulating in the TRIAD database, novel techniques to automate data extraction and cross-dating are continuously being developed by the TRIAD core development team. Features such as automatic tree ring detection and automatic cross-dating will be added to the free online tool as soon as they have been thoroughly tested.</p>
+                                    <p style="margin-left: 40px">The mission of the TRIAD team is to advance tree-ring science by providing a free tool and repository that will enable unforeseen explorations and new methods analysis, while equally facilitating data sharing and access. TRIAD will provide the tools to make tree ring science transparent and reproducible.</p>
                                     <br/>
-                                    
+                                    <p style="margin-left: 80px">Your TRIAD core development team.</p>
                                     </article>
                                     </div>'))
     }
