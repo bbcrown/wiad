@@ -102,6 +102,9 @@ shinyServer(function(input, output, session)
                                  '.png'))
                  
                  
+                 updateNumericInput(session = session,
+                                    inputId = 'dpi',
+                                    value = NULL)
                  
                  rv$ringTable <-  data.table( # data.table contains the ring data
                    no = integer(), # no ID
@@ -370,7 +373,7 @@ shinyServer(function(input, output, session)
         return(rv$imgMat)
       }
       
-      clhsv <- clRGB2HSV(rv$imgMat)
+      # clhsv <- clRGB2HSV(rv$imgMat)
       
       switch(rv$procband,
              'RGB'=rv$imgMat,
@@ -379,13 +382,13 @@ shinyServer(function(input, output, session)
              'Green'=rv$imgMat[,,2],
              'Blue'=rv$imgMat[,,3],
              
-             'Hue'=clhsv[,,1],
-             'Saturation'=clhsv[,,2],
-             'Value'=clhsv[,,3],
-             
-             'Brightness' = brightness(),
-             'Darkness' =darkness(),
-             'Contrast' = contrast(),
+             # 'Hue'=clhsv[,,1],
+             # 'Saturation'=clhsv[,,2],
+             # 'Value'=clhsv[,,3],
+             # 
+             # 'Brightness' = brightness(),
+             # 'Darkness' =darkness(),
+             # 'Contrast' = contrast(),
              
              'Total Brightness' = totbrightness()
       )
@@ -521,11 +524,12 @@ shinyServer(function(input, output, session)
     growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
     
     if(input$barkSide=='Bark First')
-      growth_table$growth <- c(0, growth)
+      growth_table$pixels <- c(0, growth)
     else
-      growth_table$growth <- c(growth, 0)
+      growth_table$pixels <- c(growth, 0)
     
     growth_table[type=='Linker', growth:=NA]  
+    growth_table[,growth:=pixels/as.numeric(input$dpi)*25.4]
     growth_table
   })
   
@@ -680,7 +684,9 @@ shinyServer(function(input, output, session)
     )
     
     yAxis <- list(
-      title = "Growth (pixels)",
+      title = ifelse(test = is.null(input$dpi),
+                     yes = "Growth (mm)",
+                     no ="Growth (pixels)"),
       titlefont = fontList
     )
     
@@ -704,6 +710,10 @@ shinyServer(function(input, output, session)
   }
   
   )
+  
+  observeEvent(input$rotate180,{
+    rv$imgMat <- rotateRGB(rotateRGB(rv$imgMat))
+  })
   printLog(finit = TRUE)
 }
 )

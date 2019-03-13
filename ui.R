@@ -20,6 +20,7 @@ fluidPage(
     .shiny-output-error-validation {
     color: red;
     }
+
     '))
   ),
   
@@ -60,6 +61,10 @@ fluidPage(
                             min = 1800, 
                             max = year(Sys.Date()),
                             value = 2010),
+               
+               numericInput(inputId = 'sampleDPI', 
+                            label = 'Sample DPI', 
+                            value = NULL),
                
                textInput(inputId = 'sampleLoc',
                          label = 'Sample Location', 
@@ -112,22 +117,8 @@ fluidPage(
                                      style='color: red; background-color: red; border-color: black;')
                  ),
                  
-                 column(4,
-                        actionButton(inputId = 'selHue', 
-                                     label = 'Hue',
-                                     width = '100%') 
-                 ),
                  
-                 column(4, 
-                        actionButton(inputId = 'selBright', 
-                                     label = 'Brightness', 
-                                     width = '100%', 
-                                     icon=icon('sun-o'), 
-                                     style='color: yellow; background-color: yellow; border-color: black;')
-                 )
-               ),
-               
-               fluidRow(
+                 
                  column(4, 
                         actionButton(inputId = 'selGreen', 
                                      label = 'Green',
@@ -137,48 +128,94 @@ fluidPage(
                  ),
                  
                  column(4, 
-                        actionButton(inputId = 'selSat', 
-                                     label = 'Saturation',
-                                     width = '100%')
-                 ),
-                 
-                 column(4, 
-                        actionButton(inputId = 'selDark', 
-                                     label = 'Darkness', 
-                                     width = '100%', 
-                                     icon=icon('moon-o'), 
-                                     style='color: black; background-color: black; border-color: black;')
-                 )
-               ),
-               
-               fluidRow(
-                 column(4, 
                         actionButton(inputId = 'selBlue', 
                                      label = 'Blue', 
                                      width = '100%', 
                                      icon=icon('bitbucket'),
                                      style='color: blue; background-color: blue; border-color: black;')
-                 ),
-                 
-                 column(4, 
-                        actionButton(inputId = 'selValue', 
-                                     label = 'Value', 
-                                     width = '100%')
-                 ),
-                 
-                 column(4, actionButton(inputId = 'selContrast', 
-                                        label = 'Contrast',
-                                        width = '100%', 
-                                        icon=icon('moon'), 
-                                        style='color: gray; background-color: gray; border-color: black;')
                  )
                ),
                
-               hr(),
+               # column(4,
+               #        actionButton(inputId = 'selHue', 
+               #                     label = 'Hue',
+               #                     width = '100%') 
+               # ),
                
+               # column(4, 
+               #        actionButton(inputId = 'selBright', 
+               #                     label = 'Brightness', 
+               #                     width = '100%', 
+               #                     icon=icon('sun-o'), 
+               #                     style='color: yellow; background-color: yellow; border-color: black;')
+               # )
+               # column(4, 
+               #        actionButton(inputId = 'selSat', 
+               #                     label = 'Saturation',
+               #                     width = '100%')
+               # ),
+               # 
+               # column(4, 
+               #        actionButton(inputId = 'selDark', 
+               #                     label = 'Darkness', 
+               #                     width = '100%', 
+               #                     icon=icon('moon-o'), 
+               #                     style='color: black; background-color: black; border-color: black;')
+               # )
+               
+               
+               # column(4, 
+               #        actionButton(inputId = 'selValue', 
+               #                     label = 'Value', 
+               #                     width = '100%')
+               # ),
+               
+               # column(4, actionButton(inputId = 'selContrast', 
+               #                        label = 'Contrast',
+               #                        width = '100%', 
+               #                        icon=icon('moon'), 
+               #                        style='color: gray; background-color: gray; border-color: black;')
+               # )
+               
+               hr(),
+               fluidRow(
+                 column(2,
+                        actionButton(inputId = 'rotate180',
+                                     label = NULL,
+                                     width = '100%',
+                                     icon=icon('sync'),
+                                     style='color: white; background-color: gray; border-color: black;')
+                 ),
+                 column(10, sliderInput(inputId = 'zoomleve',
+                                        label = 'Zoom Level', 
+                                        min = 1, 
+                                        max = 7, 
+                                        step = 1,
+                                        value = 1, 
+                                        ticks = FALSE,
+                                        width = '100%'))
+                 # column(3,
+                 #        actionButton(inputId = 'zoomout',
+                 #                     label = NULL,
+                 #                     width = '100%',
+                 #                     icon=icon('search-minus'),
+                 #                     style='color: white; background-color: gray; border-color: black;')
+                 # ),
+                 # column(3,
+                 #        actionButton(inputId = 'zoomin',
+                 #                     label = NULL,
+                 #                     width = '100%',
+                 #                     icon=icon('search-plus'),
+                 #                     style='color: white; background-color: gray; border-color: black;')
+                 # )
+                 
+                 
+               ),
+               
+               br(),
                plotOutput(outputId = 'imageProc', 
                           click = 'ring_point', 
-                          width = '100%', 
+                          width = '200%', 
                           height = '100%'),
                
                hr(),
@@ -261,4 +298,3 @@ fluidPage(
 
 
 # <p>The web interface is developed and maintained by <a href="https://github.com/bnasr" target="_blank">Bijan Seyednarollah</a>.</p>
-  
