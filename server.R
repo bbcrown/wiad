@@ -103,7 +103,7 @@ shinyServer(function(input, output, session)
                  
                  
                  updateNumericInput(session = session,
-                                    inputId = 'dpi',
+                                    inputId = 'sampleDPI',
                                     value = NULL)
                  
                  rv$ringTable <-  data.table( # data.table contains the ring data
@@ -127,9 +127,11 @@ shinyServer(function(input, output, session)
                    species = input$spp,
                    sampleDate = input$sampleDate,
                    sampleYear = input$sampleYear,
+                   sampleDPI = input$sampleDPI,
                    sampleLoc = input$sampleLoc,
                    sampleNote = input$sampleNote,
-                   ringData = rv$ringTable
+                   ringData = rv$ringTable,
+                   growth = growthTable()
       )
       
       toJSON(meta)
@@ -137,9 +139,26 @@ shinyServer(function(input, output, session)
     }
   )
   
+  autoInvalidate <- reactiveTimer(2000)
+  
+  saveNow <- reactive({
+    
+    autoInvalidate()
+    
+    write(metaData(), 
+          paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+    
+  })
+  
   observeEvent(input$saveData,
                {
                  printLog('observeEvent input$saveData')
+                 
+                 writePNG(imgProcessed(), 
+                          target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+                 
+                 writePNG(rv$imgMat, 
+                          target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
                  
                  write(metaData(), 
                        paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
@@ -529,7 +548,7 @@ shinyServer(function(input, output, session)
       growth_table$pixels <- c(growth, 0)
     
     growth_table[type=='Linker', growth:=NA]  
-    growth_table[,growth:=pixels/as.numeric(input$dpi)*25.4]
+    growth_table[,growth:=pixels/as.numeric(input$sampleDPI)*25.4]
     growth_table
   })
   
@@ -627,7 +646,8 @@ shinyServer(function(input, output, session)
       
       printLog('output$downloadJSON downloadHandler content')
       
-      tbl <- growthTable()
+      daat <- list(growth_table = growthTable(),
+                   meta_data = metaData())
       
       if(nrow(tbl)==0) 
         return()
@@ -684,7 +704,7 @@ shinyServer(function(input, output, session)
     )
     
     yAxis <- list(
-      title = ifelse(test = is.null(input$dpi),
+      title = ifelse(test = is.null(input$sampleDPI),
                      yes = "Growth (mm)",
                      no ="Growth (pixels)"),
       titlefont = fontList
