@@ -190,19 +190,6 @@ shinyServer(function(input, output, session)
       imgtmp <- imgProcessed()
       if(is.null(imgtmp)) return()
       
-      if(!rv$notLoaded) {
-        writePNG(imgtmp, 
-                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
-        
-        writePNG(rv$imgMat, 
-                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
-        
-        write(metaData(), 
-              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
-        
-        
-      }
-      
       
       imgDim <- dim(imgtmp)
       par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
@@ -635,6 +622,18 @@ shinyServer(function(input, output, session)
       
       printLog('output$downloadCSV downloadHandler content')
       
+      if(!rv$notLoaded) {
+        writePNG(imgProcessed(), 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        
+        writePNG(rv$imgMat, 
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        
+        write(metaData(), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        
+      }
+      
       tbl <- growthTable()
       
       if(nrow(tbl)==0) 
@@ -664,6 +663,18 @@ shinyServer(function(input, output, session)
     content = function(file) {
       
       printLog('output$downloadJSON downloadHandler content')
+      
+      if(!rv$notLoaded) {
+        writePNG(imgProcessed(), 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        
+        writePNG(rv$imgMat, 
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        
+        write(metaData(), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        
+      }
       
       daat <- list(growth_table = growthTable(),
                    meta_data = metaData())
