@@ -52,9 +52,15 @@ shinyServer(function(input, output, session)
                                     inputId = 'confirmMeta', 
                                     selected = 'Not Confirmed')
                  
-                 rv$wrkID <- gsub(x = as.character(Sys.time()), 
-                                  pattern = ' |:', 
-                                  replacement = '-')
+                 rv$wrkID <- paste(gsub(x = as.character(Sys.time()), 
+                                         pattern = ' |:', 
+                                         replacement = '-'),
+                                    paste(sample(x = c(0:9, letters, LETTERS),
+                                                 size = 32,
+                                                 replace=TRUE),
+                                          collapse=""), 
+                                   sep = '_'
+                                    )
                  
                  rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
                  
@@ -101,7 +107,7 @@ shinyServer(function(input, output, session)
                  }
                  
                  
-
+                 
                  
                  
                  updateNumericInput(session = session,
@@ -144,7 +150,7 @@ shinyServer(function(input, output, session)
   
   autoInvalidate <- reactiveTimer(2000)
   
-
+  
   # observeEvent(input$saveData,
   #              {
   #                printLog('observeEvent input$saveData')
@@ -172,7 +178,7 @@ shinyServer(function(input, output, session)
   
   output$imageProc <- renderPlot(
     width = function(){
-        floor(input$zoomlevel)
+      floor(input$zoomlevel)
     },
     height = function(){
       # floor(session$clientData$output_imageProc_width/rv$imgAsp)
@@ -196,7 +202,7 @@ shinyServer(function(input, output, session)
         
         
       }
-
+      
       
       imgDim <- dim(imgtmp)
       par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
