@@ -79,13 +79,13 @@ fluidPage(
                radioButtons(inputId = 'confirmMeta', 
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
-                            inline = TRUE),
+                            inline = TRUE)
                
-               hr(),
+               # hr(),
                
-               actionButton(inputId = 'saveData', 
-                            label = 'Save', 
-                            width = '100%', icon = icon('save'))
+               # actionButton(inputId = 'saveData', 
+               #              label = 'Save', 
+               #              width = '100%', icon = icon('save'))
              ),
              
              mainPanel(
@@ -186,12 +186,12 @@ fluidPage(
                                      icon=icon('sync'),
                                      style='color: white; background-color: gray; border-color: black;')
                  ),
-                 column(10, sliderInput(inputId = 'zoomleve',
-                                        label = 'Zoom Level', 
-                                        min = 1, 
-                                        max = 7, 
+                 column(10, sliderInput(inputId = 'zoomlevel',
+                                        label = 'Width', 
+                                        min = 400, 
+                                        max = 5000, 
                                         step = 1,
-                                        value = 1, 
+                                        value = 800, 
                                         ticks = FALSE,
                                         width = '100%'))
                  # column(3,
@@ -214,9 +214,11 @@ fluidPage(
                
                br(),
                plotOutput(outputId = 'imageProc', 
-                          click = 'ring_point', 
-                          width = '200%', 
-                          height = '100%'),
+                          click = 'ring_point',
+                          # width = 'auto',
+                          # height = 'auto'
+                          inline = TRUE
+                          ),
                
                hr(),
                fluidRow(
