@@ -143,7 +143,7 @@ shinyServer(function(input, output, session)
                    status = input$confirmMeta
       )
       
-      toJSON(meta)
+      # toJSON(meta)
       
     }
   )
@@ -613,6 +613,8 @@ shinyServer(function(input, output, session)
       printLog('output$downloadCSV downloadHandler filename')
       
       paste0('ringdata-', 
+             rv$wrkID, 
+             '_',
              format(Sys.time(),
                     format = '%Y-%m-%d-%H%M%S'),
              ".csv")
@@ -629,7 +631,7 @@ shinyServer(function(input, output, session)
         writePNG(rv$imgMat, 
                  target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
-        write(metaData(), 
+        write(toJSON(metaData()), 
               paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
       }
@@ -654,6 +656,8 @@ shinyServer(function(input, output, session)
       printLog('output$downloadJSON downloadHandler filename')
       
       paste0('ringdata-', 
+             rv$wrkID, 
+             '_',
              format(Sys.time(),
                     format = '%Y-%m-%d-%H%M%S'),
              ".json")
@@ -671,18 +675,18 @@ shinyServer(function(input, output, session)
         writePNG(rv$imgMat, 
                  target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
-        write(metaData(), 
+        write(toJSON(metaData()), 
               paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
       }
       
-      data <- list(growth_table = growthTable(),
-                   meta_data = metaData())
+      # data <- list(growth_table = growthTable(),
+      #              meta_data = metaData())
       
       # if(nrow(tbl)==0) 
       #   return()
       
-      data %>% 
+      metaData() %>% 
         toJSON() %>%
         write_lines(file)
     }
