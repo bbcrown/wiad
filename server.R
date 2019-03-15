@@ -89,17 +89,19 @@ shinyServer(function(input, output, session)
                  
                  imgDim <- dim(rv$imgMat)
                  
+                 writePNG(rv$imgMat,  
+                          
+                          paste0(rv$wrkDir,
+                                 'imgorg-',
+                                 rv$wrkID,
+                                 '.png'))
+                 
                  if(imgDim[2]<imgDim[1]) {
                    rv$imgMat <- rotateRGB(rv$imgMat)
                  }
                  
                  
-                 writePNG(rv$imgMat,  
-                          
-                          paste0(rv$wrkDir,
-                                 'orig-',
-                                 rv$wrkID,
-                                 '.png'))
+
                  
                  
                  updateNumericInput(session = session,
@@ -131,7 +133,8 @@ shinyServer(function(input, output, session)
                    sampleLoc = input$sampleLoc,
                    sampleNote = input$sampleNote,
                    ringData = rv$ringTable,
-                   growth = growthTable()
+                   growth = growthTable(), 
+                   status = input$confirmMeta
       )
       
       toJSON(meta)
@@ -141,49 +144,59 @@ shinyServer(function(input, output, session)
   
   autoInvalidate <- reactiveTimer(2000)
   
-  saveNow <- reactive({
-    
-    autoInvalidate()
-    
-    write(metaData(), 
-          paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
-    
-  })
-  
-  observeEvent(input$saveData,
-               {
-                 printLog('observeEvent input$saveData')
-                 
-                 writePNG(imgProcessed(), 
-                          target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
-                 
-                 writePNG(rv$imgMat, 
-                          target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
-                 
-                 write(metaData(), 
-                       paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
-                 
-                 showModal(
-                   strong(
-                     modalDialog('Sample and metadata were stored!', 
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL, 
-                                 easyClose = T, 
-                                 size = 'm')
-                   )
-                 )
-               }
-  )
+
+  # observeEvent(input$saveData,
+  #              {
+  #                printLog('observeEvent input$saveData')
+  #                
+  #                writePNG(imgProcessed(), 
+  #                         target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+  #                
+  #                writePNG(rv$imgMat, 
+  #                         target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+  #                
+  #                write(metaData(), 
+  #                      paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+  #                
+  #                showModal(
+  #                  strong(
+  #                    modalDialog('Sample and metadata were stored!', 
+  #                                style='background-color:#3b3a35; color:#fce319; ',
+  #                                footer = NULL, 
+  #                                easyClose = T, 
+  #                                size = 'm')
+  #                  )
+  #                )
+  #              }
+  # )
   
   output$imageProc <- renderPlot(
+    width = function(){
+        floor(input$zoomlevel)
+    },
     height = function(){
-      floor(session$clientData$output_imageProc_width/rv$imgAsp)
+      # floor(session$clientData$output_imageProc_width/rv$imgAsp)
+      floor(input$zoomlevel/rv$imgAsp)
     },
     {
       printLog('output$imageProc renderPlot')
       
       imgtmp <- imgProcessed()
       if(is.null(imgtmp)) return()
+      
+      if(!rv$notLoaded) {
+        writePNG(imgtmp, 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        
+        writePNG(rv$imgMat, 
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        
+        write(metaData(), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        
+        
+      }
+
       
       imgDim <- dim(imgtmp)
       par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
@@ -724,6 +737,7 @@ shinyServer(function(input, output, session)
              yaxis = yAxis)
     
     p$elementId <- NULL
+    
     
     return(p)
     
