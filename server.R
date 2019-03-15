@@ -676,13 +676,13 @@ shinyServer(function(input, output, session)
         
       }
       
-      daat <- list(growth_table = growthTable(),
+      data <- list(growth_table = growthTable(),
                    meta_data = metaData())
       
-      if(nrow(tbl)==0) 
-        return()
+      # if(nrow(tbl)==0) 
+      #   return()
       
-      tbl %>% 
+      data %>% 
         toJSON() %>%
         write_lines(file)
     }
