@@ -52,9 +52,15 @@ shinyServer(function(input, output, session)
                                     inputId = 'confirmMeta', 
                                     selected = 'Not Confirmed')
                  
-                 rv$wrkID <- gsub(x = as.character(Sys.time()), 
-                                  pattern = ' |:', 
-                                  replacement = '-')
+                 rv$wrkID <- paste(gsub(x = as.character(Sys.time()), 
+                                         pattern = ' |:', 
+                                         replacement = '-'),
+                                    paste(sample(x = c(0:9, letters, LETTERS),
+                                                 size = 32,
+                                                 replace=TRUE),
+                                          collapse=""), 
+                                   sep = '_'
+                                    )
                  
                  rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
                  
@@ -89,19 +95,24 @@ shinyServer(function(input, output, session)
                  
                  imgDim <- dim(rv$imgMat)
                  
+                 writePNG(rv$imgMat,  
+                          
+                          paste0(rv$wrkDir,
+                                 'imgorg-',
+                                 rv$wrkID,
+                                 '.png'))
+                 
                  if(imgDim[2]<imgDim[1]) {
                    rv$imgMat <- rotateRGB(rv$imgMat)
                  }
                  
                  
-                 writePNG(rv$imgMat,  
-                          
-                          paste0(rv$wrkDir,
-                                 'orig-',
-                                 rv$wrkID,
-                                 '.png'))
                  
                  
+                 
+                 updateNumericInput(session = session,
+                                    inputId = 'sampleDPI',
+                                    value = NULL)
                  
                  rv$ringTable <-  data.table( # data.table contains the ring data
                    no = integer(), # no ID
@@ -124,44 +135,61 @@ shinyServer(function(input, output, session)
                    species = input$spp,
                    sampleDate = input$sampleDate,
                    sampleYear = input$sampleYear,
+                   sampleDPI = input$sampleDPI,
                    sampleLoc = input$sampleLoc,
                    sampleNote = input$sampleNote,
-                   ringData = rv$ringTable
+                   ringData = rv$ringTable,
+                   growth = growthTable(), 
+                   status = input$confirmMeta
       )
       
-      toJSON(meta)
+      # toJSON(meta)
       
     }
   )
   
-  observeEvent(input$saveData,
-               {
-                 printLog('observeEvent input$saveData')
-                 
-                 write(metaData(), 
-                       paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
-                 
-                 showModal(
-                   strong(
-                     modalDialog('Sample and metadata were stored!', 
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL, 
-                                 easyClose = T, 
-                                 size = 'm')
-                   )
-                 )
-               }
-  )
+  autoInvalidate <- reactiveTimer(2000)
+  
+  
+  # observeEvent(input$saveData,
+  #              {
+  #                printLog('observeEvent input$saveData')
+  #                
+  #                writePNG(imgProcessed(), 
+  #                         target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+  #                
+  #                writePNG(rv$imgMat, 
+  #                         target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+  #                
+  #                write(metaData(), 
+  #                      paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+  #                
+  #                showModal(
+  #                  strong(
+  #                    modalDialog('Sample and metadata were stored!', 
+  #                                style='background-color:#3b3a35; color:#fce319; ',
+  #                                footer = NULL, 
+  #                                easyClose = T, 
+  #                                size = 'm')
+  #                  )
+  #                )
+  #              }
+  # )
   
   output$imageProc <- renderPlot(
+    width = function(){
+      floor(input$zoomlevel)
+    },
     height = function(){
-      floor(session$clientData$output_imageProc_width/rv$imgAsp)
+      # floor(session$clientData$output_imageProc_width/rv$imgAsp)
+      floor(input$zoomlevel/rv$imgAsp)
     },
     {
       printLog('output$imageProc renderPlot')
       
       imgtmp <- imgProcessed()
       if(is.null(imgtmp)) return()
+      
       
       imgDim <- dim(imgtmp)
       par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
@@ -370,7 +398,7 @@ shinyServer(function(input, output, session)
         return(rv$imgMat)
       }
       
-      clhsv <- clRGB2HSV(rv$imgMat)
+      # clhsv <- clRGB2HSV(rv$imgMat)
       
       switch(rv$procband,
              'RGB'=rv$imgMat,
@@ -379,13 +407,13 @@ shinyServer(function(input, output, session)
              'Green'=rv$imgMat[,,2],
              'Blue'=rv$imgMat[,,3],
              
-             'Hue'=clhsv[,,1],
-             'Saturation'=clhsv[,,2],
-             'Value'=clhsv[,,3],
-             
-             'Brightness' = brightness(),
-             'Darkness' =darkness(),
-             'Contrast' = contrast(),
+             # 'Hue'=clhsv[,,1],
+             # 'Saturation'=clhsv[,,2],
+             # 'Value'=clhsv[,,3],
+             # 
+             # 'Brightness' = brightness(),
+             # 'Darkness' =darkness(),
+             # 'Contrast' = contrast(),
              
              'Total Brightness' = totbrightness()
       )
@@ -521,11 +549,12 @@ shinyServer(function(input, output, session)
     growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
     
     if(input$barkSide=='Bark First')
-      growth_table$growth <- c(0, growth)
+      growth_table$pixels <- c(0, growth)
     else
-      growth_table$growth <- c(growth, 0)
+      growth_table$pixels <- c(growth, 0)
     
     growth_table[type=='Linker', growth:=NA]  
+    growth_table[,growth:=pixels/as.numeric(input$sampleDPI)*25.4]
     growth_table
   })
   
@@ -584,6 +613,8 @@ shinyServer(function(input, output, session)
       printLog('output$downloadCSV downloadHandler filename')
       
       paste0('ringdata-', 
+             rv$wrkID, 
+             '_',
              format(Sys.time(),
                     format = '%Y-%m-%d-%H%M%S'),
              ".csv")
@@ -592,6 +623,18 @@ shinyServer(function(input, output, session)
     content = function(file) {
       
       printLog('output$downloadCSV downloadHandler content')
+      
+      if(!rv$notLoaded) {
+        writePNG(imgProcessed(), 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        
+        writePNG(rv$imgMat, 
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        
+        write(toJSON(metaData()), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        
+      }
       
       tbl <- growthTable()
       
@@ -613,6 +656,8 @@ shinyServer(function(input, output, session)
       printLog('output$downloadJSON downloadHandler filename')
       
       paste0('ringdata-', 
+             rv$wrkID, 
+             '_',
              format(Sys.time(),
                     format = '%Y-%m-%d-%H%M%S'),
              ".json")
@@ -623,12 +668,25 @@ shinyServer(function(input, output, session)
       
       printLog('output$downloadJSON downloadHandler content')
       
-      tbl <- growthTable()
+      if(!rv$notLoaded) {
+        writePNG(imgProcessed(), 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        
+        writePNG(rv$imgMat, 
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        
+        write(toJSON(metaData()), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        
+      }
       
-      if(nrow(tbl)==0) 
-        return()
+      # data <- list(growth_table = growthTable(),
+      #              meta_data = metaData())
       
-      tbl %>% 
+      # if(nrow(tbl)==0) 
+      #   return()
+      
+      metaData() %>% 
         toJSON() %>%
         write_lines(file)
     }
@@ -680,7 +738,9 @@ shinyServer(function(input, output, session)
     )
     
     yAxis <- list(
-      title = "Growth (pixels)",
+      title = ifelse(test = is.null(input$sampleDPI),
+                     yes = "Growth (mm)",
+                     no ="Growth (pixels)"),
       titlefont = fontList
     )
     
@@ -699,11 +759,16 @@ shinyServer(function(input, output, session)
     
     p$elementId <- NULL
     
+    
     return(p)
     
   }
   
   )
+  
+  observeEvent(input$rotate180,{
+    rv$imgMat <- rotateRGB(rotateRGB(rv$imgMat))
+  })
   printLog(finit = TRUE)
 }
 )
