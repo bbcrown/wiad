@@ -62,7 +62,7 @@ fluidPage(
                             max = year(Sys.Date()),
                             value = 2010),
                
-               numericInput(inputId = 'sampleDPI', 
+               numericInput(inputId = 'sampleDPI', # TTR add option to measure scale bar in the image as pop-up dialogue, maybe?
                             label = 'Scan resolution (DPI)', 
                             value = NULL),
                
@@ -76,7 +76,7 @@ fluidPage(
                
                hr(),
                
-               radioButtons(inputId = 'confirmMeta', 
+               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'.
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
                             inline = TRUE)
@@ -246,7 +246,7 @@ fluidPage(
                                      class='btn-primary', 
                                      width = '100%', 
                                      style='font-weight: bold;')
-                 )
+                 ) # TTR Maybe we also want to add a false ring marker.
                ),
                
                br(),
@@ -267,7 +267,7 @@ fluidPage(
                downloadButton(outputId = 'downloadJSON', 
                               label = 'Download JSON')
                
-             )
+             ) # TTR There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.
     ),
     
     tabPanel('TRIAD Plot Board',
