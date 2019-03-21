@@ -47,7 +47,7 @@ fluidPage(
                
                textInput(inputId = 'ownerEmail', 
                          label = 'Email address', 
-                         placeholder = 'email address'),
+                         placeholder = 'Email address'),
                
                textInput(inputId = 'spp', 
                          label = 'Species', 
@@ -57,22 +57,22 @@ fluidPage(
                          label = 'Sample Date'),
                
                numericInput(inputId = 'sampleYear', 
-                            label = 'Sample Year', 
+                            label = 'Sample year', 
                             min = 1800, 
                             max = year(Sys.Date()),
                             value = 2010),
                
                numericInput(inputId = 'sampleDPI', 
-                            label = 'Sample DPI', 
+                            label = 'Scan resolution (DPI)', 
                             value = NULL),
                
                textInput(inputId = 'sampleLoc',
-                         label = 'Sample Location', 
+                         label = 'Sample location', 
                          placeholder = 'Where was the sample collected from?'),
                
                textInput(inputId = 'sampleNote', 
                          label = 'Sample note',
-                         placeholder = 'Any additional note?'),
+                         placeholder = 'Any additional notes?'),
                
                hr(),
                

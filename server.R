@@ -214,7 +214,7 @@ shinyServer(function(input, output, session)
       ring_tbl[, points(x,
                         y, 
                         pch = 19, 
-                        cex = 2, 
+                        cex = 1.2, 
                         col = 'yellow')]
       
       wLinkers <- which(rv$ringTable$type=='Linker')
@@ -224,7 +224,14 @@ shinyServer(function(input, output, session)
                x1 = rv$ringTable[wLinkers - 1, x], 
                y1 = rv$ringTable[wLinkers - 1, y], 
                lwd = 2, 
-               col = 'yellow')
+               col = 'cornflowerblue')
+      
+      points (x = rv$ringTable[wLinkers, x], 
+              y = rv$ringTable[wLinkers, y],
+              col = 'cornflowerblue',
+              pch = 19,
+              cex = 1.2,
+              lwd = 2)
       
       if(nrow(ring_tbl)>1){
         
