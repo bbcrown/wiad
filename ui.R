@@ -189,7 +189,7 @@ fluidPage(
                  column(10, sliderInput(inputId = 'zoomlevel',
                                         label = 'Width', 
                                         min = 400, 
-                                        max = 5000, 
+                                        max = 10000, 
                                         step = 1,
                                         value = 800, 
                                         ticks = FALSE,
