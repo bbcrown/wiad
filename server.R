@@ -746,8 +746,8 @@ shinyServer(function(input, output, session)
     
     yAxis <- list(
       title = ifelse(test = is.null(input$sampleDPI),
-                     yes = "Growth (mm)",
-                     no ="Growth (pixels)"),
+                     yes = "Radial growth increment (mm)",
+                     no ="Radial growth increment (pixels)"),
       titlefont = fontList
     )
     
@@ -758,7 +758,8 @@ shinyServer(function(input, output, session)
     p <- plot_ly(data = data, 
                  x=~year, 
                  y= ~growth,
-                 type = 'bar',
+                 type = 'scatter',
+                 mode = 'lines',
                  marker=list(color='#e26828')
     ) %>%
       layout(xaxis = xAxis,
