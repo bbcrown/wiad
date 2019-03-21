@@ -47,7 +47,7 @@ fluidPage(
                
                textInput(inputId = 'ownerEmail', 
                          label = 'Email address', 
-                         placeholder = 'email address'),
+                         placeholder = 'Email address'),
                
                textInput(inputId = 'spp', 
                          label = 'Species', 
@@ -57,26 +57,26 @@ fluidPage(
                          label = 'Sample Date'),
                
                numericInput(inputId = 'sampleYear', 
-                            label = 'Sample Year', 
+                            label = 'Sample year', 
                             min = 1800, 
                             max = year(Sys.Date()),
                             value = 2010),
                
-               numericInput(inputId = 'sampleDPI', 
-                            label = 'Sample DPI', 
+               numericInput(inputId = 'sampleDPI', # TTR add option to measure scale bar in the image as pop-up dialogue, maybe?
+                            label = 'Scan resolution (DPI)', 
                             value = NULL),
                
                textInput(inputId = 'sampleLoc',
-                         label = 'Sample Location', 
+                         label = 'Sample location', 
                          placeholder = 'Where was the sample collected from?'),
                
                textInput(inputId = 'sampleNote', 
                          label = 'Sample note',
-                         placeholder = 'Any additional note?'),
+                         placeholder = 'Any additional notes?'),
                
                hr(),
                
-               radioButtons(inputId = 'confirmMeta', 
+               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'.
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
                             inline = TRUE)
@@ -189,7 +189,7 @@ fluidPage(
                  column(10, sliderInput(inputId = 'zoomlevel',
                                         label = 'Width', 
                                         min = 400, 
-                                        max = 5000, 
+                                        max = 10000, 
                                         step = 1,
                                         value = 800, 
                                         ticks = FALSE,
@@ -246,7 +246,7 @@ fluidPage(
                                      class='btn-primary', 
                                      width = '100%', 
                                      style='font-weight: bold;')
-                 )
+                 ) # TTR Maybe we also want to add a false ring marker.
                ),
                
                br(),
@@ -267,7 +267,7 @@ fluidPage(
                downloadButton(outputId = 'downloadJSON', 
                               label = 'Download JSON')
                
-             )
+             ) # TTR There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.
     ),
     
     tabPanel('TRIAD Plot Board',
