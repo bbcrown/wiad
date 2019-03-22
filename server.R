@@ -553,7 +553,7 @@ shinyServer(function(input, output, session)
     req(rv$check_table)
     growth_table <- rv$ringTable
     
-    growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
+    growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2) # TTR Something is wrong witht the calculation. The numbers currently do not add up, although the formula seems to make sense. Mabye the x and y coordinates are not registered correctly.
     
     if(input$barkSide=='Bark First')
       growth_table$pixels <- c(0, growth)
@@ -747,7 +747,7 @@ shinyServer(function(input, output, session)
     yAxis <- list(
       title = ifelse(test = is.null(input$sampleDPI),
                      yes = "Radial growth increment (mm)",
-                     no ="Radial growth increment (pixels)"),
+                     no ="Radial growth increment (pixels)"), # TTR Shows pixels even when DPI is entered. We could also fit a spline through the graph and make a second plot with detrended ring width index.
       titlefont = fontList
     )
     
