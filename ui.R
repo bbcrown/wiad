@@ -76,7 +76,7 @@ fluidPage(
                
                hr(),
                
-               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'.
+               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'. Maybe with a disk icon?
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
                             inline = TRUE)
@@ -265,7 +265,7 @@ fluidPage(
                               label = 'Download CSV'),
                
                downloadButton(outputId = 'downloadJSON', 
-                              label = 'Download JSON')
+                              label = 'Download JSON') # TTR Once downloaded the download dialogue window stays open.
                
              ) # TTR There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.
     ),
@@ -296,8 +296,25 @@ fluidPage(
                                     <p style="margin-left: 80px">Your TRIAD core development team.</p>
                                     </article>
                                     </div>'))
-    }
-    )
+    }),
+    
+    tabPanel ('TRIAD Fair Use Policy',{
+      includeHTML( textConnection('<div id="readme" class="readme blob instapaper_body">
+                                  <article class="markdown-body entry-content" itemprop="text">
+                                  <br/>
+                                  <p style="margin-left: 40px"> The objective of TRIAD is to serve as a repository for digital images of wood and derived data and to make that imagery and derived data products freely available to a wide array of third-party data end-users, including researchers, educators and the general public. Thus, contact details for specific datasets is made publicly available to enhance collaboration. The raw imagery is also made publicly available without restrictions, but an embargo period of up to four years can be requested. We recommend the download of imagery and datasets for use in your own research and teaching.<br/></p>
+                                  <p style="margin-left: 40px"> We request that all publications using TRIAD to process data or downloaded imagery or derived data products properly cite TRIAD. Furthermore, we request that the paper acknowledge the TRIAD and contributors to TRIAD and the appropriate contributors for every TRIAD datum used in your analysis. The text for these acknowledgements is included in each json file when downloaded. As an example, the general acknowledgement reads as follows:<br/></p>
+                                  <p style="margin-left: 100px", style="text-align:justify"> TRIAD has been developed and is maintained by Tim Rademacher, Bijan Seyednasrollah and David J. Basler without any funding support to this date. TRIAD depends on multiple collaborators, including contributors and users, which are thanked for their efforts in support of TRIAD.<br/></p> 
+                                  <p style="margin-left: 40px"> While an contribution-specific acknowledgement, such as the Harvard Forest Red Oak data, reads as follows:  </p> 
+                                  <p style="margin-left: 100px", style="text-align:justify"> Imagery and derived data obtained for Harvard Forest was contributed by David J. Basler, David A. Orwig, Neil Pederson and Tim Rademacher.<br/> <br/></p> 
+                                  <p style="margin-left: 80px">Your TRIAD core development team.</p>
+                                  <p style="margin-left: 40px"><font size=6>Distribution and re-use policy</font></p>
+                                  <p style="margin-left: 40px">The publicly-accessible imagery and derived data is freely available under the CC0 Public Domain Dedication.</p>
+                                  <p style="margin-left: 40px"><font size=6>References</font></p>
+                                  <br/>
+                                  </article>
+                                  </div>'))
+    })
   )
 )
 
