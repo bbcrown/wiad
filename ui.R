@@ -76,7 +76,7 @@ fluidPage(
                
                hr(),
                
-               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'.
+               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'. Maybe with a disk icon?
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
                             inline = TRUE)
@@ -218,7 +218,7 @@ fluidPage(
                           # width = 'auto',
                           # height = 'auto'
                           inline = TRUE
-                          ),
+               ),
                
                hr(),
                fluidRow(
@@ -265,7 +265,7 @@ fluidPage(
                               label = 'Download CSV'),
                
                downloadButton(outputId = 'downloadJSON', 
-                              label = 'Download JSON')
+                              label = 'Download JSON') # TTR Once downloaded the download dialogue window stays open.
                
              ) # TTR There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.
     ),
@@ -281,9 +281,11 @@ fluidPage(
              }),
     
     tabPanel('About TRIAD',{
-      includeHTML('about.html')
+      includeHTML('about.md')
+      includeHTML('fair-use.md')
     }
     )
+    
   )
 )
 
