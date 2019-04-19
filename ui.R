@@ -280,10 +280,12 @@ fluidPage(
                )
              }),
     
-    tabPanel('About TRIAD',{
+    tabPanel('About TRIAD',
       includeHTML('about.md')
-      includeHTML('fair-use.md')
-    }
+    ),
+    
+    tabPanel('Fair Use Policy',
+             includeHTML('fair-use.md')
     )
     
   )
