@@ -281,11 +281,11 @@ fluidPage(
              }),
     
     tabPanel('About TRIAD',
-      includeHTML('about.md')
+             includeMarkdown('about.md')
     ),
     
     tabPanel('Fair Use Policy',
-             includeHTML('fair-use.md')
+             includeMarkdown('fair-use.md')
     )
     
   )
