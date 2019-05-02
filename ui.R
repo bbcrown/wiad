@@ -16,6 +16,7 @@ fluidPage(
   shinyjs::useShinyjs(),
   
   tags$head(
+    
     tags$style(HTML('
     .shiny-output-error-validation {
     color: red;
@@ -25,13 +26,14 @@ fluidPage(
   ),
   
   titlePanel('TRIAD: Tree Ring Image Analysis and Dataset'),
-  # headerPanel('TRIAD: Tree Ring Image Analysis and Dataset'),
+
   tabsetPanel(
-    tabPanel('TRIAD Toolbox',
-             # sidebarLayout(
-             
+
+        tabPanel('TRIAD Toolbox',
+
              sidebarPanel(
                
+               # the file input only accepts jpeg, png or tiff.
                fileInput('image', 'Choose the image file',
                          multiple = FALSE,
                          accept = c('image/jpeg',
@@ -41,41 +43,51 @@ fluidPage(
                # Horizontal line ----
                tags$hr(),
                
+               # asking the owner name
                textInput(inputId = 'ownerName', 
                          label = 'Name', 
                          placeholder = 'Your name'),
                
+               # the owners' email
                textInput(inputId = 'ownerEmail', 
                          label = 'Email address', 
                          placeholder = 'Email address'),
                
+               # species 
                textInput(inputId = 'spp', 
                          label = 'Species', 
                          placeholder = 'What genus/species?'),
                
+               # the date on which the sample was collected
                dateInput(inputId = 'sampleDate', 
                          label = 'Sample Date'),
                
+               # this might look redundant to the "date" entry, however this is used to double check user's input
                numericInput(inputId = 'sampleYear', 
                             label = 'Sample year', 
                             min = 1800, 
                             max = year(Sys.Date()),
                             value = 2010),
                
+               # resolution of the sample
                numericInput(inputId = 'sampleDPI', 
                             label = 'Scan resolution (DPI)', 
                             value = NULL),
                
+               # name of the location where the sample was collected
                textInput(inputId = 'sampleLoc',
                          label = 'Sample location', 
                          placeholder = 'Where was the sample collected from?'),
                
+               # any additional input metadata that the user might want to record
                textInput(inputId = 'sampleNote', 
                          label = 'Sample note',
                          placeholder = 'Any additional notes?'),
                
+               # horizontal line 
                hr(),
                
+               # the user is asked to confirm the metadata each time for verification purposes
                radioButtons(inputId = 'confirmMeta', 
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
