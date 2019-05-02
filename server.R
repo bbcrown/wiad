@@ -620,6 +620,14 @@ shinyServer(function(input, output, session)
       printLog('output$downloadCSV downloadHandler filename')
       
       paste0('ringdata-', 
+             input$ownerName,
+             '_',
+             input$spp,
+             '_',
+             input$sampleLoc,
+             '_',
+             input$sampleDate, 
+             '_',
              rv$wrkID, 
              '_',
              format(Sys.time(),
@@ -663,6 +671,14 @@ shinyServer(function(input, output, session)
       printLog('output$downloadJSON downloadHandler filename')
       
       paste0('ringdata-', 
+             input$ownerName,
+             '_',
+             input$spp,
+             '_',
+             input$sampleLoc,
+             '_',
+             input$sampleDate, 
+             '_',
              rv$wrkID, 
              '_',
              format(Sys.time(),
