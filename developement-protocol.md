@@ -30,7 +30,7 @@ The *master* should be bug-free as much as possible. Ideally, new features and i
 - New ideas are documented in the **working-issues.md** document under *Suggested New Features*. 
 - It is best practice to address the known issue as soon as possible
 - It is best practice to perform a comprehensive test after any debug or adding any feature to identify potential side-effects as soon as possible.
-
+- After addressing a know issue, it may be temporarily moved under **Addressed Issues**, with some extra note about how the issue was addressed. It can be completely removed after some time.
 
 ### Test
 While there are many testing approaches, we adopt two most popular testing approaches:
