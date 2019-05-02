@@ -62,7 +62,7 @@ fluidPage(
                             max = year(Sys.Date()),
                             value = 2010),
                
-               numericInput(inputId = 'sampleDPI', # TTR add option to measure scale bar in the image as pop-up dialogue, maybe?
+               numericInput(inputId = 'sampleDPI', 
                             label = 'Scan resolution (DPI)', 
                             value = NULL),
                
@@ -76,7 +76,7 @@ fluidPage(
                
                hr(),
                
-               radioButtons(inputId = 'confirmMeta', # TTR change to button saying 'Not confimred' until to click on it and it says 'confirmed'. Maybe with a disk icon?
+               radioButtons(inputId = 'confirmMeta', 
                             label = 'Metadata', 
                             choices = c('Not Confirmed', 'Confirmed'), 
                             inline = TRUE)
@@ -246,7 +246,7 @@ fluidPage(
                                      class='btn-primary', 
                                      width = '100%', 
                                      style='font-weight: bold;')
-                 ) # TTR Maybe we also want to add a false ring marker.
+                 ) 
                ),
                
                br(),
@@ -265,7 +265,7 @@ fluidPage(
                               label = 'Download CSV'),
                
                downloadButton(outputId = 'downloadJSON', 
-                              label = 'Download JSON') # TTR Once downloaded the download dialogue window stays open.
+                              label = 'Download JSON') 
                
              ) # TTR There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.
     ),
@@ -291,5 +291,3 @@ fluidPage(
   )
 )
 
-
-# <p>The web interface is developed and maintained by <a href="https://github.com/bnasr" target="_blank">Bijan Seyednarollah</a>.</p>
