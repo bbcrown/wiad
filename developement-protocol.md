@@ -52,3 +52,11 @@ At the moment, The code contains four major parts:
 4- funcs.R: contains the small functions called in server.R or ui.R
 
 It is expected that every function is responsible for a single task. While, we acknowledge *Shiny* apps are generally contain large chunks of code in server.R and ui.R as the debugging becomes a challenge for function calls from the *Shiny* shell, we still try to minimize the size of main code in server.R and ui.R.
+
+
+### Comments
+- It is expected that comments are used troughout the code to explain which part does what
+- Comments in the code are reserved only to increase clarity of each parts.   
+- Comments should not be used for raising question or adding notes about a know issue or bug. Those should be documented in *working-issues.md*.
+
+
