@@ -52,7 +52,10 @@ if(system('hostname', intern=T)%in%c('phenocam')&
 # MACRO to control log outputs
 PRINT_LOGS <- TRUE
 
+#temporary archive directory
+ARCHIVE_DIR <- 'images/'
+  
 # create a directory for uploaded images, this is probably needed only for development stages
-dir.create('images', showWarnings = FALSE)
+dir.create(ARCHIVE_DIR, showWarnings = FALSE)
 
 
