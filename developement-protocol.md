@@ -60,4 +60,10 @@ It is expected that every function is responsible for a single task. While, we a
 - Comments in the code are reserved only to increase clarity of each parts.   
 - Comments should not be used for raising question or adding notes about a know issue or bug. Those should be documented in *working-issues.md*.
 
+### Versioning
+We adopt a simple versioning approach with three digits: **_X.Y.Z.B_**, starting from 0.0.1.0. From the left:
 
+- **_X_**: The first digit indicates major released version number, it should remain as **0** until the first complete fully tested version is released.
+- **_Y_**: The second digit indicate its status: 0 for alpha, 1 for beta, 2 for candidate for release and 3 for released. 
+- **_Z_**: The third digit indicates minor released, reserved for changes that add new minor functionalities or addressed serveral bugs
+- **_B_**: The last digit indicates the build number, starting from 1. Each build addresses failry minor features or bugs or small appearance issues. 
