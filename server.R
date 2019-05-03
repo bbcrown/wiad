@@ -8,10 +8,14 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
+
+
 shinyServer(function(input, output, session)
 {
   
+  # sent the initial log message
   printLog(init = TRUE)
+  
   
   # declaring reactive value
   rv <- reactiveValues(
@@ -44,6 +48,7 @@ shinyServer(function(input, output, session)
   #=================================================================
   # 
   
+  # whenever new image was uploaded
   observeEvent(input$image,
                {
                  printLog('observeEvent input$image')
@@ -62,8 +67,10 @@ shinyServer(function(input, output, session)
                                    sep = '_'
                  )
                  
-                 rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
+                 # set the sub directory for the sample
+                 rv$wrkDir <- paste0(ARCHIVE_DIR, 'W-', rv$wrkID, '/')
                  
+                 # create the sub directory for the sample
                  dir.create(rv$wrkDir)
                  
                  rv$imgPath <- input$image$datapath
@@ -194,8 +201,8 @@ shinyServer(function(input, output, session)
       imgDim <- dim(imgtmp)
       par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
       plot(NA, 
-           xlim = c(1,imgDim[1]),
-           ylim = c(1,imgDim[2]),
+           xlim = c(1,imgDim[2]),
+           ylim = c(1,imgDim[1]),
            type='n', 
            axes= FALSE, 
            xlab= '',
@@ -235,13 +242,27 @@ shinyServer(function(input, output, session)
       
       if(nrow(ring_tbl)>1){ 
         
-        ab <- lm(ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)],
-                 formula = y~x)
+        xy <- ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)]
+        slope <- diff(xy$y)/diff(xy$x)
+        intercept <- xy$y[1] - slope*xy$x[1]
         
-        abline(ab, 
-               col = 'yellow',
-               lwd = 2, 
-               lty = 2)
+        if(!is.infinite(slope)){
+          
+          abline(intercept, 
+                 slope,
+                 col = 'yellow',
+                 lwd = 2, 
+                 lty = 2)
+        }
+        else
+        {
+          
+          abline(v = mean(xy$x),
+                 col = 'yellow',
+                 lwd = 2, 
+                 lty = 2)
+        }
+        
       }
     })
   
