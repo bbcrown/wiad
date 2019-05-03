@@ -75,7 +75,7 @@ fluidPage(
                             label = 'Sample year', 
                             min = 1800, 
                             max = year(Sys.Date()),
-                            value = 2010),
+                            value = 2019),
                
                # resolution of the sample
                numericInput(inputId = 'sampleDPI', 
@@ -99,6 +99,7 @@ fluidPage(
                radioButtons(inputId = 'confirmMeta', 
                             label = 'Metadata', 
                             choices  = list('Not Confirmed', 'Confirmed'),
+                            selected = 'Not Confirmed',
                             # choiceNames = list(icon("save"), icon("next")),
                             inline = TRUE)
                
@@ -287,7 +288,7 @@ fluidPage(
              includeMarkdown('about.md')
     ),
     
-    # tabpanel fpr fair use and copyright policy
+    # tabpanel for fair use and copyright policy
     tabPanel('Fair Use Policy',
              
              #load from the markdown document
