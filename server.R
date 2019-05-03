@@ -53,14 +53,14 @@ shinyServer(function(input, output, session)
                                     selected = 'Not Confirmed')
                  
                  rv$wrkID <- paste(gsub(x = as.character(Sys.time()), 
-                                         pattern = ' |:', 
-                                         replacement = '-'),
-                                    paste(sample(x = c(0:9, letters, LETTERS),
-                                                 size = 32,
-                                                 replace=TRUE),
-                                          collapse=""), 
+                                        pattern = ' |:', 
+                                        replacement = '-'),
+                                   paste(sample(x = c(0:9, letters, LETTERS),
+                                                size = 32,
+                                                replace=TRUE),
+                                         collapse=""), 
                                    sep = '_'
-                                    )
+                 )
                  
                  rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
                  
@@ -560,7 +560,7 @@ shinyServer(function(input, output, session)
     else
       growth_table$pixels <- c(growth, 0)
     
-    growth_table[type=='Linker', growth:=NA]  
+    growth_table[type=='Linker', pixels:=NA]  
     growth_table[,growth:=pixels/as.numeric(input$sampleDPI)*25.4]
     growth_table
   })
@@ -761,9 +761,9 @@ shinyServer(function(input, output, session)
     )
     
     yAxis <- list(
-      title = ifelse(test = is.null(input$sampleDPI),
-                     yes = "Radial growth increment (mm)",
-                     no ="Radial growth increment (pixels)"), 
+      title = ifelse(test = is.na(input$sampleDPI),
+                     no = "Radial growth increment (mm)",
+                     yes ="Radial growth increment (pixels)"), 
       titlefont = fontList
     )
     
@@ -771,9 +771,17 @@ shinyServer(function(input, output, session)
     
     data <- tbl[type!='Linker']
     
+    if(is.na(input$sampleDPI)){
+      data[,toplot:=pixels]
+    }
+    else
+    {
+      data[,toplot:=growth]
+    }
+    
     p <- plot_ly(data = data, 
                  x=~year, 
-                 y= ~growth,
+                 y= ~toplot,
                  type = 'scatter',
                  mode = 'lines',
                  marker=list(color='#e26828')
