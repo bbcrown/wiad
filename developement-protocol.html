@@ -382,8 +382,6 @@ $(document).ready(function () {
 </div>
 
 
-<div id="triad-development-protocol" class="section level2">
-<h2>TRIAD Development Protocol</h2>
 <p>This document explains the development protocol and style guide for the TRIAD project</p>
 <div id="style-guide" class="section level3">
 <h3>Style Guide</h3>
@@ -421,10 +419,15 @@ $(document).ready(function () {
 <p>It is expected that all features of the application are “white-box” tested as soon as the development is completed. Ideally, a <em>test case</em> should be implemented for each test of all functions/methods/scripts.</p>
 <p>It is expected that several comprehensive <em>black-box</em> test case are designed and documented, in order to test the entire app for identifying potenital issues.</p>
 </div>
-<div id="triad-code-structure" class="section level3">
-<h3>TRIAD Code Structure</h3>
+<div id="code-structure" class="section level3">
+<h3>Code Structure</h3>
 <p>At the moment, The code contains four major parts:</p>
-<p>1- global.R: to initialize the application before calling ui.R 2- ui.R: the user interface is built in ui.R 3- server.R: the functionalities are developed in server.R 4- funcs.R: contains the small functions called in server.R or ui.R</p>
+<ol style="list-style-type: decimal">
+<li><strong><em>global.R</em></strong>: to initialize the application before calling ui.R</li>
+<li><strong><em>ui.R</em></strong>: the user interface is built in ui.R</li>
+<li><strong><em>server.R</em></strong>: the functionalities are developed in server.R</li>
+<li><strong><em>funcs.R</em></strong>: contains the small functions called in server.R or ui.R</li>
+</ol>
 <p>It is expected that every function is responsible for a single task. While, we acknowledge <em>Shiny</em> apps are generally contain large chunks of code in server.R and ui.R as the debugging becomes a challenge for function calls from the <em>Shiny</em> shell, we still try to minimize the size of main code in server.R and ui.R.</p>
 </div>
 <div id="comments" class="section level3">
@@ -445,7 +448,6 @@ $(document).ready(function () {
 <li><strong><em>Z</em></strong>: The third digit indicates minor released, reserved for changes that add new minor functionalities or addressed serveral bugs</li>
 <li><strong><em>B</em></strong>: The last digit indicates the build number, starting from 1. Each build addresses failry minor features or bugs or small appearance issues.</li>
 </ul>
-</div>
 </div>
 
 
