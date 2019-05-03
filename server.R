@@ -244,7 +244,8 @@ shinyServer(function(input, output, session)
         
         xy <- ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)]
         slope <- diff(xy$y)/diff(xy$x)
-        intercept <- xy$y[1] - slope*xy$x[1]
+        if(rv$ringTable[nrow(rv$ringTable),type]=='Linker') slope <- -1/slope
+        intercept <- xy$y[2] - slope*xy$x[2]
         
         if(!is.infinite(slope)){
           

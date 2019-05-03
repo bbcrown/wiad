@@ -8,7 +8,6 @@ This is a place to document known issues, reproducible bugs and new ideas. This 
 
 
 ## Known Issues
-- Change to be perpendicular if the last marker was a linker.
 
 ## Addressed Issues
 - Once downloaded the download dialogue window stays open: **that may happen only when using R browser, should not happen by external window**
@@ -18,6 +17,7 @@ This is a place to document known issues, reproducible bugs and new ideas. This 
 - Linker should get NA **this is fixed now**
 - There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.  **currenlty limited by Shiny functionalities, but it should be fixed, when we put this in a frame**
 - Something is wrong witht the calculation. The numbers currently do not add up, although the formula seems to make sense. Mabye the x and y coordinates are not registered correctly. **this is fixed now, the issue was due to the opposite order of image dimension and XY axis**
+- Change to be perpendicular if the last marker was a linker. **this is implemented now**
 
 
 
