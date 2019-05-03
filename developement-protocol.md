@@ -31,6 +31,7 @@ The *master* should be bug-free as much as possible. Ideally, new features and i
 - It is best practice to address the known issue as soon as possible
 - It is best practice to perform a comprehensive test after any debug or adding any feature to identify potential side-effects as soon as possible.
 - After addressing a know issue, it may be temporarily moved under **Addressed Issues**, with some extra note about how the issue was addressed. It can be completely removed after some time.
+- After having the first stable version, all know issues should be submitted to the GitHub repo. Only known issues with no solution should be listed in **working-issue.md**.
 
 ### Test
 While there are many testing approaches, we adopt two most popular testing approaches:
