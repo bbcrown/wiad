@@ -9,12 +9,16 @@
 #######################################################################
 
 
+# load as a fluid page
 fluidPage(
   
+  # loading the "slate" theme
   theme= shinytheme('slate'),
   
+  #adding JS functionalities
   shinyjs::useShinyjs(),
   
+  # UI header
   tags$head(
     
     tags$style(HTML('
@@ -25,12 +29,16 @@ fluidPage(
     '))
   ),
   
+  # title of the page
   titlePanel('TRIAD: Tree Ring Image Analysis and Dataset'),
-
+  
+  # the tabset containts four tab panels
   tabsetPanel(
-
-        tabPanel('TRIAD Toolbox',
-
+    
+    # main tab panel
+    tabPanel('TRIAD Toolbox',
+             
+             # sidebar panel
              sidebarPanel(
                
                # the file input only accepts jpeg, png or tiff.
@@ -90,19 +98,18 @@ fluidPage(
                # the user is asked to confirm the metadata each time for verification purposes
                radioButtons(inputId = 'confirmMeta', 
                             label = 'Metadata', 
-                            choices = c('Not Confirmed', 'Confirmed'), 
+                            choices  = list('Not Confirmed', 'Confirmed'),
+                            # choiceNames = list(icon("save"), icon("next")),
                             inline = TRUE)
                
-               # hr(),
-               
-               # actionButton(inputId = 'saveData', 
-               #              label = 'Save', 
-               #              width = '100%', icon = icon('save'))
              ),
              
              mainPanel(
                
+               # two buttons in a single row
                fluidRow(
+                 
+                 # select true color RGB 
                  column(6, 
                         actionButton(inputId = 'selRGB', 
                                      label = 'RGB',
@@ -110,6 +117,7 @@ fluidPage(
                                      icon=icon('bell'))
                  ),
                  
+                 # select monochoromic total brightness
                  column(6, 
                         actionButton(inputId = 'selTotBr', 
                                      label = 'Total Brightness',
@@ -118,9 +126,13 @@ fluidPage(
                  )
                ),
                
+               #section breaker for spacing
                br(),
                
+               # three buttons in a sinlgle row, equidistant
                fluidRow(
+                 
+                 # to show only the red channel
                  column(4, 
                         actionButton(inputId = 'selRed', 
                                      label = 'Red', 
@@ -130,7 +142,7 @@ fluidPage(
                  ),
                  
                  
-                 
+                 # to show only the green channel
                  column(4, 
                         actionButton(inputId = 'selGreen', 
                                      label = 'Green',
@@ -139,6 +151,7 @@ fluidPage(
                                      style='color: green; background-color: green; border-color: black;')
                  ),
                  
+                 # to show only the blue channel
                  column(4, 
                         actionButton(inputId = 'selBlue', 
                                      label = 'Blue', 
@@ -148,49 +161,14 @@ fluidPage(
                  )
                ),
                
-               # column(4,
-               #        actionButton(inputId = 'selHue', 
-               #                     label = 'Hue',
-               #                     width = '100%') 
-               # ),
-               
-               # column(4, 
-               #        actionButton(inputId = 'selBright', 
-               #                     label = 'Brightness', 
-               #                     width = '100%', 
-               #                     icon=icon('sun-o'), 
-               #                     style='color: yellow; background-color: yellow; border-color: black;')
-               # )
-               # column(4, 
-               #        actionButton(inputId = 'selSat', 
-               #                     label = 'Saturation',
-               #                     width = '100%')
-               # ),
-               # 
-               # column(4, 
-               #        actionButton(inputId = 'selDark', 
-               #                     label = 'Darkness', 
-               #                     width = '100%', 
-               #                     icon=icon('moon-o'), 
-               #                     style='color: black; background-color: black; border-color: black;')
-               # )
-               
-               
-               # column(4, 
-               #        actionButton(inputId = 'selValue', 
-               #                     label = 'Value', 
-               #                     width = '100%')
-               # ),
-               
-               # column(4, actionButton(inputId = 'selContrast', 
-               #                        label = 'Contrast',
-               #                        width = '100%', 
-               #                        icon=icon('moon'), 
-               #                        style='color: gray; background-color: gray; border-color: black;')
-               # )
-               
+
+               # horizontal bar breaker
                hr(),
+               
+               # a fluid row that carries rotation button and zoom level bar
                fluidRow(
+                 
+                 # rotation button
                  column(2,
                         actionButton(inputId = 'rotate180',
                                      label = NULL,
@@ -198,6 +176,8 @@ fluidPage(
                                      icon=icon('sync'),
                                      style='color: white; background-color: gray; border-color: black;')
                  ),
+                 
+                 # zoom level bar
                  column(10, sliderInput(inputId = 'zoomlevel',
                                         label = 'Width', 
                                         min = 400, 
@@ -206,25 +186,13 @@ fluidPage(
                                         value = 800, 
                                         ticks = FALSE,
                                         width = '100%'))
-                 # column(3,
-                 #        actionButton(inputId = 'zoomout',
-                 #                     label = NULL,
-                 #                     width = '100%',
-                 #                     icon=icon('search-minus'),
-                 #                     style='color: white; background-color: gray; border-color: black;')
-                 # ),
-                 # column(3,
-                 #        actionButton(inputId = 'zoomin',
-                 #                     label = NULL,
-                 #                     width = '100%',
-                 #                     icon=icon('search-plus'),
-                 #                     style='color: white; background-color: gray; border-color: black;')
-                 # )
-                 
-                 
                ),
                
+               
+               # section breaker
                br(),
+               
+               # main image plot to show the processed image, the raw image is only stored
                plotOutput(outputId = 'imageProc', 
                           click = 'ring_point',
                           # width = 'auto',
@@ -232,8 +200,13 @@ fluidPage(
                           inline = TRUE
                ),
                
+               # horizontal bar breaker
                hr(),
+               
+               # three buttons in a sinle fluid row
                fluidRow(
+                 
+                 # to clear all the points
                  column(4, 
                         actionButton(inputId = 'clearCanvas', 
                                      label = 'Erase', 
@@ -242,6 +215,8 @@ fluidPage(
                                      width = '100%',
                                      style='font-weight: bold;')),
                  
+                 
+                 # undo the last click
                  column(4,  
                         actionButton(inputId = 'undoCanvas', 
                                      label = 'Undo',
@@ -251,6 +226,7 @@ fluidPage(
                                      style='font-weight: bold;')
                  ),
                  
+                 # on or off the linker status
                  column(4, 
                         actionButton(inputId = 'linkerPoint', 
                                      label = 'Linker On/Off',
@@ -261,42 +237,60 @@ fluidPage(
                  ) 
                ),
                
+               # section breaker
                br(),
                
+               # radio button to switch the bark side of the image, from left to right
                radioButtons(inputId = 'barkSide', 
                             label = NULL, 
                             choices = c('Bark First', 'Bark Last'), 
                             inline = TRUE, 
                             width = '100%'),
                
+               
+               # horizontal bar breaker
                hr(),
                
+               # show the ring table 
                dataTableOutput(outputId = 'ring_table'),
                
+               # to download the ring table in CSV
                downloadButton(outputId = 'downloadCSV', 
                               label = 'Download CSV'),
                
+               # to download the ring table in JSON format, this will include metadat
                downloadButton(outputId = 'downloadJSON', 
                               label = 'Download JSON') 
                
-             ) # TTR There is a bug that when you increase the zoom the table extends all the way across, but it does not contract when the user zooms out again.
+             ) 
     ),
     
+    # tabpanel for plitting the growth curve
     tabPanel('TRIAD Plot Board',
              {
                mainPanel(
+                 
+                 # horizontal bar breaker
                  hr(),
+                 
+                 # plot the growth table
                  plotlyOutput(outputId = 'ring_plot', 
                               height = "500px", 
                               width = "100%")
                )
              }),
     
+    # tabpabel for the about page
     tabPanel('About TRIAD',
+             
+             # load from the markdown document
              includeMarkdown('about.md')
     ),
     
+    # tabpanel fpr fair use and copyright policy
     tabPanel('Fair Use Policy',
+             
+             #load from the markdown document
              includeMarkdown('fair-use.md')
     )
     
