@@ -1,7 +1,8 @@
 ---
 title: "TRIAD Development Protocol"
-author: Bijan Seyednasrollah
-date: "2019-05-01"
+author: "Bijan Seyednasrollah"
+date: '2019-05-01'
+output: word_document
 ---
 
 
