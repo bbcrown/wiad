@@ -2,9 +2,6 @@
 title: "TRIAD Working Issues"
 author: "Bijan Seyednasrollah"
 date: '2019-05-01'
-output:
-  html_document:
-    df_print: paged
 ---
 
 This is a place to document known issues, reproducible bugs and new ideas. This document lists the know issues identfied during the devlopement process.
