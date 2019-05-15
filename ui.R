@@ -92,6 +92,21 @@ fluidPage(
                          label = 'Sample note',
                          placeholder = 'Any additional notes?'),
                
+               # name of the collection
+               textInput(inputId = 'sampleID', 
+                         label = 'Sample ID',
+                         placeholder = 'Internal sampel ID'),
+               
+               # name of the collection
+               textInput(inputId = 'collection', 
+                         label = 'Collection',
+                         placeholder = 'Name of the collection'),
+               
+               # name of the contributor
+               textInput(inputId = 'contributor', 
+                         label = 'Contributor',
+                         placeholder = 'Who is the main contributor of the dataset?'),
+               
                # horizontal line 
                hr(),
                

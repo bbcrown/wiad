@@ -145,6 +145,9 @@ shinyServer(function(input, output, session)
                    sampleDPI = input$sampleDPI,
                    sampleLoc = input$sampleLoc,
                    sampleNote = input$sampleNote,
+                   sampleID = input$sampleID,
+                   collection = input$collection,
+                   contributor = input$contributor,
                    ringData = rv$ringTable,
                    growth = growthTable(), 
                    status = input$confirmMeta
