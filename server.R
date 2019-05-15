@@ -347,7 +347,7 @@ shinyServer(function(input, output, session)
                {
                  printLog('observeEvent input$selTotBr')
                  
-                 rv$procband <- 'Total Brightness'
+                 rv$procband <- 'Brightness'
                }
   )
   
@@ -432,19 +432,11 @@ shinyServer(function(input, output, session)
       switch(rv$procband,
              'RGB'=rv$imgMat,
              
-             'Red'=rv$imgMat[,,1],
-             'Green'=rv$imgMat[,,2],
+             # 'Red'=rv$imgMat[,,1],
+             # 'Green'=rv$imgMat[,,2],
              'Blue'=rv$imgMat[,,3],
              
-             # 'Hue'=clhsv[,,1],
-             # 'Saturation'=clhsv[,,2],
-             # 'Value'=clhsv[,,3],
-             # 
-             # 'Brightness' = brightness(),
-             # 'Darkness' =darkness(),
-             # 'Contrast' = contrast(),
-             
-             'Total Brightness' = totbrightness()
+             'Brightness' = totbrightness()
       )
       
     }
