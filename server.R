@@ -8,10 +8,14 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
+
+
 shinyServer(function(input, output, session)
 {
   
+  # sent the initial log message
   printLog(init = TRUE)
+  
   
   # declaring reactive value
   rv <- reactiveValues(
@@ -44,6 +48,7 @@ shinyServer(function(input, output, session)
   #=================================================================
   # 
   
+  # whenever new image was uploaded
   observeEvent(input$image,
                {
                  printLog('observeEvent input$image')
@@ -53,17 +58,19 @@ shinyServer(function(input, output, session)
                                     selected = 'Not Confirmed')
                  
                  rv$wrkID <- paste(gsub(x = as.character(Sys.time()), 
-                                         pattern = ' |:', 
-                                         replacement = '-'),
-                                    paste(sample(x = c(0:9, letters, LETTERS),
-                                                 size = 32,
-                                                 replace=TRUE),
-                                          collapse=""), 
+                                        pattern = ' |:', 
+                                        replacement = '-'),
+                                   paste(sample(x = c(0:9, letters, LETTERS),
+                                                size = 32,
+                                                replace=TRUE),
+                                         collapse=""), 
                                    sep = '_'
-                                    )
+                 )
                  
-                 rv$wrkDir <- paste0('images/W-', rv$wrkID, '/')
+                 # set the sub directory for the sample
+                 rv$wrkDir <- paste0(ARCHIVE_DIR, 'W-', rv$wrkID, '/')
                  
+                 # create the sub directory for the sample
                  dir.create(rv$wrkDir)
                  
                  rv$imgPath <- input$image$datapath
@@ -138,6 +145,9 @@ shinyServer(function(input, output, session)
                    sampleDPI = input$sampleDPI,
                    sampleLoc = input$sampleLoc,
                    sampleNote = input$sampleNote,
+                   sampleID = input$sampleID,
+                   collection = input$collection,
+                   contributor = input$contributor,
                    ringData = rv$ringTable,
                    growth = growthTable(), 
                    status = input$confirmMeta
@@ -194,8 +204,8 @@ shinyServer(function(input, output, session)
       imgDim <- dim(imgtmp)
       par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
       plot(NA, 
-           xlim = c(1,imgDim[1]),
-           ylim = c(1,imgDim[2]),
+           xlim = c(1,imgDim[2]),
+           ylim = c(1,imgDim[1]),
            type='n', 
            axes= FALSE, 
            xlab= '',
@@ -233,15 +243,30 @@ shinyServer(function(input, output, session)
               cex = 1.2,
               lwd = 2)
       
-      if(nrow(ring_tbl)>1){ # TTR Change to be perpendicular if the last marker was a linker.
+      if(nrow(ring_tbl)>1){ 
         
-        ab <- lm(ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)],
-                 formula = y~x)
+        xy <- ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)]
+        slope <- diff(xy$y)/diff(xy$x)
+        if(rv$ringTable[nrow(rv$ringTable),type]=='Linker') slope <- -1/slope
+        intercept <- xy$y[2] - slope*xy$x[2]
         
-        abline(ab, 
-               col = 'yellow',
-               lwd = 2, 
-               lty = 2)
+        if(!is.infinite(slope)){
+          
+          abline(intercept, 
+                 slope,
+                 col = 'yellow',
+                 lwd = 2, 
+                 lty = 2)
+        }
+        else
+        {
+          
+          abline(v = mean(xy$x),
+                 col = 'yellow',
+                 lwd = 2, 
+                 lty = 2)
+        }
+        
       }
     })
   
@@ -325,7 +350,7 @@ shinyServer(function(input, output, session)
                {
                  printLog('observeEvent input$selTotBr')
                  
-                 rv$procband <- 'Total Brightness'
+                 rv$procband <- 'Brightness'
                }
   )
   
@@ -410,19 +435,11 @@ shinyServer(function(input, output, session)
       switch(rv$procband,
              'RGB'=rv$imgMat,
              
-             'Red'=rv$imgMat[,,1],
-             'Green'=rv$imgMat[,,2],
+             # 'Red'=rv$imgMat[,,1],
+             # 'Green'=rv$imgMat[,,2],
              'Blue'=rv$imgMat[,,3],
              
-             # 'Hue'=clhsv[,,1],
-             # 'Saturation'=clhsv[,,2],
-             # 'Value'=clhsv[,,3],
-             # 
-             # 'Brightness' = brightness(),
-             # 'Darkness' =darkness(),
-             # 'Contrast' = contrast(),
-             
-             'Total Brightness' = totbrightness()
+             'Brightness' = totbrightness()
       )
       
     }
@@ -553,14 +570,14 @@ shinyServer(function(input, output, session)
     req(rv$check_table)
     growth_table <- rv$ringTable
     
-    growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2) # TTR Something is wrong witht the calculation. The numbers currently do not add up, although the formula seems to make sense. Mabye the x and y coordinates are not registered correctly.
+    growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
     
     if(input$barkSide=='Bark First')
       growth_table$pixels <- c(0, growth)
     else
       growth_table$pixels <- c(growth, 0)
     
-    growth_table[type=='Linker', growth:=NA]  
+    growth_table[type=='Linker', pixels:=NA]  
     growth_table[,growth:=pixels/as.numeric(input$sampleDPI)*25.4]
     growth_table
   })
@@ -619,7 +636,15 @@ shinyServer(function(input, output, session)
       
       printLog('output$downloadCSV downloadHandler filename')
       
-      paste0('ringdata-', # TTR Change the file name to make use of the metadata, this makes it easier for the user to process the data afterwards (i.e. automating the reading of several files generated by TRIAD).
+      paste0('ringdata-', 
+             input$ownerName,
+             '_',
+             input$spp,
+             '_',
+             input$sampleLoc,
+             '_',
+             input$sampleDate, 
+             '_',
              rv$wrkID, 
              '_',
              format(Sys.time(),
@@ -663,6 +688,14 @@ shinyServer(function(input, output, session)
       printLog('output$downloadJSON downloadHandler filename')
       
       paste0('ringdata-', 
+             input$ownerName,
+             '_',
+             input$spp,
+             '_',
+             input$sampleLoc,
+             '_',
+             input$sampleDate, 
+             '_',
              rv$wrkID, 
              '_',
              format(Sys.time(),
@@ -745,9 +778,9 @@ shinyServer(function(input, output, session)
     )
     
     yAxis <- list(
-      title = ifelse(test = is.null(input$sampleDPI),
-                     yes = "Radial growth increment (mm)",
-                     no ="Radial growth increment (pixels)"), # TTR Shows pixels even when DPI is entered. We could also fit a spline through the graph and make a second plot with detrended ring width index.
+      title = ifelse(test = is.na(input$sampleDPI),
+                     no = "Radial growth increment (mm)",
+                     yes ="Radial growth increment (pixels)"), 
       titlefont = fontList
     )
     
@@ -755,9 +788,17 @@ shinyServer(function(input, output, session)
     
     data <- tbl[type!='Linker']
     
+    if(is.na(input$sampleDPI)){
+      data[,toplot:=pixels]
+    }
+    else
+    {
+      data[,toplot:=growth]
+    }
+    
     p <- plot_ly(data = data, 
                  x=~year, 
-                 y= ~growth,
+                 y= ~toplot,
                  type = 'scatter',
                  mode = 'lines',
                  marker=list(color='#e26828')
@@ -780,3 +821,5 @@ shinyServer(function(input, output, session)
   printLog(finit = TRUE)
 }
 )
+
+
