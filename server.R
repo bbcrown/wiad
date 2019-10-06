@@ -8,7 +8,8 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
-
+# increase maximal size of images to 30 MB
+options (shiny.maxRequestSize = 30 * 1024^2)
 
 shinyServer(function(input, output, session)
 {
@@ -77,13 +78,13 @@ shinyServer(function(input, output, session)
                  
                  rv$imgExt <- file_ext(rv$imgPath)
                  
-                 if(rv$imgExt%in%c('jpg', 'jpeg')) 
+                 if(rv$imgExt%in%c('jpg', 'jpeg', 'JPG', 'JPEG')) 
                    rv$imgMat <- readJPEG(rv$imgPath)
                  else 
-                   if(rv$imgExt%in%c('tiff', 'tif')) 
+                   if(rv$imgExt%in%c('tiff', 'tif', 'TIF', 'TIFF')) 
                      rv$imgMat <- readTIFF(rv$imgPath)
                  else 
-                   if(rv$imgExt%in%c('png')) 
+                   if(rv$imgExt%in%c('png','PNG')) 
                      rv$imgMat <- readPNG(rv$imgPath)[,,1:3]
                  else   {      
                    showModal(strong(
@@ -228,6 +229,7 @@ shinyServer(function(input, output, session)
                         col = 'yellow')]
       
       wLinkers <- which(rv$ringTable$type=='Linker')
+      wPith    <- which(rv$ringTable$type=='Pith')
       
       segments(x0 = rv$ringTable[wLinkers, x], 
                y0 = rv$ringTable[wLinkers, y],
@@ -239,6 +241,13 @@ shinyServer(function(input, output, session)
       points (x = rv$ringTable[wLinkers, x], 
               y = rv$ringTable[wLinkers, y],
               col = 'cornflowerblue',
+              pch = 19,
+              cex = 1.2,
+              lwd = 2)
+      
+      points (x = rv$ringTable[wPith, x], 
+              y = rv$ringTable[wPith, y],
+              col = '#c90016',
               pch = 19,
               cex = 1.2,
               lwd = 2)
@@ -467,14 +476,14 @@ shinyServer(function(input, output, session)
   
   observeEvent(input$linkerPoint, 
                {
-                 printLog('observeEvent input$linkerPoint')
+                 printLog ('observeEvent input$linkerPoint')
                  
-                 if(rv$notLoaded==TRUE) return()
+                 if (rv$notLoaded==TRUE) return ()
                  
                  if (nrow(rv$ringTable) == 0)
                  {
                    showModal(strong(
-                     modalDialog("No ring point is identified yet!",
+                     modalDialog("No ring marker is identified yet!",
                                  easyClose = T,
                                  fade = T,
                                  size = 's',
@@ -493,7 +502,7 @@ shinyServer(function(input, output, session)
                                  footer = NULL
                      )))
                    return()
-                 }else {
+                 } else {
                    dummy <- 0
                    rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
                                                                      'Linker' = 'Normal',
@@ -502,6 +511,32 @@ shinyServer(function(input, output, session)
                    rv$check_table <- rv$check_table + 1
                    # print(rv$ringTable)
                    # dummy <- 0
+                 }
+               })
+  
+  observeEvent(input$pith, 
+               {
+                 printLog('observeEvent input$linkerPoint')
+                 
+                 if (rv$notLoaded==TRUE) return ()
+                 
+                 if (nrow(rv$ringTable) == 0)
+                 {
+                   showModal(strong(
+                     modalDialog("No ring marker is identified yet!",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 's',
+                                 style='background-color:#3b3a35; color:#fce319; ',
+                                 footer = NULL
+                     )))
+                   return ()
+                   
+                 } else {
+                   rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
+                                                                     'Pith'   = 'Normal',
+                                                                     'Normal' = 'Pith')]
+                   rv$check_table <- rv$check_table + 1
                  }
                })
   
@@ -594,23 +629,55 @@ shinyServer(function(input, output, session)
       n <- length(types)
       years <- rep(NA, n)
       
-      if(input$barkSide=='Bark First'){
-        for(i in 1:n)
-          years[i] <- ifelse(i==1,
-                             input$sampleYear,
-                             ifelse(types[i]=='Linker', 
-                                    years[i-1],
-                                    years[i-1] - 1)
-          )
-      }else{
-        for(i in n:1)
-          years[i] <- ifelse(i==n,
-                             input$sampleYear,
-                             ifelse(types[i]=='Linker', 
-                                    years[i+1],
-                                    years[i+1] - 1))
+      if(sum(rv$ringTable$type=='Pith',na.rm=TRUE)==0){
+        if(input$barkSide=='Bark First'){
+          for(i in 1:n)
+            years[i] <- ifelse(i==1,
+                               input$sampleYear,
+                               ifelse(types[i]=='Linker', 
+                                      years[i-1],
+                                      years[i-1] - 1)
+            )
+        }else{
+          for(i in n:1)
+            years[i] <- ifelse(i==n,
+                               input$sampleYear,
+                               ifelse(types[i]=='Linker', 
+                                      years[i+1],
+                                      years[i+1] - 1))
+        }
+        rv$ringTable$year <- years
+      }else if(sum(rv$ringTable$type=='Pith',na.rm=TRUE)==1){
+        p <- which (rv$ringTable$type == 'Pith')
+        if(input$barkSide=='Bark First'){
+          for(i in 1:p)
+            years[i] <- ifelse(i==1,
+                               input$sampleYear,
+                               ifelse(types[i]=='Linker', 
+                                      years[i-1],
+                                      years[i-1] - 1))
+          for(i in (p+1):n) 
+            years[i] <- ifelse(i==1,
+                               input$sampleYear,
+                               ifelse(types[i]=='Linker', 
+                                      years[i-1],
+                                      years[i-1] + 1))
+        }else{
+          for(i in n:p)
+            years[i] <- ifelse(i==n,
+                               input$sampleYear,
+                               ifelse(types[i]=='Linker', 
+                                      years[i+1],
+                                      years[i+1] - 1))
+          for(i in (p-1):1)
+            years[i] <- ifelse(i==n,
+                               input$sampleYear,
+                               ifelse(types[i]=='Linker', 
+                                      years[i+1],
+                                      years[i+1] + 1))
+        }
+        rv$ringTable$year <- years
       }
-      rv$ringTable$year <- years
     })
   
   output$ring_table <- renderDataTable(
