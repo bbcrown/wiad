@@ -633,7 +633,9 @@ shinyServer(function(input, output, session)
         if(input$barkSide){
           for(i in 1:n)
             years[i] <- ifelse(i==1,
-                               input$sampleYear,
+                               ifelse (input$sampleYearGrowth == 'none', 
+                                       input$sampleYear, 
+                                       input$sampleYear+1),
                                ifelse(types[i]=='Linker', 
                                       years[i-1],
                                       years[i-1] - 1)
@@ -641,7 +643,9 @@ shinyServer(function(input, output, session)
         }else{
           for(i in n:1)
             years[i] <- ifelse(i==n,
-                               input$sampleYear,
+                               ifelse (input$sampleYearGrowth == 'none', 
+                                       input$sampleYear, 
+                                       input$sampleYear+1),
                                ifelse(types[i]=='Linker', 
                                       years[i+1],
                                       years[i+1] - 1))
@@ -652,26 +656,34 @@ shinyServer(function(input, output, session)
         if(input$barkSide){
           for(i in 1:p)
             years[i] <- ifelse(i==1,
-                               input$sampleYear,
+                               ifelse (input$sampleYearGrowth == 'none', 
+                                       input$sampleYear, 
+                                       input$sampleYear+1),
                                ifelse(types[i]=='Linker', 
                                       years[i-1],
                                       years[i-1] - 1))
           for(i in (p+1):n) 
             years[i] <- ifelse(i==1,
-                               input$sampleYear,
+                               ifelse (input$sampleYearGrowth == 'none', 
+                                       input$sampleYear, 
+                                       input$sampleYear+1),
                                ifelse(types[i]=='Linker', 
                                       years[i-1],
                                       years[i-1] + 1))
         }else{
           for(i in n:p)
             years[i] <- ifelse(i==n,
-                               input$sampleYear,
+                               ifelse (input$sampleYearGrowth == 'none', 
+                                       input$sampleYear, 
+                                       input$sampleYear+1),
                                ifelse(types[i]=='Linker', 
                                       years[i+1],
                                       years[i+1] - 1))
           for(i in (p-1):1)
             years[i] <- ifelse(i==n,
-                               input$sampleYear,
+                               ifelse (input$sampleYearGrowth == 'none', 
+                                       input$sampleYear, 
+                                       input$sampleYear+1),
                                ifelse(types[i]=='Linker', 
                                       years[i+1],
                                       years[i+1] + 1))

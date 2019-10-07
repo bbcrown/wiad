@@ -163,15 +163,12 @@ fluidPage(
                                      width = '100%',
                                      icon=icon('sync'),
                                      style='color: white; background-color: gray; border-color: black;'),
-                 
-                        # radio button to switch the bark side of the image, from left to right
+                        
+                        # checkbox to check whether meaasuring starts at the bark
                         checkboxInput(inputId = 'barkSide', 
                                       label = 'Bark First', 
-                                      # inline = TRUE, 
-                                      #width = '25%',
-                                      value = FALSE)
-                        
-                ),
+                                      value = TRUE)
+                 ),
                  
                  # zoom level bar
                  column(10, sliderInput(inputId = 'zoomlevel',
@@ -184,7 +181,6 @@ fluidPage(
                                         width = '100%'))
                ),
                
-               
                # section breaker
                br(),
                
@@ -196,13 +192,29 @@ fluidPage(
                           inline = TRUE
                ),
                
+               # Checkbox input in a single fluid row
+               fluidRow(
+                 
+                 column(3,
+                   helpText('Sample year growth:')),
+                 
+                 column(3,
+                   # checkboxGroup to check whether there is some, none or full growth for the sample year
+                   radioButtons(inputId = 'sampleYearGrowth', 
+                                label = NULL, 
+                                choices = list ('none', 'some', 'all'),
+                                selected = 'none',
+                                inline = TRUE)
+                 )
+               ),
+
                # horizontal bar breaker
                hr(),
                
-               # three buttons in a sinle fluid row
+               # Four buttons in a single fluid row
                fluidRow(
                  
-                 # to clear all the points
+                 # Clear all the points
                  column(3, 
                         actionButton(inputId = 'clearCanvas', 
                                      label = 'Erase', 
@@ -212,7 +224,7 @@ fluidPage(
                                      style='font-weight: bold;')),
                  
                  
-                 # undo the last click
+                 # Undo the last click
                  column(3,  
                         actionButton(inputId = 'undoCanvas', 
                                      label = 'Undo',
@@ -222,7 +234,7 @@ fluidPage(
                                      style='font-weight: bold;')
                  ),
                  
-                 # on or off the linker status
+                 # On or off the linker status
                  column(3, 
                         actionButton(inputId = 'linkerPoint', 
                                      label = 'Link',
