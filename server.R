@@ -704,6 +704,8 @@ shinyServer(function(input, output, session)
       req(rv$check_table)
       
       tbl[order(-no)]
+      
+      tbl[-1, ] # No need to display first marker line, as there is no measured growth.
     },
     
     options = list(pageLength = 5)
