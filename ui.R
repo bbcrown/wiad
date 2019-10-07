@@ -162,8 +162,16 @@ fluidPage(
                                      label = NULL,
                                      width = '100%',
                                      icon=icon('sync'),
-                                     style='color: white; background-color: gray; border-color: black;')
-                 ),
+                                     style='color: white; background-color: gray; border-color: black;'),
+                 
+                        # radio button to switch the bark side of the image, from left to right
+                        checkboxInput(inputId = 'barkSide', 
+                                      label = 'Bark First', 
+                                      # inline = TRUE, 
+                                      #width = '25%',
+                                      value = FALSE)
+                        
+                ),
                  
                  # zoom level bar
                  column(10, sliderInput(inputId = 'zoomlevel',
@@ -224,7 +232,7 @@ fluidPage(
                                      style='font-weight: bold;')
                  ), 
                  
-                 # on or off the linker status
+                 # Convert type to 'pith'
                  column(3, 
                         actionButton(inputId = 'pith', 
                                      label = 'Pith',
@@ -238,14 +246,7 @@ fluidPage(
                # section breaker
                br(),
                
-               # radio button to switch the bark side of the image, from left to right
-               radioButtons(inputId = 'barkSide', 
-                            label = NULL, 
-                            choices = c('Bark First', 'Bark Last'), 
-                            inline = TRUE, 
-                            width = '100%'),
-               
-               
+        
                # horizontal bar breaker
                hr(),
                

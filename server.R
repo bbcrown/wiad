@@ -607,7 +607,7 @@ shinyServer(function(input, output, session)
     
     growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
     
-    if(input$barkSide=='Bark First')
+    if(input$barkSide)
       growth_table$pixels <- c(0, growth)
     else
       growth_table$pixels <- c(growth, 0)
@@ -630,7 +630,7 @@ shinyServer(function(input, output, session)
       years <- rep(NA, n)
       
       if(sum(rv$ringTable$type=='Pith',na.rm=TRUE)==0){
-        if(input$barkSide=='Bark First'){
+        if(input$barkSide){
           for(i in 1:n)
             years[i] <- ifelse(i==1,
                                input$sampleYear,
@@ -649,7 +649,7 @@ shinyServer(function(input, output, session)
         rv$ringTable$year <- years
       }else if(sum(rv$ringTable$type=='Pith',na.rm=TRUE)==1){
         p <- which (rv$ringTable$type == 'Pith')
-        if(input$barkSide=='Bark First'){
+        if(input$barkSide){
           for(i in 1:p)
             years[i] <- ifelse(i==1,
                                input$sampleYear,
