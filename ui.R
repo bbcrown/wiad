@@ -92,6 +92,21 @@ fluidPage(
                          label = 'Sample note',
                          placeholder = 'Any additional notes?'),
                
+               # name of the collection
+               textInput(inputId = 'sampleID', 
+                         label = 'Sample ID',
+                         placeholder = 'Internal sampel ID'),
+               
+               # name of the collection
+               textInput(inputId = 'collection', 
+                         label = 'Collection',
+                         placeholder = 'Name of the collection'),
+               
+               # name of the contributor
+               textInput(inputId = 'contributor', 
+                         label = 'Contributor',
+                         placeholder = 'Who is the main contributor of the dataset?'),
+               
                # horizontal line 
                hr(),
                
@@ -111,58 +126,30 @@ fluidPage(
                fluidRow(
                  
                  # select true color RGB 
-                 column(6, 
+                 column(4, 
                         actionButton(inputId = 'selRGB', 
-                                     label = 'RGB',
+                                     label = 'True Color',
                                      width = '100%', 
-                                     icon=icon('bell'))
+                                     icon=icon('image'))
                  ),
                  
                  # select monochoromic total brightness
-                 column(6, 
+                 column(4, 
                         actionButton(inputId = 'selTotBr', 
-                                     label = 'Total Brightness',
+                                     label = 'Brightness',
                                      width = '100%', 
-                                     icon=icon('bell')) 
-                 )
-               ),
-               
-               #section breaker for spacing
-               br(),
-               
-               # three buttons in a sinlgle row, equidistant
-               fluidRow(
-                 
-                 # to show only the red channel
-                 column(4, 
-                        actionButton(inputId = 'selRed', 
-                                     label = 'Red', 
-                                     width = '100%', 
-                                     icon=icon('bitbucket'), 
-                                     style='color: red; background-color: red; border-color: black;')
+                                     icon=icon('sun')) 
                  ),
-                 
-                 
-                 # to show only the green channel
-                 column(4, 
-                        actionButton(inputId = 'selGreen', 
-                                     label = 'Green',
-                                     width = '100%',
-                                     icon=icon('bitbucket'),
-                                     style='color: green; background-color: green; border-color: black;')
-                 ),
-                 
                  # to show only the blue channel
                  column(4, 
                         actionButton(inputId = 'selBlue', 
                                      label = 'Blue', 
                                      width = '100%', 
-                                     icon=icon('bitbucket'),
-                                     style='color: blue; background-color: blue; border-color: black;')
+                                     icon=icon('tint'))
                  )
                ),
                
-
+               
                # horizontal bar breaker
                hr(),
                
