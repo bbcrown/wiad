@@ -162,7 +162,12 @@ fluidPage(
                                      label = NULL,
                                      width = '100%',
                                      icon=icon('sync'),
-                                     style='color: white; background-color: gray; border-color: black;')
+                                     style='color: white; background-color: gray; border-color: black;'),
+                        
+                        # checkbox to check whether meaasuring starts at the bark
+                        checkboxInput(inputId = 'barkSide', 
+                                      label = 'Bark First', 
+                                      value = TRUE)
                  ),
                  
                  # zoom level bar
@@ -176,7 +181,6 @@ fluidPage(
                                         width = '100%'))
                ),
                
-               
                # section breaker
                br(),
                
@@ -188,14 +192,30 @@ fluidPage(
                           inline = TRUE
                ),
                
+               # Checkbox input in a single fluid row
+               fluidRow(
+                 
+                 column(3,
+                   helpText('Sample year growth:')),
+                 
+                 column(3,
+                   # checkboxGroup to check whether there is some, none or full growth for the sample year
+                   radioButtons(inputId = 'sampleYearGrowth', 
+                                label = NULL, 
+                                choices = list ('none', 'some', 'all'),
+                                selected = 'none',
+                                inline = TRUE)
+                 )
+               ),
+
                # horizontal bar breaker
                hr(),
                
-               # three buttons in a sinle fluid row
+               # Four buttons in a single fluid row
                fluidRow(
                  
-                 # to clear all the points
-                 column(4, 
+                 # Clear all the points
+                 column(3, 
                         actionButton(inputId = 'clearCanvas', 
                                      label = 'Erase', 
                                      icon = icon('eraser'), 
@@ -204,8 +224,8 @@ fluidPage(
                                      style='font-weight: bold;')),
                  
                  
-                 # undo the last click
-                 column(4,  
+                 # Undo the last click
+                 column(3,  
                         actionButton(inputId = 'undoCanvas', 
                                      label = 'Undo',
                                      icon = icon('undo'), 
@@ -214,11 +234,21 @@ fluidPage(
                                      style='font-weight: bold;')
                  ),
                  
-                 # on or off the linker status
-                 column(4, 
+                 # On or off the linker status
+                 column(3, 
                         actionButton(inputId = 'linkerPoint', 
-                                     label = 'Linker On/Off',
+                                     label = 'Link',
                                      icon = icon('link'), 
+                                     class='btn-primary', 
+                                     width = '100%', 
+                                     style='font-weight: bold;')
+                 ), 
+                 
+                 # Convert type to 'pith'
+                 column(3, 
+                        actionButton(inputId = 'pith', 
+                                     label = 'Pith',
+                                     icon = icon('bullseye'), 
                                      class='btn-primary', 
                                      width = '100%', 
                                      style='font-weight: bold;')
@@ -228,14 +258,7 @@ fluidPage(
                # section breaker
                br(),
                
-               # radio button to switch the bark side of the image, from left to right
-               radioButtons(inputId = 'barkSide', 
-                            label = NULL, 
-                            choices = c('Bark First', 'Bark Last'), 
-                            inline = TRUE, 
-                            width = '100%'),
-               
-               
+        
                # horizontal bar breaker
                hr(),
                
