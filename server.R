@@ -8,8 +8,8 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
-# increase maximal size of images to 30 MB
-options (shiny.maxRequestSize = 30 * 1024^2)
+# increase maximal size of images to 100 MB
+options (shiny.maxRequestSize = 100 * 1024^2)
 
 shinyServer(function(input, output, session)
 {
@@ -138,20 +138,22 @@ shinyServer(function(input, output, session)
     {
       printLog('metaData reactive')
       
-      meta <- list(ownerName = input$ownerName, 
-                   ownerEmail = input$ownerEmail,
-                   species = input$spp,
-                   sampleDate = input$sampleDate,
-                   sampleYear = input$sampleYear,
-                   sampleDPI = input$sampleDPI,
-                   sampleLoc = input$sampleLoc,
-                   sampleNote = input$sampleNote,
-                   sampleID = input$sampleID,
-                   collection = input$collection,
+      meta <- list(ownerName   = input$ownerName, 
+                   ownerEmail  = input$ownerEmail,
+                   species     = input$spp,
+                   sampleDate  = input$sampleDate,
+                   sampleYear  = input$sampleYear,
+                   sampleDPI   = input$sampleDPI,
+                   siteLoc     = input$siteLoc,
+                   siteLocID   = input$siteLocID,
+                   plotID      = input$plotID,
+                   sampleNote  = input$sampleNote,
+                   sampleID    = input$sampleID,
+                   collection  = input$collection,
                    contributor = input$contributor,
-                   ringData = rv$ringTable,
-                   growth = growthTable(), 
-                   status = input$confirmMeta
+                   ringData    = rv$ringTable,
+                   growth      = growthTable(), 
+                   status      = input$confirmMeta
       )
       
       # toJSON(meta)
@@ -722,7 +724,7 @@ shinyServer(function(input, output, session)
              '_',
              input$spp,
              '_',
-             input$sampleLoc,
+             input$siteLocID,
              '_',
              input$sampleDate, 
              '_',
@@ -773,7 +775,7 @@ shinyServer(function(input, output, session)
              '_',
              input$spp,
              '_',
-             input$sampleLoc,
+             input$siteLocID,
              '_',
              input$sampleDate, 
              '_',

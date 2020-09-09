@@ -83,19 +83,29 @@ fluidPage(
                             value = NULL),
                
                # name of the location where the sample was collected
-               textInput(inputId = 'sampleLoc',
-                         label = 'Sample location', 
+               textInput(inputId = 'siteLoc',
+                         label = 'Site location', 
                          placeholder = 'Where was the sample collected from?'),
                
-               # any additional input metadata that the user might want to record
-               textInput(inputId = 'sampleNote', 
-                         label = 'Sample note',
-                         placeholder = 'Any additional notes?'),
+               # identifier of the location where the sample was collected
+               textInput(inputId = 'siteLocID',
+                         label = 'Site ID', 
+                         placeholder = 'Internal site identifier.'),
+               
+               # identifier of the plot where the sample was collected
+               textInput(inputId = 'plotID',
+                         label = 'Plot ID', 
+                         placeholder = 'Internal plot identifier.'),
                
                # name of the collection
                textInput(inputId = 'sampleID', 
                          label = 'Sample ID',
                          placeholder = 'Internal sampel ID'),
+               
+               # any additional input metadata that the user might want to record
+               textInput(inputId = 'sampleNote', 
+                         label = 'Sample note',
+                         placeholder = 'Any additional notes? Height of sample.'),
                
                # name of the collection
                textInput(inputId = 'collection', 
@@ -164,10 +174,6 @@ fluidPage(
                                      icon=icon('sync'),
                                      style='color: white; background-color: gray; border-color: black;'),
                         
-                        # checkbox to check whether meaasuring starts at the bark
-                        checkboxInput(inputId = 'barkSide', 
-                                      label = 'Bark First', 
-                                      value = TRUE)
                  ),
                  
                  # zoom level bar
@@ -195,17 +201,25 @@ fluidPage(
                # Checkbox input in a single fluid row
                fluidRow(
                  
-                 column(3,
-                   helpText('Sample year growth:')),
+                 # checkbox to check whether measuring starts at the bark
+                 column (2, 
+                   checkboxInput (inputId = 'barkSide', 
+                                  label = 'Bark First', 
+                                  value = TRUE)
+                 ),
                  
-                 column(3,
+                 column (2,
+                   helpText ('Sample year growth:')),
+                 
+                 column (3,
                    # checkboxGroup to check whether there is some, none or full growth for the sample year
-                   radioButtons(inputId = 'sampleYearGrowth', 
-                                label = NULL, 
-                                choices = list ('none', 'some', 'all'),
-                                selected = 'none',
-                                inline = TRUE)
+                   radioButtons (inputId = 'sampleYearGrowth', 
+                                 label = NULL, 
+                                 choices = list ('none', 'some', 'all'),
+                                 selected = 'none',
+                                 inline = TRUE)
                  )
+                 
                ),
 
                # horizontal bar breaker
@@ -215,7 +229,7 @@ fluidPage(
                fluidRow(
                  
                  # Clear all the points
-                 column(3, 
+                 column(2, 
                         actionButton(inputId = 'clearCanvas', 
                                      label = 'Erase', 
                                      icon = icon('eraser'), 
@@ -225,7 +239,7 @@ fluidPage(
                  
                  
                  # Undo the last click
-                 column(3,  
+                 column(2,  
                         actionButton(inputId = 'undoCanvas', 
                                      label = 'Undo',
                                      icon = icon('undo'), 
@@ -235,7 +249,7 @@ fluidPage(
                  ),
                  
                  # On or off the linker status
-                 column(3, 
+                 column(2, 
                         actionButton(inputId = 'linkerPoint', 
                                      label = 'Link',
                                      icon = icon('link'), 
@@ -245,10 +259,20 @@ fluidPage(
                  ), 
                  
                  # Convert type to 'pith'
-                 column(3, 
+                 column(2, 
                         actionButton(inputId = 'pith', 
                                      label = 'Pith',
                                      icon = icon('bullseye'), 
+                                     class='btn-primary', 
+                                     width = '100%', 
+                                     style='font-weight: bold;')
+                 ),
+                 
+                 # Convert type to 'pith'
+                 column(2, 
+                        actionButton(inputId = 'misc', 
+                                     label = 'Misc',
+                                     icon = icon('discourse'), 
                                      class='btn-primary', 
                                      width = '100%', 
                                      style='font-weight: bold;')
