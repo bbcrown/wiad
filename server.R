@@ -11,7 +11,7 @@
 # increase maximal size of images to 100 MB
 options (shiny.maxRequestSize = 100 * 1024^2)
 
-shinyServer(function(input, output, session)
+shinyServer (function (input, output, session)
 {
   
   # sent the initial log message
@@ -19,25 +19,24 @@ shinyServer(function(input, output, session)
   
   
   # declaring reactive value
-  rv <- reactiveValues(
+  rv <- reactiveValues (
     
-    imgMat = readPNG('not_loaded.png')[,,1:3], #RGB matrix loaded based on the image
+    imgMat = readPNG ('not_loaded.png')[,,1:3], #RGB matrix loaded based on the image
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to update the table
     
-    ringTable = data.table( # data.table contains the ring data
-      no = integer(), # no ID
-      x = numeric(), # x
-      y = numeric(), # y
-      relx = numeric(), # relative x
-      rely = numeric(), # relative y
-      type = character(), # type
-      year = integer() # year
-    ))
+    markerTable = data.table ( # data.table contains the marker data
+      no   = integer (), # no ID
+      x    = numeric (), # x
+      y    = numeric (), # y
+      relx = numeric (), # relative x
+      rely = numeric (), # relative y
+      type = character ())
+    )
   
   # update the image aspect ratio
-  observeEvent(rv$imgMat,
+  observeEvent (rv$imgMat,
                {
                  printLog('observeEvent rv$imgMat')
                  
@@ -118,42 +117,41 @@ shinyServer(function(input, output, session)
                  
                  
                  
-                 updateNumericInput(session = session,
-                                    inputId = 'sampleDPI',
-                                    value = NULL)
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleDPI',
+                                     value = NULL)
                  
-                 rv$ringTable <-  data.table( # data.table contains the ring data
-                   no = integer(), # no ID
-                   x = numeric(), # x
-                   y = numeric(), # y
-                   relx = numeric(), # relative x
-                   rely = numeric(), # relative y
-                   type = character(), # type
-                   year = integer() # year
+                 rv$markerTable <-  data.table ( # data.table contains the marker data
+                   no   = integer (), # no ID
+                   x    = numeric (), # x
+                   y    = numeric (), # y
+                   relx = numeric (), # relative x
+                   rely = numeric (), # relative y
+                   type = character () # type
                  )
                }
   )
   
-  metaData <- reactive(
+  metaData <- reactive (
     {
-      printLog('metaData reactive')
+      printLog ('metaData reactive')
       
-      meta <- list(ownerName   = input$ownerName, 
-                   ownerEmail  = input$ownerEmail,
-                   species     = input$spp,
-                   sampleDate  = input$sampleDate,
-                   sampleYear  = input$sampleYear,
-                   sampleDPI   = input$sampleDPI,
-                   siteLoc     = input$siteLoc,
-                   siteLocID   = input$siteLocID,
-                   plotID      = input$plotID,
-                   sampleNote  = input$sampleNote,
-                   sampleID    = input$sampleID,
-                   collection  = input$collection,
-                   contributor = input$contributor,
-                   ringData    = rv$ringTable,
-                   growth      = growthTable(), 
-                   status      = input$confirmMeta
+      meta <- list (ownerName   = input$ownerName, 
+                    ownerEmail  = input$ownerEmail,
+                    species     = input$spp,
+                    sampleDate  = input$sampleDate,
+                    sampleYear  = input$sampleYear,
+                    sampleDPI   = input$sampleDPI,
+                    siteLoc     = input$siteLoc,
+                    siteLocID   = input$siteLocID,
+                    plotID      = input$plotID,
+                    sampleNote  = input$sampleNote,
+                    sampleID    = input$sampleID,
+                    collection  = input$collection,
+                    contributor = input$contributor,
+                    markerData  = rv$markerTable,
+                    growth      = growthTable (), 
+                    status      = input$confirmMeta
       )
       
       # toJSON(meta)
@@ -161,7 +159,7 @@ shinyServer(function(input, output, session)
     }
   )
   
-  autoInvalidate <- reactiveTimer(2000)
+  autoInvalidate <- reactiveTimer (2000)
   
   
   # observeEvent(input$saveData,
@@ -189,7 +187,7 @@ shinyServer(function(input, output, session)
   #              }
   # )
   
-  output$imageProc <- renderPlot(
+  output$imageProc <- renderPlot (
     width = function(){
       floor(input$zoomlevel)
     },
@@ -198,84 +196,92 @@ shinyServer(function(input, output, session)
       floor(input$zoomlevel/rv$imgAsp)
     },
     {
-      printLog('output$imageProc renderPlot')
+      printLog ('output$imageProc renderPlot')
       
-      imgtmp <- imgProcessed()
-      if(is.null(imgtmp)) return()
+      imgtmp <- imgProcessed ()
+      if (is.null(imgtmp)) return ()
       
-      
-      imgDim <- dim(imgtmp)
-      par(mar= c(0,0,0,0), xaxs = 'i', yaxs = 'i')
-      plot(NA, 
-           xlim = c(1,imgDim[2]),
-           ylim = c(1,imgDim[1]),
-           type='n', 
-           axes= FALSE, 
-           xlab= '',
-           ylab = '')
+      # get images dimensions
+      imgDim <- dim (imgtmp)
+      # set margins
+      par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
+      plot (NA, 
+            xlim = c (1, imgDim [2]),
+            ylim = c (1, imgDim [1]),
+            type = 'n', 
+            axes = FALSE, 
+            xlab = '',
+            ylab = '')
       
       window <- par()$usr
       
-      rasterImage(imgtmp, 
-                  window[1], 
-                  window[3], 
-                  window[2], 
-                  window[4])
+      rasterImage (imgtmp, 
+                   window [1], 
+                   window [3], 
+                   window [2], 
+                   window [4])
       
-      ring_tbl <- rv$ringTable[, .(x, y)]
+      marker_tbl <- rv$markerTable [, .(x, y)]
+      # plot all markers in yellow
+      marker_tbl [, points (x,
+                            y, 
+                            pch = 19, 
+                            cex = 1.2, 
+                            col = 'yellow')]
       
-      ring_tbl[, points(x,
-                        y, 
-                        pch = 19, 
-                        cex = 1.2, 
-                        col = 'yellow')]
+      # identify linker and pith markers
+      wLinkers <- which (rv$markerTable$type == 'Linker')
+      wPith    <- which (rv$markerTable$type == 'Pith')
       
-      wLinkers <- which(rv$ringTable$type=='Linker')
-      wPith    <- which(rv$ringTable$type=='Pith')
+      # draw blue lines between linker markers
+      segments (x0 = rv$markerTable [wLinkers, x], 
+                y0 = rv$markerTable [wLinkers, y],
+                x1 = rv$markerTable [wLinkers - 1, x], 
+                y1 = rv$markerTable [wLinkers - 1, y], 
+                lwd = 2, 
+                col = 'cornflowerblue')
       
-      segments(x0 = rv$ringTable[wLinkers, x], 
-               y0 = rv$ringTable[wLinkers, y],
-               x1 = rv$ringTable[wLinkers - 1, x], 
-               y1 = rv$ringTable[wLinkers - 1, y], 
-               lwd = 2, 
-               col = 'cornflowerblue')
-      
-      points (x = rv$ringTable[wLinkers, x], 
-              y = rv$ringTable[wLinkers, y],
+      # overplot linker markers in blue
+      points (x = rv$markerTable [wLinkers, x], 
+              y = rv$markerTable [wLinkers, y],
               col = 'cornflowerblue',
               pch = 19,
               cex = 1.2,
               lwd = 2)
       
-      points (x = rv$ringTable[wPith, x], 
-              y = rv$ringTable[wPith, y],
+      # overplot the pith marker in red
+      points (x = rv$markerTable [wPith, x], 
+              y = rv$markerTable [wPith, y],
               col = '#c90016',
               pch = 19,
               cex = 1.2,
               lwd = 2)
       
-      if(nrow(ring_tbl)>1){ 
+      # check whether there are already two points to draw a guide 
+      if (nrow (marker_tbl) > 1) { 
+        # calculate slope and intercept for abline dissecting the last two point (i.e., guide)
+        xy <- marker_tbl [(nrow (marker_tbl)-1):nrow (marker_tbl)]
+        slope <- diff (xy$y) / diff (xy$x)
+        # rotate slope of guide by 90 degree after linker points
+        if (rv$markerTable [nrow (rv$markerTable), type] == 'Linker') slope <- -1 / slope
+        intercept <- xy$y [2] - slope * xy$x [2]
         
-        xy <- ring_tbl[(nrow(ring_tbl)-1):nrow(ring_tbl)]
-        slope <- diff(xy$y)/diff(xy$x)
-        if(rv$ringTable[nrow(rv$ringTable),type]=='Linker') slope <- -1/slope
-        intercept <- xy$y[2] - slope*xy$x[2]
-        
-        if(!is.infinite(slope)){
-          
-          abline(intercept, 
-                 slope,
-                 col = 'yellow',
-                 lwd = 2, 
-                 lty = 2)
+        # check whether slope is finite
+        if (is.finite (slope)) {
+          # plot the guide
+          abline (intercept, 
+                  slope,
+                  col = 'yellow',
+                  lwd = 2, 
+                  lty = 2)
         }
         else
         {
-          
-          abline(v = mean(xy$x),
-                 col = 'yellow',
-                 lwd = 2, 
-                 lty = 2)
+          # plot vertical line between the markers, if slope is not finite
+          abline (v = mean (xy$x),
+                  col = 'yellow',
+                  lwd = 2, 
+                  lty = 2)
         }
         
       }
@@ -409,308 +415,344 @@ shinyServer(function(input, output, session)
   )
   
   
-  contrast <- reactive(
+  contrast <- reactive (
     {
-      printLog('contrast reactive')
+      printLog ('contrast reactive')
       
-      if(is.null(rv$imgMat)) 
-        return()
+      if (is.null (rv$imgMat)) 
+        return ()
       tmp <- getContrast(rv$imgMat)
       tmp
     }
   )
   
   
-  imgProcessed <- reactive(
+  imgProcessed <- reactive (
     {
-      printLog('imgProcessed reactive')
+      printLog ('imgProcessed reactive')
       
-      if(is.null(rv$imgMat)) 
-        return()
+      if (is.null (rv$imgMat)) 
+        return ()
       
-      if(length(dim(rv$imgMat))==2)
+      if (length (dim (rv$imgMat)) == 2)
       {
-        showModal(strong(
+        showModal (strong (
           modalDialog("The image is monochrome!",
                       easyClose = T,
                       fade = T,
                       size = 's',
-                      style='background-color:#3b3a35; color:#fce319; ',
+                      style = 'background-color:#3b3a35; color:#fce319; ',
                       footer = NULL
           )))
-        return(rv$imgMat)
+        return (rv$imgMat)
       }
       
       # clhsv <- clRGB2HSV(rv$imgMat)
       
-      switch(rv$procband,
-             'RGB'=rv$imgMat,
-             
-             # 'Red'=rv$imgMat[,,1],
-             # 'Green'=rv$imgMat[,,2],
-             'Blue'=rv$imgMat[,,3],
-             
-             'Brightness' = totbrightness()
+      switch (rv$procband,
+             'RGB' = rv$imgMat,
+             'Blue' = rv$imgMat[,,3],
+             'Brightness' = totbrightness ()
       )
       
     }
   )
   
-  observeEvent(input$clearCanvas, 
+  observeEvent (input$clearCanvas, 
                {
-                 printLog('observeEvent input$clearCanvas')
+                 printLog ('observeEvent input$clearCanvas')
                  
-                 printLog(paste('input$clearCanvas was changed to:', '\t',input$clearCanvas))
+                 printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
                  
-                 if(rv$notLoaded==TRUE) return()
+                 if (rv$notLoaded == TRUE) return()
                  
                  rv$slideShow <- 0 
-                 rv$ringTable <- data.table(no = integer(),
-                                            x = numeric(),
-                                            y = numeric(),
-                                            relx = numeric(),
-                                            rely = numeric(),
-                                            type = character(),
-                                            year = integer()
+                 
+                 # reset the marker table
+                 rv$markerTable <- data.table (no = integer(),
+                                               x = numeric(),
+                                               y = numeric(),
+                                               relx = numeric(),
+                                               rely = numeric(),
+                                               type = character()
                  )
                  rv$check_table <- rv$check_table + 1
                })
   
-  observeEvent(input$linkerPoint, 
+  observeEvent (input$linkerPoint, 
                {
                  printLog ('observeEvent input$linkerPoint')
                  
                  if (rv$notLoaded==TRUE) return ()
                  
-                 if (nrow(rv$ringTable) == 0)
+                 # check whether no marker has been set yet
+                 if (nrow (rv$markerTable) == 0)
                  {
-                   showModal(strong(
-                     modalDialog("No ring marker is identified yet!",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL
-                     )))
-                   return()
-                   
-                 }else if (nrow(rv$ringTable) == 1){
-                   showModal(strong(
-                     modalDialog("First point cannot be a linker!",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL
-                     )))
-                   return()
-                 } else {
-                   dummy <- 0
-                   rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
-                                                                     'Linker' = 'Normal',
-                                                                     'Normal' = 'Linker')
-                                ]
-                   rv$check_table <- rv$check_table + 1
-                   # print(rv$ringTable)
-                   # dummy <- 0
-                 }
-               })
-  
-  observeEvent(input$pith, 
-               {
-                 printLog('observeEvent input$linkerPoint')
-                 
-                 if (rv$notLoaded==TRUE) return ()
-                 
-                 if (nrow(rv$ringTable) == 0)
-                 {
-                   showModal(strong(
-                     modalDialog("No ring marker is identified yet!",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL
+                   showModal (strong(
+                     modalDialog ("No ring marker is identified yet!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style='background-color:#3b3a35; color:#fce319; ',
+                                  footer = NULL
                      )))
                    return ()
-                   
+                 # check whether only one marker has been set yet 
+                 } else if (nrow (rv$markerTable) == 1) {
+                   showModal (strong (
+                     modalDialog ("First point cannot be a linker!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style ='background-color:#3b3a35; color:#fce319; ',
+                                  footer = NULL
+                     )))
+                   return ()
+                 # else more than one marker have been set and the type is switched
                  } else {
-                   rv$ringTable[no==nrow(rv$ringTable), type:=switch(type, 
-                                                                     'Pith'   = 'Normal',
-                                                                     'Normal' = 'Pith')]
+                   rv$markerTable [no == nrow (rv$markerTable), 
+                                 type:=switch (type, 'Linker' = 'Normal', 'Normal' = 'Linker')]
                    rv$check_table <- rv$check_table + 1
                  }
                })
   
-  observeEvent(input$undoCanvas, 
+  observeEvent (input$pith, 
+               {
+                 printLog ('observeEvent input$linkerPoint')
+                 
+                 if (rv$notLoaded == TRUE) return ()
+                 
+                 # check whether no marker has been set yet
+                 if (nrow (rv$markerTable) == 0)
+                 {
+                   showModal (strong (
+                     modalDialog ("No ring marker is identified yet!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style='background-color:#3b3a35; color:#fce319; ',
+                                  footer = NULL
+                     )))
+                   return ()
+                 # else at least one marker was set
+                 } else {
+                   rv$markerTable [no == nrow (rv$markerTable), 
+                                   type := switch (type, 'Pith'   = 'Normal', 'Normal' = 'Pith')]
+                   rv$check_table <- rv$check_table + 1
+                 }
+               })
+  
+  # undo last marker action
+  observeEvent (input$undoCanvas, 
                {
                  
                  printLog('observeEvent input$undoCanvas')
                  
-                 if(rv$notLoaded==TRUE) return()
+                 if (rv$notLoaded == TRUE) return ()
                  
-                 if (nrow(rv$ringTable) > 1)
-                   rv$ringTable <- rv$ringTable[-nrow(rv$ringTable),]
+                 # check there is more than one marker
+                 if (nrow (rv$markerTable) > 1)
+                   # delete last marker
+                   rv$markerTable <- rv$markerTable [-nrow (rv$markerTable), ]
+                 # else no or one marker was set yet
                  else
-                   rv$ringTable <- data.table(no = integer(),
-                                              x = numeric(),
-                                              y = numeric(),
-                                              relx = numeric(),
-                                              rely = numeric(),
-                                              type = character(),
-                                              year = integer()
+                   # create new marker table
+                   rv$markerTable <- data.table (no   = integer (),
+                                                 x    = numeric (),
+                                                 y    = numeric (),
+                                                 relx = numeric (),
+                                                 rely = numeric (),
+                                                 type = character ()
                    )
+                 # increase check_table
                  rv$check_table <- rv$check_table + 1
                })
   
-  observeEvent(input$ring_point,
+  observeEvent (input$ring_point,
                {
                  
-                 printLog('observeEvent input$ring_point')
+                 printLog ('observeEvent input$ring_point')
                  
-                 if(rv$notLoaded==TRUE) return()
+                 if (rv$notLoaded == TRUE) return()
                  
-                 if(input$confirmMeta=='Not Confirmed') {
-                   showModal(strong(
-                     modalDialog("First review and confirm the metadata!",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL
+                 if (input$confirmMeta == 'Not Confirmed') {
+                     showModal (strong (
+                     modalDialog ("First review and confirm the metadata!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style ='background-color:#3b3a35; color:#fce319; ',
+                                  footer = NULL
                      )))
-                   return()
+                   return ()
                  }
                  
-                 dummy =0
+                 # set point index to 1 for first marker or increase the last marker index by one
+                 no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
                  
-                 no <- ifelse(is.null(rv$ringTable), 1, nrow(rv$ringTable) + 1)
+                 # initialise new point
+                 newPoint <- data.table (no = no,
+                                         x = input$ring_point$x,
+                                         y = input$ring_point$y,
+                                         relx = input$ring_point$x/input$ring_point$domain$right,
+                                         rely = input$ring_point$y/input$ring_point$domain$top,
+                                         type = 'Normal')
                  
-                 newPoint <- data.table(no = no,
-                                        x = input$ring_point$x,
-                                        y = input$ring_point$y,
-                                        relx = input$ring_point$x/input$ring_point$domain$right,
-                                        rely = input$ring_point$y/input$ring_point$domain$top,
-                                        type = 'Normal',
-                                        year = NA
-                 )
-                 if(nrow(rv$ringTable)>0){
-                   last <- rv$ringTable[nrow(rv$ringTable)]
-                   if(newPoint$x==last$x&newPoint$y==last$y) return()
+                 # check that new point is different from old point
+                 if (nrow (rv$markerTable) > 0){
+                   last <- rv$markerTable[nrow(rv$markerTable)]
+                   if (newPoint$x == last$x & newPoint$y == last$y) return ()
                  }
-                 rv$ringTable <- rbind(rv$ringTable, 
-                                       newPoint)
+                 # add new point to the marker table
+                 rv$markerTable <- rbind (rv$markerTable, newPoint)
                })
   
   
-  growthTable <- reactive({
-    req(rv$check_table)
-    growth_table <- rv$ringTable
+  growthTable <- reactive ({
+    req (rv$check_table)
+    req (rv$markerTable)
+    req (input$barkSide)
     
-    growth <- sqrt(diff(growth_table$x)^2 + diff(growth_table$y)^2)
+    # copy markerTable into growth_table
+    growth_table <- rv$markerTable
     
-    if(input$barkSide)
-      growth_table$pixels <- c(0, growth)
-    else
-      growth_table$pixels <- c(growth, 0)
+    # get types of markers
+    types <- growth_table$type
+    n <- length (types)
     
-    growth_table[type=='Linker', pixels:=NA]  
-    growth_table[,growth:=pixels/as.numeric(input$sampleDPI)*25.4]
-    growth_table
-  })
-  
-  observe(
-    {
-      printLog('rv$ringTable$year <- years')
-      
-      req(input$barkSide)
-      req(rv$ringTable)
-      req(rv$check_table)
-      
-      types <- rv$ringTable$type
-      n <- length(types)
-      years <- rep(NA, n)
-      
-      if(sum(rv$ringTable$type=='Pith',na.rm=TRUE)==0){
-        if(input$barkSide){
-          for(i in 1:n)
-            years[i] <- ifelse(i==1,
-                               ifelse (input$sampleYearGrowth == 'none', 
-                                       input$sampleYear, 
-                                       input$sampleYear+1),
-                               ifelse(types[i]=='Linker', 
-                                      years[i-1],
-                                      years[i-1] - 1)
-            )
-        }else{
-          for(i in n:1)
-            years[i] <- ifelse(i==n,
-                               ifelse (input$sampleYearGrowth == 'none', 
-                                       input$sampleYear, 
-                                       input$sampleYear+1),
-                               ifelse(types[i]=='Linker', 
-                                      years[i+1],
-                                      years[i+1] - 1))
-        }
-        rv$ringTable$year <- years
-      }else if(sum(rv$ringTable$type=='Pith',na.rm=TRUE)==1){
-        p <- which (rv$ringTable$type == 'Pith')
-        if(input$barkSide){
-          for(i in 1:p)
-            years[i] <- ifelse(i==1,
-                               ifelse (input$sampleYearGrowth == 'none', 
-                                       input$sampleYear, 
-                                       input$sampleYear+1),
-                               ifelse(types[i]=='Linker', 
-                                      years[i-1],
-                                      years[i-1] - 1))
-          for(i in (p+1):n) 
-            years[i] <- ifelse(i==1,
-                               ifelse (input$sampleYearGrowth == 'none', 
-                                       input$sampleYear, 
-                                       input$sampleYear+1),
-                               ifelse(types[i]=='Linker', 
-                                      years[i-1],
-                                      years[i-1] + 1))
-        }else{
-          for(i in n:p)
-            years[i] <- ifelse(i==n,
-                               ifelse (input$sampleYearGrowth == 'none', 
-                                       input$sampleYear, 
-                                       input$sampleYear+1),
-                               ifelse(types[i]=='Linker', 
-                                      years[i+1],
-                                      years[i+1] - 1))
-          for(i in (p-1):1)
-            years[i] <- ifelse(i==n,
-                               ifelse (input$sampleYearGrowth == 'none', 
-                                       input$sampleYear, 
-                                       input$sampleYear+1),
-                               ifelse(types[i]=='Linker', 
-                                      years[i+1],
-                                      years[i+1] + 1))
-        }
-        rv$ringTable$year <- years
+    # initialise years vector
+    years <- rep (NA, n)
+    
+    # check whether there is no pith marker yet
+    if (sum (types == 'Pith', na.rm = TRUE) == 0){
+
+      # check whether the measurement series starts at the bark
+      if (input$barkSide) {
+
+        # loop over all points from bark towards the pith
+        for (i in 1:n)
+          years [i] <- ifelse (i == 1,
+                               ifelse (input$sampleYearGrowth == 'none',
+                                       input$sampleYear,
+                                       input$sampleYear + 1),
+                               ifelse (types [i] == 'Linker',
+                                       years [i-1],
+                                       years [i-1] - 1)
+          )
+      # else the measurement series starts at the inner most ring
+      } else {
+        # loop over all points from inner most ring towards the bark
+        for (i in n:1)
+          years [i] <- ifelse (i == n,
+                               ifelse (input$sampleYearGrowth == 'none',
+                                       input$sampleYear,
+                                       input$sampleYear + 1),
+                               ifelse (types [i] == 'Linker',
+                                       years [i+1],
+                                       years [i+1] - 1))
       }
-    })
-  
-  output$ring_table <- renderDataTable(
+    # else there is a pith marker already
+    } else if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+      # find the index of pith marker
+      p <- which (types == 'Pith')
+
+      # check whether the measurement series starts at the bark
+      if (input$barkSide){
+        # loop over all points from bark to pith
+        for (i in 1:p)
+          years[i] <- ifelse (i == 1,
+                              ifelse (input$sampleYearGrowth == 'none',
+                                      input$sampleYear,
+                                      input$sampleYear + 1),
+                              ifelse (types [i] == 'Linker',
+                                      years [i-1],
+                                      years [i-1] - 1))
+        # loop over all point from pith towards the bark in potential second profile
+        for (i in (p + 1):n)
+          years [i] <- ifelse (i == 1,
+                               ifelse (input$sampleYearGrowth == 'none',
+                                       input$sampleYear,
+                                       input$sampleYear + 1),
+                               ifelse(types [i] == 'Linker',
+                                      years [i-1],
+                                      years [i-1] + 1))
+      # else the measurement series starts at the pith
+      } else {
+        # loop over points from potential second profile to the pith
+        for (i in n:p)
+          years [i] <- ifelse (i == n,
+                               ifelse (input$sampleYearGrowth == 'none',
+                                       input$sampleYear,
+                                       input$sampleYear + 1),
+                               ifelse (types [i] == 'Linker',
+                                       years [i+1],
+                                       years [i+1] - 1))
+
+        # loop over points from pith to bark
+        for(i in (p-1):1)
+          years [i] <- ifelse (i == n,
+                               ifelse (input$sampleYearGrowth == 'none',
+                                       input$sampleYear,
+                                       input$sampleYear + 1),
+                               ifelse(types [i] == 'Linker',
+                                      years [i+1],
+                                      years [i+1] + 1))
+      }
+    }
+    
+    # add years to growth table
+    growth_table$year <- years
+    
+    # check whether at least two markers have been set
+    if (nrow (growth_table) <= 1)  return (growth_table)
+    
+    # calculate distances between markers, aka growth
+    growth <- sqrt (diff (growth_table$x)^2 + diff (growth_table$y)^2)
+    if (input$barkSide) {
+      growth_table$pixels <- c (0, growth)
+    } else {
+      growth_table$pixels <- c (growth, 0)
+    }
+    
+    # set all linker markers' growth to NA
+    growth_table [type == 'Linker', pixels := NA]  
+    
+    # convert growth from pixels to mm
+    growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4]
+    
+    # replace NAs with " " to generate empty cells
+    growth_table$growth [is.na (growth_table$growth)] <- " "
+    
+    # return growth_table
+    return (growth_table)
+  })
+
+  output$growth_table <- DT::renderDataTable (
     {
-      printLog('output$ring_table renderDataTable')
+      printLog ('output$growth_table renderDataTable')
       
-      tbl <- growthTable()
+      # get growth data
+      tbl <- growthTable ()
       
-      if(nrow(tbl)==0) 
-        return()
+      # return if there is no data
+      if (nrow (tbl) == 0) return ()
       
-      req(rv$check_table)
+      # check that the table has been updated # TR Not sure why this is needed
+      req (rv$check_table)
       
-      tbl[order(-no)]
+      # order table, aka starting with the most recent year
+      tbl <- tbl [order (no)]
       
-      tbl[-1, ] # No need to display first marker line, as there is no measured growth.
+      # do not display first marker, as there is no measured growth
+      datatable (tbl [-1, 2:dim (tbl) [2]],  options = list (initComplete = JS (
+        "function(settings, json) {",
+        "$(this.api().table().header()).css({'background-color': '#6a727e', 'color': '#bbc9d3'});",
+        "}")
+      )) 
+      
     },
     
-    options = list(pageLength = 5)
+    options = list (pageLength = 5)
   )
   
   output$downloadCSV <- downloadHandler(
@@ -751,15 +793,15 @@ shinyServer(function(input, output, session)
         
       }
       
-      tbl <- growthTable()
+      tbl <- growthTable ()
       
-      if(nrow(tbl)==0) 
-        return()
+      if (nrow (tbl) == 0) 
+        return ()
       
-      write.table(tbl, 
-                  file, 
-                  sep = ',',
-                  row.names = F)
+      write.table (tbl, 
+                   file, 
+                   sep = ',',
+                   row.names = F)
       
     }
   )
@@ -819,23 +861,23 @@ shinyServer(function(input, output, session)
     
     printLog('observeEvent input$confirmMeta')
     
-    if(input$confirmMeta=='Not Confirmed') return()
+    if (input$confirmMeta == 'Not Confirmed') return ()
     
-    if(year(input$sampleDate)!=input$sampleYear){
+    if (year (input$sampleDate) != input$sampleYear) {
       
-      showModal(strong(
+      showModal (strong (
         
-        modalDialog("Year does not match the sample's date!",
-                    easyClose = T,
-                    fade = T,
-                    size = 's',
-                    style='background-color:#3b3a35; color:#fce319; ',
-                    footer = NULL
+        modalDialog ("Year does not match the sample's date!",
+                     easyClose = T,
+                     fade      = T,
+                     size      = 's',
+                     style     = 'background-color:#3b3a35; color:#fce319; ',
+                     footer    = NULL
         )))
       
-      updateRadioButtons(session, 
-                         inputId = 'confirmMeta', 
-                         selected = 'Not Confirmed')
+      updateRadioButtons (session, 
+                          inputId  = 'confirmMeta', 
+                          selected = 'Not Confirmed')
     }
   })
   
@@ -843,10 +885,11 @@ shinyServer(function(input, output, session)
     
     printLog('output$ring_plot renderPlotly')
     
-    tbl <- growthTable()
+    tbl <- growthTable ()
     
-    if(nrow(tbl)==0) 
-      return()
+    # check whether there is at least one growth icrement
+    if (nrow (tbl) == 0) 
+      return ()
     
     
     fontList <- list(
@@ -861,18 +904,18 @@ shinyServer(function(input, output, session)
     )
     
     yAxis <- list(
-      title = ifelse(test = is.na(input$sampleDPI),
+      title = ifelse(test = is.na (input$sampleDPI),
                      no = "Radial growth increment (mm)",
                      yes ="Radial growth increment (pixels)"), 
       titlefont = fontList
     )
     
-    tbl[,year:=as.factor(year)]
+    tbl [, year := as.factor (year)]
     
-    data <- tbl[type!='Linker']
+    data <- tbl [type != 'Linker']
     
-    if(is.na(input$sampleDPI)){
-      data[,toplot:=pixels]
+    if (is.na (input$sampleDPI)){
+      data [,toplot := pixels]
     }
     else
     {

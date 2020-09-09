@@ -10,10 +10,10 @@
 
 
 # load as a fluid page
-fluidPage(
+fluidPage (
   
   # loading the "slate" theme
-  theme= shinytheme('slate'),
+  theme = shinytheme ('slate'),
   
   #adding JS functionalities
   shinyjs::useShinyjs(),
@@ -180,7 +180,7 @@ fluidPage(
                  column(10, sliderInput(inputId = 'zoomlevel',
                                         label = 'Width', 
                                         min = 400, 
-                                        max = 10000, 
+                                        max = 20000, 
                                         step = 1,
                                         value = 800, 
                                         ticks = FALSE,
@@ -281,21 +281,20 @@ fluidPage(
                
                # section breaker
                br(),
-               
         
                # horizontal bar breaker
                hr(),
                
                # show the ring table 
-               dataTableOutput(outputId = 'ring_table'),
+               DT::dataTableOutput (outputId = 'growth_table'),
                
                # to download the ring table in CSV
-               downloadButton(outputId = 'downloadCSV', 
-                              label = 'Download CSV'),
+               downloadButton (outputId = 'downloadCSV', 
+                               label = 'Download CSV'),
                
                # to download the ring table in JSON format, this will include metadat
-               downloadButton(outputId = 'downloadJSON', 
-                              label = 'Download JSON') 
+               downloadButton (outputId = 'downloadJSON', 
+                               label = 'Download JSON') 
                
              ) 
     ),
