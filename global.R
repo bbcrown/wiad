@@ -31,7 +31,8 @@ list.of.packages <- c (
   'readr',
   'sp',
   'tiff',
-  'tools'
+  'tools',
+  'zoo'
 )
 
 # identify new (not installed) packages

@@ -192,11 +192,11 @@ shinyServer (function (input, output, session)
   
   output$imageProc <- renderPlot (
     width = function(){
-      floor(input$zoomlevel)
+      floor (input$zoomlevel)
     },
     height = function(){
       # floor(session$clientData$output_imageProc_width/rv$imgAsp)
-      floor(input$zoomlevel/rv$imgAsp)
+      floor (input$zoomlevel/rv$imgAsp)
     },
     {
       printLog ('output$imageProc renderPlot')
@@ -233,6 +233,19 @@ shinyServer (function (input, output, session)
                             pch = 19, 
                             cex = 1.2, 
                             col = 'yellow')]
+      
+      # plot years between two markers to more easily identify the growth rings
+      years <- growthTable ()
+      if (nrow (years) > 1) {
+        xs <- rollmean (years$x, 2)
+        ys <- rollmean (years$y, 2)
+        years <- years [2:nrow (years), year]
+        text (x = xs,
+              y = ys,
+              labels = years,
+              pos = 3,
+              col = 'yellow')
+      }
       
       # identify linker and pith markers
       wLinkers <- which (rv$markerTable$type == 'Linker')
@@ -680,9 +693,9 @@ shinyServer (function (input, output, session)
                                ifelse (input$growingSeasonStarted,
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse(types [i] == 'Linker',
-                                      years [i-1],
-                                      years [i-1] + 1))
+                               ifelse (types [i] == 'Linker',
+                                       years [i-1],
+                                       years [i-1] + 1))
       # else the measurement series starts at the pith
       } else {
         # loop over points from potential second profile to the pith
