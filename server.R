@@ -141,8 +141,9 @@ shinyServer (function (input, output, session)
                     species     = input$spp,
                     sampleDate  = input$sampleDate,
                     sampleYear  = input$sampleYear,
-                    sampleYearGrowth = ifelse (input$growingSeasonStarted, 
-                                               ifelse (input$growingSeasonEnded, 'all', 'some'), 
+                    sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'only started', 
+                                               ifelse (input$sampleYearGrowingSeason == 'already ended', 
+                                                       'all', 'some'), 
                                                'none'), 
                     sampleDPI   = input$sampleDPI,
                     siteLoc     = input$siteLoc,
@@ -235,16 +236,19 @@ shinyServer (function (input, output, session)
                             col = 'yellow')]
       
       # plot years between two markers to more easily identify the growth rings
-      years <- growthTable ()
-      if (nrow (years) > 1) {
-        xs <- rollmean (years$x, 2)
-        ys <- rollmean (years$y, 2)
-        years <- years [2:nrow (years), year]
-        text (x = xs,
-              y = ys,
-              labels = years,
-              pos = 3,
-              col = 'yellow')
+      if (input$displayYears) {
+        years <- growthTable ()
+        if (nrow (years) > 1) {
+          years <- years [type != "Linker"]
+          xs <- rollmean (years$x, 2)
+          ys <- rollmean (years$y, 2)
+          years <- years [2:nrow (years), year]
+          text (x = xs,
+                y = ys,
+                labels = years,
+                pos = 3,
+                col = 'yellow')
+        }
       }
       
       # identify linker and pith markers
@@ -652,7 +656,7 @@ shinyServer (function (input, output, session)
         # loop over all points from bark towards the pith
         for (i in 1:n)
           years [i] <- ifelse (i == 1,
-                               ifelse (input$growingSeasonStarted,
+                               ifelse (input$sampleYearGrowingSeason == 'only started',
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
@@ -664,7 +668,7 @@ shinyServer (function (input, output, session)
         # loop over all points from inner most ring towards the bark
         for (i in n:1)
           years [i] <- ifelse (i == n,
-                               ifelse (input$growingSeasonStarted,
+                               ifelse (input$sampleYearGrowingSeason == 'only started',
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
@@ -681,7 +685,7 @@ shinyServer (function (input, output, session)
         # loop over all points from bark to pith
         for (i in 1:p)
           years[i] <- ifelse (i == 1,
-                              ifelse (input$growingSeasonStarted,
+                              ifelse (input$sampleYearGrowingSeason == 'only started',
                                       input$sampleYear + 1,
                                       input$sampleYear),
                               ifelse (types [i] == 'Linker',
@@ -690,7 +694,7 @@ shinyServer (function (input, output, session)
         # loop over all point from pith towards the bark in potential second profile
         for (i in (p + 1):n)
           years [i] <- ifelse (i == 1,
-                               ifelse (input$growingSeasonStarted,
+                               ifelse (input$sampleYearGrowingSeason == 'only started',
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
@@ -701,7 +705,7 @@ shinyServer (function (input, output, session)
         # loop over points from potential second profile to the pith
         for (i in n:p)
           years [i] <- ifelse (i == n,
-                               ifelse (input$growingSeasonStarted,
+                               ifelse (input$sampleYearGrowingSeason == 'only started',
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
@@ -711,7 +715,7 @@ shinyServer (function (input, output, session)
         # loop over points from pith to bark
         for(i in (p-1):1)
           years [i] <- ifelse (i == n,
-                               ifelse (input$growingSeasonStarted,
+                               ifelse (input$sampleYearGrowingSeason == 'only started',
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse(types [i] == 'Linker',

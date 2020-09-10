@@ -62,50 +62,56 @@ fluidPage (
                          placeholder = 'Email address'),
                
                # species 
-               textInput(inputId = 'spp', 
-                         label = 'Species', 
-                         placeholder = 'What genus/species?'),
+               textInput (inputId = 'spp', 
+                          label = 'Species', 
+                          placeholder = 'What genus/species?'),
                
                # the date on which the sample was collected
-               dateInput(inputId = 'sampleDate', 
-                         label = 'Sample Date'),
+               dateInput (inputId = 'sampleDate', 
+                          label = 'Sample Date'),
                
                # this might look redundant to the "date" entry, however this is used to double check user's input
-               numericInput(inputId = 'sampleYear', 
-                            label = 'Sample year', 
-                            min = 1800, 
-                            max = year(Sys.Date()),
-                            value = 2019),
+               numericInput (inputId = 'sampleYear', 
+                             label = 'Sample year', 
+                             min = 1800, 
+                             max = year(Sys.Date()),
+                             value = 2019),
+               
+               # checkbox to check whether growing season had started in sample year
+               radioButtons (inputId = 'sampleYearGrowingSeason', 
+                              label = 'Growing season had', 
+                              choices = list ('only started','already ended'),
+                              inline = TRUE),
                
                # resolution of the sample
-               numericInput(inputId = 'sampleDPI', 
-                            label = 'Scan resolution (DPI)', 
-                            value = NULL),
+               numericInput (inputId = 'sampleDPI', 
+                             label = 'Scan resolution (DPI)', 
+                             value = NULL),
                
                # name of the location where the sample was collected
-               textInput(inputId = 'siteLoc',
-                         label = 'Site location', 
-                         placeholder = 'Where was the sample collected from?'),
+               textInput (inputId = 'siteLoc',
+                          label = 'Site location', 
+                          placeholder = 'Where was the sample collected from?'),
                
                # identifier of the location where the sample was collected
-               textInput(inputId = 'siteLocID',
-                         label = 'Site ID', 
-                         placeholder = 'Internal site identifier.'),
+               textInput (inputId = 'siteLocID',
+                          label = 'Site ID', 
+                          placeholder = 'Internal site identifier.'),
                
                # identifier of the plot where the sample was collected
-               textInput(inputId = 'plotID',
-                         label = 'Plot ID', 
-                         placeholder = 'Internal plot identifier.'),
+               textInput (inputId = 'plotID',
+                          label = 'Plot ID', 
+                          placeholder = 'Internal plot identifier.'),
                
                # name of the collection
-               textInput(inputId = 'sampleID', 
-                         label = 'Sample ID',
-                         placeholder = 'Internal sampel ID'),
+               textInput (inputId = 'sampleID', 
+                          label = 'Sample ID',
+                          placeholder = 'Internal sampel ID'),
                
                # any additional input metadata that the user might want to record
-               textInput(inputId = 'sampleNote', 
-                         label = 'Sample note',
-                         placeholder = 'Any additional notes? Height of sample.'),
+               textInput (inputId = 'sampleNote', 
+                          label = 'Sample note',
+                          placeholder = 'Any additional notes? Height of sample.'),
                
                # name of the collection
                textInput(inputId = 'collection', 
@@ -199,28 +205,19 @@ fluidPage (
                ),
                
                # Checkbox input in a single fluid row
-               fluidRow(
+               fluidRow (
                  
                  # checkbox to check whether measuring starts at the bark
                  column (2, 
                    checkboxInput (inputId = 'barkSide', 
-                                  label = 'Bark First', 
-                                  value = TRUE)
-                 ),
+                                  label = 'Bark first', 
+                                  value = TRUE)),
                  
-                 # checkbox to check whether growing season had started in sample year
-                 column (4, 
-                         checkboxInput (inputId = 'growingSeasonStarted', 
-                                        label = 'Sample-year growing season started', 
-                                        value = TRUE)
-                 ),
-                 
-                 # checkbox to check whether growing season had ended in sample year
-                 column (4, 
-                         checkboxInput (inputId = 'growingSeasonEnded', 
-                                        label = 'Sample-year growing season ended', 
-                                        value = TRUE)
-                 )
+                 # checkbox to check whether years should be displayed
+                 column (2, 
+                         checkboxInput (inputId = 'displayYears', 
+                                        label = 'Display years', 
+                                        value = TRUE)),
                ),
 
                # horizontal bar breaker
