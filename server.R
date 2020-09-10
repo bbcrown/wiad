@@ -141,6 +141,9 @@ shinyServer (function (input, output, session)
                     species     = input$spp,
                     sampleDate  = input$sampleDate,
                     sampleYear  = input$sampleYear,
+                    sampleYearGrowth = ifelse (input$growingSeasonStarted, 
+                                               ifelse (input$growingSeasonEnded, 'all', 'some'), 
+                                               'none'), 
                     sampleDPI   = input$sampleDPI,
                     siteLoc     = input$siteLoc,
                     siteLocID   = input$siteLocID,
@@ -203,6 +206,7 @@ shinyServer (function (input, output, session)
       
       # get images dimensions
       imgDim <- dim (imgtmp)
+      
       # set margins
       par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
@@ -222,6 +226,7 @@ shinyServer (function (input, output, session)
                    window [4])
       
       marker_tbl <- rv$markerTable [, .(x, y)]
+      
       # plot all markers in yellow
       marker_tbl [, points (x,
                             y, 
@@ -259,9 +264,11 @@ shinyServer (function (input, output, session)
       
       # check whether there are already two points to draw a guide 
       if (nrow (marker_tbl) > 1) { 
+        
         # calculate slope and intercept for abline dissecting the last two point (i.e., guide)
         xy <- marker_tbl [(nrow (marker_tbl)-1):nrow (marker_tbl)]
         slope <- diff (xy$y) / diff (xy$x)
+        
         # rotate slope of guide by 90 degree after linker points
         if (rv$markerTable [nrow (rv$markerTable), type] == 'Linker') slope <- -1 / slope
         intercept <- xy$y [2] - slope * xy$x [2]
@@ -755,33 +762,33 @@ shinyServer (function (input, output, session)
     options = list (pageLength = 5)
   )
   
-  output$downloadCSV <- downloadHandler(
+  output$downloadCSV <- downloadHandler (
     
-    filename = function() {
+    filename = function () {
       
-      printLog('output$downloadCSV downloadHandler filename')
+      printLog ('output$downloadCSV downloadHandler filename')
       
-      paste0('ringdata-', 
-             input$ownerName,
-             '_',
-             input$spp,
-             '_',
-             input$siteLocID,
-             '_',
-             input$sampleDate, 
-             '_',
-             rv$wrkID, 
-             '_',
-             format(Sys.time(),
-                    format = '%Y-%m-%d-%H%M%S'),
-             ".csv")
+      paste0 ('ringdata-', 
+              input$ownerName,
+              '_',
+              input$spp,
+              '_',
+              input$siteLocID,
+              '_',
+              input$sampleDate, 
+              '_',
+              rv$wrkID, 
+              '_',
+              format (Sys.time (),
+                     format = '%Y-%m-%d-%H%M%S'),
+              ".csv")
       
     },
-    content = function(file) {
+    content = function (file) {
       
-      printLog('output$downloadCSV downloadHandler content')
+      printLog ('output$downloadCSV downloadHandler content')
       
-      if(!rv$notLoaded) {
+      if (!rv$notLoaded) {
         writePNG(imgProcessed(), 
                  target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
         
@@ -808,58 +815,55 @@ shinyServer (function (input, output, session)
   
   output$downloadJSON <- downloadHandler(
     
-    filename = function() {
+    filename = function () {
       
-      printLog('output$downloadJSON downloadHandler filename')
+      printLog ('output$downloadJSON downloadHandler filename')
       
-      paste0('ringdata-', 
-             input$ownerName,
-             '_',
-             input$spp,
-             '_',
-             input$siteLocID,
-             '_',
-             input$sampleDate, 
-             '_',
-             rv$wrkID, 
-             '_',
-             format(Sys.time(),
-                    format = '%Y-%m-%d-%H%M%S'),
-             ".json")
+      paste0 ('ringdata-', 
+              input$ownerName,
+              '_',
+              input$spp,
+              '_',
+              input$siteLocID,
+              '_',
+              input$sampleDate, 
+              '_',
+              rv$wrkID, 
+              '_',
+              format (Sys.time(),
+                     format = '%Y-%m-%d-%H%M%S'),
+              ".json")
       
     },
     
-    content = function(file) {
+    content = function (file) {
       
-      printLog('output$downloadJSON downloadHandler content')
+      printLog ('output$downloadJSON downloadHandler content')
       
-      if(!rv$notLoaded) {
-        writePNG(imgProcessed(), 
-                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+      if (!rv$notLoaded) {
+        writePNG (imgProcessed (), 
+                  target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
         
-        writePNG(rv$imgMat, 
-                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        writePNG (rv$imgMat, 
+                  target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
-        write(toJSON(metaData()), 
-              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        write (toJSON (metaData()), 
+               paste0 (rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
       }
       
       # data <- list(growth_table = growthTable(),
       #              meta_data = metaData())
       
-      # if(nrow(tbl)==0) 
-      #   return()
-      
-      metaData() %>% 
-        toJSON() %>%
-        write_lines(file)
+      metaData () %>% 
+        toJSON () %>%
+        write_lines (file)
     }
   )
   
-  observeEvent(input$confirmMeta, {
+  observeEvent (input$confirmMeta, {
     
-    printLog('observeEvent input$confirmMeta')
+    printLog ('observeEvent input$confirmMeta')
     
     if (input$confirmMeta == 'Not Confirmed') return ()
     
@@ -941,10 +945,10 @@ shinyServer (function (input, output, session)
   
   )
   
-  observeEvent(input$rotate180,{
-    rv$imgMat <- rotateRGB(rotateRGB(rv$imgMat))
+  observeEvent (input$rotate180,{
+    rv$imgMat <- rotateRGB (rotateRGB (rv$imgMat))
   })
-  printLog(finit = TRUE)
+  printLog (finit = TRUE)
 }
 )
 

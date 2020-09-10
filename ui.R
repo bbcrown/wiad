@@ -209,16 +209,16 @@ fluidPage (
                  ),
                  
                  # checkbox to check whether growing season had started in sample year
-                 column (2, 
+                 column (4, 
                          checkboxInput (inputId = 'growingSeasonStarted', 
-                                        label = 'Growing season had started', 
+                                        label = 'Sample-year growing season started', 
                                         value = TRUE)
                  ),
                  
                  # checkbox to check whether growing season had ended in sample year
-                 column (2, 
+                 column (4, 
                          checkboxInput (inputId = 'growingSeasonEnded', 
-                                        label = 'Growing season had ended', 
+                                        label = 'Sample-year growing season ended', 
                                         value = TRUE)
                  )
                ),
