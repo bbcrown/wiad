@@ -113,20 +113,20 @@ fluidPage (
                          placeholder = 'Name of the collection'),
                
                # name of the contributor
-               textInput(inputId = 'contributor', 
-                         label = 'Contributor',
-                         placeholder = 'Who is the main contributor of the dataset?'),
+               textInput (inputId = 'contributor', 
+                          label = 'Contributor',
+                          placeholder = 'Who is the main contributor of the dataset?'),
                
                # horizontal line 
                hr(),
                
                # the user is asked to confirm the metadata each time for verification purposes
-               radioButtons(inputId = 'confirmMeta', 
-                            label = 'Metadata', 
-                            choices  = list('Not Confirmed', 'Confirmed'),
-                            selected = 'Not Confirmed',
-                            # choiceNames = list(icon("save"), icon("next")),
-                            inline = TRUE)
+               radioButtons (inputId = 'confirmMeta', 
+                             label = 'Metadata', 
+                             choices  = list('Not Confirmed', 'Confirmed'),
+                             selected = 'Not Confirmed',
+                             # choiceNames = list(icon("save"), icon("next")),
+                             inline = TRUE)
                
              ),
              
@@ -208,18 +208,19 @@ fluidPage (
                                   value = TRUE)
                  ),
                  
-                 column (2,
-                   helpText ('Sample year growth:')),
+                 # checkbox to check whether growing season had started in sample year
+                 column (2, 
+                         checkboxInput (inputId = 'growingSeasonStarted', 
+                                        label = 'Growing season had started', 
+                                        value = TRUE)
+                 ),
                  
-                 column (3,
-                   # checkboxGroup to check whether there is some, none or full growth for the sample year
-                   radioButtons (inputId = 'sampleYearGrowth', 
-                                 label = NULL, 
-                                 choices = list ('none', 'some', 'all'),
-                                 selected = 'none',
-                                 inline = TRUE)
+                 # checkbox to check whether growing season had ended in sample year
+                 column (2, 
+                         checkboxInput (inputId = 'growingSeasonEnded', 
+                                        label = 'Growing season had ended', 
+                                        value = TRUE)
                  )
-                 
                ),
 
                # horizontal bar breaker

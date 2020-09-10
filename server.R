@@ -632,9 +632,9 @@ shinyServer (function (input, output, session)
         # loop over all points from bark towards the pith
         for (i in 1:n)
           years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowth == 'none',
-                                       input$sampleYear,
-                                       input$sampleYear + 1),
+                               ifelse (input$growingSeasonStarted,
+                                       input$sampleYear + 1,
+                                       input$sampleYear),
                                ifelse (types [i] == 'Linker',
                                        years [i-1],
                                        years [i-1] - 1)
@@ -644,9 +644,9 @@ shinyServer (function (input, output, session)
         # loop over all points from inner most ring towards the bark
         for (i in n:1)
           years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowth == 'none',
-                                       input$sampleYear,
-                                       input$sampleYear + 1),
+                               ifelse (input$growingSeasonStarted,
+                                       input$sampleYear + 1,
+                                       input$sampleYear),
                                ifelse (types [i] == 'Linker',
                                        years [i+1],
                                        years [i+1] - 1))
@@ -661,18 +661,18 @@ shinyServer (function (input, output, session)
         # loop over all points from bark to pith
         for (i in 1:p)
           years[i] <- ifelse (i == 1,
-                              ifelse (input$sampleYearGrowth == 'none',
-                                      input$sampleYear,
-                                      input$sampleYear + 1),
+                              ifelse (input$growingSeasonStarted,
+                                      input$sampleYear + 1,
+                                      input$sampleYear),
                               ifelse (types [i] == 'Linker',
                                       years [i-1],
                                       years [i-1] - 1))
         # loop over all point from pith towards the bark in potential second profile
         for (i in (p + 1):n)
           years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowth == 'none',
-                                       input$sampleYear,
-                                       input$sampleYear + 1),
+                               ifelse (input$growingSeasonStarted,
+                                       input$sampleYear + 1,
+                                       input$sampleYear),
                                ifelse(types [i] == 'Linker',
                                       years [i-1],
                                       years [i-1] + 1))
@@ -681,9 +681,9 @@ shinyServer (function (input, output, session)
         # loop over points from potential second profile to the pith
         for (i in n:p)
           years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowth == 'none',
-                                       input$sampleYear,
-                                       input$sampleYear + 1),
+                               ifelse (input$growingSeasonStarted,
+                                       input$sampleYear + 1,
+                                       input$sampleYear),
                                ifelse (types [i] == 'Linker',
                                        years [i+1],
                                        years [i+1] - 1))
@@ -691,9 +691,9 @@ shinyServer (function (input, output, session)
         # loop over points from pith to bark
         for(i in (p-1):1)
           years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowth == 'none',
-                                       input$sampleYear,
-                                       input$sampleYear + 1),
+                               ifelse (input$growingSeasonStarted,
+                                       input$sampleYear + 1,
+                                       input$sampleYear),
                                ifelse(types [i] == 'Linker',
                                       years [i+1],
                                       years [i+1] + 1))
