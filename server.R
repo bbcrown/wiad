@@ -46,89 +46,136 @@ shinyServer (function (input, output, session)
   )
   
   #=================================================================
-  # 
-  
   # whenever new image was uploaded
-  observeEvent(input$image,
+  observeEvent (input$image,
                {
                  printLog('observeEvent input$image')
                  
-                 updateRadioButtons(session = session, 
-                                    inputId = 'confirmMeta', 
-                                    selected = 'Not Confirmed')
+                 updateRadioButtons (session = session, 
+                                     inputId = 'confirmMeta', 
+                                     selected = 'Not Confirmed')
                  
-                 rv$wrkID <- paste(gsub(x = as.character(Sys.time()), 
-                                        pattern = ' |:', 
-                                        replacement = '-'),
-                                   paste(sample(x = c(0:9, letters, LETTERS),
-                                                size = 32,
-                                                replace=TRUE),
-                                         collapse=""), 
+                 rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
+                                          pattern = ' |:', 
+                                          replacement = '-'),
+                                   paste (sample (x = c (0:9, letters, LETTERS),
+                                                  size = 32,
+                                                  replace = TRUE),
+                                          collapse = ""), 
                                    sep = '_'
                  )
                  
                  # set the sub directory for the sample
-                 rv$wrkDir <- paste0(ARCHIVE_DIR, 'W-', rv$wrkID, '/')
+                 rv$wrkDir <- paste0 (ARCHIVE_DIR, 'W-', rv$wrkID, '/')
                  
                  # create the sub directory for the sample
-                 dir.create(rv$wrkDir)
+                 dir.create (rv$wrkDir)
                  
+                 # get path to image
                  rv$imgPath <- input$image$datapath
                  
-                 rv$imgExt <- file_ext(rv$imgPath)
+                 # get file extension
+                 rv$imgExt <- file_ext (rv$imgPath)
                  
-                 if(rv$imgExt%in%c('jpg', 'jpeg', 'JPG', 'JPEG')) 
-                   rv$imgMat <- readJPEG(rv$imgPath)
-                 else 
-                   if(rv$imgExt%in%c('tiff', 'tif', 'TIF', 'TIFF')) 
-                     rv$imgMat <- readTIFF(rv$imgPath)
-                 else 
-                   if(rv$imgExt%in%c('png','PNG')) 
-                     rv$imgMat <- readPNG(rv$imgPath)[,,1:3]
-                 else   {      
-                   showModal(strong(
-                     modalDialog("Only JPEG, TIFF or PNG files are accpeted.",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style='background-color:#3b3a35; color:#fce319; ',
-                                 footer = NULL
+                 # read image
+                 if (rv$imgExt %in% c ('jpg', 'jpeg', 'JPG', 'JPEG')) {
+                   rv$imgMat <- readJPEG (rv$imgPath)
+                 } else if (rv$imgExt %in% c('tiff', 'tif', 'TIF', 'TIFF')) {
+                   rv$imgMat <- readTIFF (rv$imgPath)
+                 } else if (rv$imgExt %in% c ('png','PNG')) {
+                   rv$imgMat <- readPNG (rv$imgPath)[,,1:3]
+                 } else {      
+                   showModal (strong (
+                     modalDialog ("Only JPEG, TIFF or PNG files are accepted.",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#A41034; ',
+                                  footer = NULL
                      )))
                    
-                   return()
+                   return ()
                  }
                  
                  rv$notLoaded <- FALSE
                  
-                 imgDim <- dim(rv$imgMat)
+                 imgDim <- dim (rv$imgMat)
                  
-                 writePNG(rv$imgMat,  
+                 writePNG (rv$imgMat,  
                           
-                          paste0(rv$wrkDir,
-                                 'imgorg-',
-                                 rv$wrkID,
-                                 '.png'))
+                          paste0 (rv$wrkDir,
+                                  'imgorg-',
+                                  rv$wrkID,
+                                  '.png'))
                  
-                 if(imgDim[2]<imgDim[1]) {
-                   rv$imgMat <- rotateRGB(rv$imgMat)
+                 if (imgDim [2] < imgDim [1]) {
+                   rv$imgMat <- rotateRGB (rv$imgMat)
                  }
-                 
-                 
-                 
-                 
                  
                  updateNumericInput (session = session,
                                      inputId = 'sampleDPI',
                                      value = NULL)
                  
-                 rv$markerTable <-  data.table ( # data.table contains the marker data
-                   no   = integer (), # no ID
-                   x    = numeric (), # x
-                   y    = numeric (), # y
-                   relx = numeric (), # relative x
-                   rely = numeric (), # relative y
-                   type = character () # type
+                 rv$markerTable <- data.table ( # data.table contains the marker data
+                   no   = integer (),   # no ID
+                   x    = numeric (),   # x
+                   y    = numeric (),   # y
+                   relx = numeric (),   # relative x
+                   rely = numeric (),   # relative y
+                   type = character ()  # type
                  )
+               }
+  )
+  
+  # whenever metadata is uploaded update all the metadata below # TR still needs work and review
+  observeEvent (input$metadata,
+               {
+                 printLog ('observeEvent input$metadata')
+
+                 # get path to metadata
+                 rv$metaPath <- input$metadata$datapath
+
+                 # get file extension
+                 rv$metaExt <- file_ext (rv$metaPath)
+
+                 # read metadata
+                 if (rv$metadataExt %in% c ('csv', 'CSV')) {
+                   metadata <- read_csv (rv$metaPath)
+                 } else if (rv$imgExt %in% c ('json', 'JSON')) {
+                   metadata <- read_json (rv$metaPath)
+                 } else {
+                   showModal (strong (
+                     modalDialog ("Only csv or json files are accepted.",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#A41034; ',
+                                  footer = NULL)))
+
+                   return ()
+                 }
+                 showModal (strong (
+                   modalDialog ("Review and confirm metadata below.",
+                                easyClose = T,
+                                fade = T,
+                                size = 's',
+                                style = 'background-color:#3b3a35; color:#A41034; ',
+                                footer = NULL)))
+                 
+                 # update metadata fields
+                 updateTextInput (session = session,
+                                  inputId = 'ownerName',
+                                 # label = 'Name',
+                                  value = metadata$ownerName)
+                 updateTextInput (session = session,
+                                  inputId = 'ownerEmail',
+                                  #label = 'Email address',
+                                  value = metadata$ownerEmail)
+                 updateTextInput (session = session,
+                                  inputId = 'spp',
+                                  #label = 'Species',
+                                  value = metadata$spp)
+# TR I need to create a metadata file in csv and json format to test this function.
                }
   )
   
@@ -155,11 +202,7 @@ shinyServer (function (input, output, session)
                     contributor = input$contributor,
                     markerData  = rv$markerTable,
                     growth      = growthTable (), 
-                    status      = input$confirmMeta
-      )
-      
-      # toJSON(meta)
-      
+                    status      = input$confirmMeta)
     }
   )
   
@@ -487,7 +530,7 @@ shinyServer (function (input, output, session)
                       easyClose = T,
                       fade = T,
                       size = 's',
-                      style = 'background-color:#3b3a35; color:#fce319; ',
+                      style = 'background-color:#3b3a35; color:#A41034; ',
                       footer = NULL
           )))
         return (rv$imgMat)
@@ -534,12 +577,12 @@ shinyServer (function (input, output, session)
                  # check whether no marker has been set yet
                  if (nrow (rv$markerTable) == 0)
                  {
-                   showModal (strong(
+                   showModal (strong (
                      modalDialog ("No ring marker is identified yet!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#fce319; ',
+                                  style='background-color:#3b3a35; color:#A41034; ',
                                   footer = NULL
                      )))
                    return ()
@@ -550,7 +593,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style ='background-color:#3b3a35; color:#fce319; ',
+                                  style ='background-color:#3b3a35; color:#A41034; ',
                                   footer = NULL
                      )))
                    return ()
@@ -576,7 +619,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#fce319; ',
+                                  style='background-color:#3b3a35; color:#A41034; ',
                                   footer = NULL
                      )))
                    return ()
@@ -627,7 +670,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style ='background-color:#3b3a35; color:#fce319; ',
+                                  style ='background-color:#3b3a35; color:#A41034; ',
                                   footer = NULL
                      )))
                    return ()

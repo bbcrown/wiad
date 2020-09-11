@@ -39,22 +39,37 @@ fluidPage (
     tabPanel('TRIAD Toolbox',
              
              # sidebar panel
-             sidebarPanel(
+             sidebarPanel (
                
                # the file input only accepts jpeg, png or tiff.
-               fileInput('image', 'Choose the image file',
-                         multiple = FALSE,
-                         accept = c('image/jpeg',
-                                    'image/png',
-                                    'image/tiff')),
+               fileInput (inputId = 'image', 
+                          label = 'Choose the image file',
+                          multiple = FALSE,
+                          accept = c('image/jpeg',
+                                     'image/png',
+                                     'image/tiff')),
+               
+               # the file input only accepts csv and json. # TR this needs work
+               fileInput (inputId = 'markers', 
+                          label = 'Upload markers file',
+                          multiple = FALSE,
+                          accept = c ('text/csv',
+                                      'text/json')),
+               
+               # the file input only accepts csv and json. # TR this needs work
+               fileInput (inputId = 'metadata', 
+                          label = 'Upload metadata or enter manually below',
+                          multiple = FALSE,
+                          accept = c ('text/csv',
+                                      'text/json')),
                
                # Horizontal line ----
-               tags$hr(),
+               tags$hr (),
                
                # asking the owner name
-               textInput(inputId = 'ownerName', 
-                         label = 'Name', 
-                         placeholder = 'Your name'),
+               textInput (inputId = 'ownerName', 
+                          label = 'Name', 
+                          placeholder = 'Your name'),
                
                # the owners' email
                textInput(inputId = 'ownerEmail', 
