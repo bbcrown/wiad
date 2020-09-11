@@ -238,8 +238,10 @@ shinyServer (function (input, output, session)
       # plot years between two markers to more easily identify the growth rings
       if (input$displayYears) {
         years <- growthTable ()
+        
+        # sort out all linkers
+        years <- years [type != "Linker"]
         if (nrow (years) > 1) {
-          years <- years [type != "Linker"]
           xs <- rollmean (years$x, 2)
           ys <- rollmean (years$y, 2)
           years <- years [2:nrow (years), year]
@@ -255,13 +257,34 @@ shinyServer (function (input, output, session)
       wLinkers <- which (rv$markerTable$type == 'Linker')
       wPith    <- which (rv$markerTable$type == 'Pith')
       
-      # draw blue lines between linker markers
-      segments (x0 = rv$markerTable [wLinkers, x], 
-                y0 = rv$markerTable [wLinkers, y],
-                x1 = rv$markerTable [wLinkers - 1, x], 
-                y1 = rv$markerTable [wLinkers - 1, y], 
-                lwd = 2, 
-                col = 'cornflowerblue')
+      # draw blue lines which symbolise linked segmemts, that are not
+      # check whether there is at least one linker marker
+      if (sum (wLinkers, na.rm = TRUE) >= 1) {
+        
+        # check whether the last marker was a linker or there is another marker afterwards
+        if (nrow (rv$markerTable) > max (wLinkers, na.rm = TRUE)) { 
+          
+          # check whether the following marker is an increment or linker marker
+          if (rv$markerTable$type [wLinkers + 1] != 'Linker') {
+            segments (x0 = rv$markerTable [wLinkers, x], 
+                      y0 = rv$markerTable [wLinkers, y],
+                      x1 = rv$markerTable [wLinkers - 1, x], 
+                      y1 = rv$markerTable [wLinkers - 1, y], 
+                      lwd = 2, 
+                      col = 'cornflowerblue')
+          }
+        # the last marker was a linker
+        } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE)) {
+          segments (x0 = rv$markerTable [max (wLinkers, na.rm = TRUE), x], 
+                    y0 = rv$markerTable [max (wLinkers, na.rm = TRUE), y],
+                    x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
+                    y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
+                    lwd = 2, 
+                    col = 'cornflowerblue')  
+        }
+      }
+      # above code draws lines between last marker and linker markers for single linker markers
+      # and between the two linker markers for consecutive linker markers
       
       # overplot linker markers in blue
       points (x = rv$markerTable [wLinkers, x], 
@@ -288,19 +311,18 @@ shinyServer (function (input, output, session)
         
         # rotate slope of guide by 90 degree after linker points
         if (rv$markerTable [nrow (rv$markerTable), type] == 'Linker') slope <- -1 / slope
+        
+        # calculate the intercept
         intercept <- xy$y [2] - slope * xy$x [2]
         
-        # check whether slope is finite
+        # check whether slope is finite and plot guide
         if (is.finite (slope)) {
-          # plot the guide
           abline (intercept, 
                   slope,
                   col = 'yellow',
                   lwd = 2, 
                   lty = 2)
-        }
-        else
-        {
+        } else {
           # plot vertical line between the markers, if slope is not finite
           abline (v = mean (xy$x),
                   col = 'yellow',
@@ -312,7 +334,7 @@ shinyServer (function (input, output, session)
     })
   
   
-  observeEvent(input$selRed,
+  observeEvent (input$selRed,
                {
                  printLog('observeEvent input$selRed')
                  
@@ -403,7 +425,7 @@ shinyServer (function (input, output, session)
                }
   )
   
-  totbrightness <- reactive(
+  totbrightness <- reactive (
     {
       printLog('totbrightness reactive')
       
@@ -416,7 +438,7 @@ shinyServer (function (input, output, session)
     }
   )
   
-  brightness <- reactive(
+  brightness <- reactive (
     {
       printLog('brightness reactive')
       
@@ -427,7 +449,7 @@ shinyServer (function (input, output, session)
     }
   )
   
-  darkness <- reactive(
+  darkness <- reactive (
     {
       printLog('darkness reactive')
       
@@ -522,9 +544,9 @@ shinyServer (function (input, output, session)
                      )))
                    return ()
                  # check whether only one marker has been set yet 
-                 } else if (nrow (rv$markerTable) == 1) {
+                 } else if (nrow (rv$markerTable) <= 2) {
                    showModal (strong (
-                     modalDialog ("First point cannot be a linker!",
+                     modalDialog ("The first two points cannot be linkers! Maybe start on a ring?",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
@@ -731,15 +753,26 @@ shinyServer (function (input, output, session)
     if (nrow (growth_table) <= 1)  return (growth_table)
     
     # calculate distances between markers, aka growth
+    # if one linker is set we measure the distance from linker to next marker
     growth <- sqrt (diff (growth_table$x)^2 + diff (growth_table$y)^2)
     if (input$barkSide) {
       growth_table$pixels <- c (0, growth)
     } else {
       growth_table$pixels <- c (growth, 0)
     }
+    # if two consecutive linkers are set, we measure from marker to linker and 
+    # add the distance from second linker to the next marker, this allows to 
+    # more precisely jump gaps in the sample
+    if (nrow (growth_table) >= 3) {
+      for (i in 3:nrow (growth_table)) {
+        # if one of the two preceeding markers is not a linker move on
+        if (growth_table$type [i-1] != 'Linker' | growth_table$type [i-2] != 'Linker') next
+        growth_table$pixels [i] <- growth_table$pixels [i-2] + growth_table$pixels [i]
+      }
+    }
     
     # set all linker markers' growth to NA
-    growth_table [type == 'Linker', pixels := NA]  
+    #growth_table [type == 'Linker', pixels := NA]  
     
     # convert growth from pixels to mm
     growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4]
@@ -767,8 +800,8 @@ shinyServer (function (input, output, session)
       # order table, aka starting with the most recent year
       tbl <- tbl [order (no)]
       
-      # do not display first marker, as there is no measured growth
-      datatable (tbl [-1, 2:dim (tbl) [2]],  options = list (initComplete = JS (
+      # display markers in data table below image
+      datatable (tbl [ , 2:dim (tbl) [2]],  options = list (initComplete = JS (
         "function(settings, json) {",
         "$(this.api().table().header()).css({'background-color': '#6a727e', 'color': '#bbc9d3'});",
         "}")
