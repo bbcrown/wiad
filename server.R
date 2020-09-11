@@ -801,9 +801,12 @@ shinyServer (function (input, output, session)
       tbl <- tbl [order (no)]
       
       # display markers in data table below image
-      datatable (tbl [ , 2:dim (tbl) [2]],  options = list (initComplete = JS (
+      datatable (tbl [ , 2:dim (tbl) [2]], options = list (initComplete = JS (
         "function(settings, json) {",
-        "$(this.api().table().header()).css({'background-color': '#6a727e', 'color': '#bbc9d3'});",
+        "$(this.api().table().header()).css({'background-color': '#484e55', 'color': '#fff'});",
+        "$('.dataTables_info').css({'color':'#888'});",
+        "$('.dataTables_filter').css({'color':'#888'});",
+        "$('.dataTables_length').css({'color':'#888'}, );",
         "}")
       )) 
       
