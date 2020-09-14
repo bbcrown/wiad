@@ -90,7 +90,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style = 'background-color:#3b3a35; color:#A41034; ',
+                                  style = 'background-color:#3b3a35; color:#b91b9a4; ',
                                   footer = NULL
                      )))
                    
@@ -127,7 +127,7 @@ shinyServer (function (input, output, session)
                }
   )
   
-  # whenever metadata is uploaded update all the metadata below # TR still needs work and review
+  # whenever metadata is uploaded update all the metadata below and make user review it.
   observeEvent (input$metadata,
                {
                  printLog ('observeEvent input$metadata')
@@ -167,7 +167,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style = 'background-color:#3b3a35; color:#A41034; ',
+                                  style = 'background-color:#3b3a35; color:#91b0a4; ',
                                   footer = NULL)))
 
                    return ()
@@ -177,7 +177,7 @@ shinyServer (function (input, output, session)
                                 easyClose = T,
                                 fade = T,
                                 size = 's',
-                                style = 'background-color:#3b3a35; color:#A41034; ',
+                                style = 'background-color:#3b3a35; color:#b91b9a4; ',
                                 footer = NULL)))
                  
                  # update metadata fields
@@ -225,8 +225,6 @@ shinyServer (function (input, output, session)
                  updateRadioButtons (session = session, 
                                      inputId = 'confirmMeta', 
                                      selected = 'Not Confirmed')
-                 
-# TR I need to create a metadata file in csv and json format to test this function.
                }
   )
   
@@ -310,7 +308,7 @@ shinyServer (function (input, output, session)
             type = 'n', 
             axes = FALSE, 
             xlab = '',
-            ylab = '') # TR Added to create scroll overflow
+            ylab = '')
       
       window <- par()$usr
       
@@ -581,7 +579,7 @@ shinyServer (function (input, output, session)
                       easyClose = T,
                       fade = T,
                       size = 's',
-                      style = 'background-color:#3b3a35; color:#A41034; ',
+                      style = 'background-color:#3b3a35; color:#b91b9a4; ',
                       footer = NULL
           )))
         return (rv$imgMat)
@@ -633,7 +631,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#A41034; ',
+                                  style='background-color:#3b3a35; color:#b91b9a4; ',
                                   footer = NULL
                      )))
                    return ()
@@ -644,7 +642,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style ='background-color:#3b3a35; color:#A41034; ',
+                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                   footer = NULL
                      )))
                    return ()
@@ -670,7 +668,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#A41034; ',
+                                  style='background-color:#3b3a35; color:#b91b9a4; ',
                                   footer = NULL
                      )))
                    return ()
@@ -721,7 +719,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style ='background-color:#3b3a35; color:#A41034; ',
+                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                   footer = NULL
                      )))
                    return ()
