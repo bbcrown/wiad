@@ -36,7 +36,7 @@ fluidPage (
   tabsetPanel(
     
     # main tab panel
-    tabPanel('TRIAD Toolbox',
+    tabPanel ('TRIAD Toolbox',
              
              # sidebar panel
              sidebarPanel (
@@ -72,12 +72,12 @@ fluidPage (
                           placeholder = 'Your name'),
                
                # the owners' email
-               textInput(inputId = 'ownerEmail', 
-                         label = 'Email address', 
-                         placeholder = 'Email address'),
+               textInput (inputId = 'ownerEmail', 
+                          label = 'Email address', 
+                          placeholder = 'Email address'),
                
                # species 
-               textInput (inputId = 'spp', 
+               textInput (inputId = 'species', 
                           label = 'Species', 
                           placeholder = 'What genus/species?'),
                
@@ -94,9 +94,10 @@ fluidPage (
                
                # checkbox to check whether growing season had started in sample year
                radioButtons (inputId = 'sampleYearGrowingSeason', 
-                              label = 'Growing season had', 
-                              choices = list ('only started','already ended'),
-                              inline = TRUE),
+                             label = 'Growing season had', 
+                             choices = list ('not started','only started','already ended'),
+                             selected = 'not started',
+                             inline = TRUE),
                
                # resolution of the sample
                numericInput (inputId = 'sampleDPI', 
@@ -106,7 +107,7 @@ fluidPage (
                # name of the location where the sample was collected
                textInput (inputId = 'siteLoc',
                           label = 'Site location', 
-                          placeholder = 'Where was the sample collected from?'),
+                          placeholder = 'Where was the sample collected?'),
                
                # identifier of the location where the sample was collected
                textInput (inputId = 'siteLocID',
@@ -121,7 +122,7 @@ fluidPage (
                # name of the collection
                textInput (inputId = 'sampleID', 
                           label = 'Sample ID',
-                          placeholder = 'Internal sampel ID'),
+                          placeholder = 'Internal sample identifier.'),
                
                # any additional input metadata that the user might want to record
                textInput (inputId = 'sampleNote', 
@@ -139,84 +140,83 @@ fluidPage (
                           placeholder = 'Who is the main contributor of the dataset?'),
                
                # horizontal line 
-               hr(),
+               hr (),
                
                # the user is asked to confirm the metadata each time for verification purposes
                radioButtons (inputId = 'confirmMeta', 
                              label = 'Metadata', 
-                             choices  = list('Not Confirmed', 'Confirmed'),
+                             choices  = list ('Not Confirmed', 'Confirmed'),
                              selected = 'Not Confirmed',
-                             # choiceNames = list(icon("save"), icon("next")),
                              inline = TRUE)
                
              ),
              
-             mainPanel(
+             mainPanel (
                
                # two buttons in a single row
-               fluidRow(
+               fluidRow (
                  
                  # select true color RGB 
-                 column(4, 
-                        actionButton(inputId = 'selRGB', 
-                                     label = 'True Color',
-                                     width = '100%', 
-                                     icon=icon('image'))
+                 column (4, 
+                         actionButton (inputId = 'selRGB', 
+                                       label = 'True Color',
+                                       width = '100%', 
+                                       icon = icon('image'))
                  ),
                  
                  # select monochoromic total brightness
-                 column(4, 
-                        actionButton(inputId = 'selTotBr', 
-                                     label = 'Brightness',
-                                     width = '100%', 
-                                     icon=icon('sun')) 
+                 column (4, 
+                         actionButton (inputId = 'selTotBr', 
+                                      label = 'Brightness',
+                                      width = '100%', 
+                                      icon = icon('sun')) 
                  ),
                  # to show only the blue channel
-                 column(4, 
-                        actionButton(inputId = 'selBlue', 
-                                     label = 'Blue', 
-                                     width = '100%', 
-                                     icon=icon('tint'))
+                 column (4, 
+                         actionButton (inputId = 'selBlue', 
+                                       label = 'Blue', 
+                                       width = '100%', 
+                                       icon = icon('tint'))
                  )
                ),
                
                
                # horizontal bar breaker
-               hr(),
+               hr (),
                
                # a fluid row that carries rotation button and zoom level bar
-               fluidRow(
+               fluidRow (
                  
                  # rotation button
-                 column(2,
-                        actionButton(inputId = 'rotate180',
-                                     label = NULL,
-                                     width = '100%',
-                                     icon=icon('sync'),
-                                     style='color: white; background-color: gray; border-color: black;'),
+                 column (2,
+                         actionButton (inputId = 'rotate180',
+                                       label = NULL,
+                                       width = '100%',
+                                       icon = icon('sync'),
+                                       style = 'color: white; background-color: gray; border-color: black;'),
                         
                  ),
                  
                  # zoom level bar
-                 column(10, sliderInput(inputId = 'zoomlevel',
-                                        label = 'Width', 
-                                        min = 400, 
-                                        max = 20000, 
-                                        step = 1,
-                                        value = 800, 
-                                        ticks = FALSE,
-                                        width = '100%'))
+                 column (10, sliderInput (inputId = 'zoomlevel',
+                                          label = 'Width', 
+                                          min = 400, 
+                                          max = 20000, 
+                                          step = 1,
+                                          value = 800, 
+                                          ticks = FALSE,
+                                          width = '100%'))
                ),
                
                # section breaker
-               br(),
+               br (),
                
                # main image plot to show the processed image, the raw image is only stored
-               plotOutput(outputId = 'imageProc', 
-                          click = 'ring_point',
-                          # width = 'auto',
-                          # height = 'auto'
-                          inline = TRUE
+               column (12, (div (style = 'width:800px;overflow-x: scroll;height:400px;overflow-y: scroll;',
+                           plotOutput (outputId = 'imageProc', 
+                                       click = 'ring_point',
+                                       inline = TRUE,
+                                       width = '1000px')))
                ),
                
                # Checkbox input in a single fluid row
@@ -236,59 +236,59 @@ fluidPage (
                ),
 
                # horizontal bar breaker
-               hr(),
+               hr (),
                
                # Four buttons in a single fluid row
-               fluidRow(
+               fluidRow (
                  
                  # Clear all the points
-                 column(2, 
-                        actionButton(inputId = 'clearCanvas', 
-                                     label = 'Erase', 
-                                     icon = icon('eraser'), 
-                                     class='btn-primary',
-                                     width = '100%',
-                                     style='font-weight: bold;')),
+                 column (2, 
+                         actionButton (inputId = 'clearCanvas', 
+                                       label = 'Erase', 
+                                       icon = icon('eraser'), 
+                                       class='btn-primary',
+                                       width = '100%',
+                                       style = 'font-weight: bold;')),
                  
                  
                  # Undo the last click
-                 column(2,  
-                        actionButton(inputId = 'undoCanvas', 
-                                     label = 'Undo',
-                                     icon = icon('undo'), 
-                                     class='btn-primary', 
-                                     width = '100%', 
-                                     style='font-weight: bold;')
+                 column (2,  
+                         actionButton (inputId = 'undoCanvas', 
+                                       label = 'Undo',
+                                       icon = icon('undo'), 
+                                       class='btn-primary', 
+                                       width = '100%', 
+                                       style = 'font-weight: bold;')
                  ),
                  
                  # On or off the linker status
-                 column(2, 
-                        actionButton(inputId = 'linkerPoint', 
-                                     label = 'Link',
-                                     icon = icon('link'), 
-                                     class='btn-primary', 
-                                     width = '100%', 
-                                     style='font-weight: bold;')
+                 column (2, 
+                         actionButton (inputId = 'linkerPoint', 
+                                       label = 'Link',
+                                       icon = icon('link'), 
+                                       class = 'btn-primary', 
+                                       width = '100%', 
+                                       style = 'font-weight: bold;')
                  ), 
                  
                  # Convert type to 'pith'
-                 column(2, 
-                        actionButton(inputId = 'pith', 
-                                     label = 'Pith',
-                                     icon = icon('bullseye'), 
-                                     class='btn-primary', 
-                                     width = '100%', 
-                                     style='font-weight: bold;')
+                 column (2, 
+                         actionButton (inputId = 'pith', 
+                                      label = 'Pith',
+                                      icon = icon ('bullseye'), 
+                                      class = 'btn-primary', 
+                                      width = '100%', 
+                                      style = 'font-weight: bold;')
                  ),
                  
                  # Convert type to 'pith'
-                 column(2, 
-                        actionButton(inputId = 'misc', 
-                                     label = 'Misc',
-                                     icon = icon('discourse'), 
-                                     class='btn-primary', 
-                                     width = '100%', 
-                                     style='font-weight: bold;')
+                 column (2, 
+                         actionButton (inputId = 'misc', 
+                                       label = 'Misc',
+                                       icon = icon('discourse'), 
+                                       class = 'btn-primary', 
+                                       width = '100%', 
+                                       style = 'font-weight: bold;')
                  ) 
                ),
                

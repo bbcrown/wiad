@@ -15,7 +15,7 @@ shinyServer (function (input, output, session)
 {
   
   # sent the initial log message
-  printLog(init = TRUE)
+  printLog (init = TRUE)
   
   
   # declaring reactive value
@@ -40,8 +40,8 @@ shinyServer (function (input, output, session)
                {
                  printLog('observeEvent rv$imgMat')
                  
-                 imgDim <- dim(rv$imgMat)
-                 rv$imgAsp <- imgDim[2] /imgDim[1]  
+                 imgDim <- dim (rv$imgMat)
+                 rv$imgAsp <- imgDim[2] / imgDim[1]  
                }
   )
   
@@ -134,18 +134,36 @@ shinyServer (function (input, output, session)
 
                  # get path to metadata
                  rv$metaPath <- input$metadata$datapath
+                 print (rv$metaPath)
 
                  # get file extension
                  rv$metaExt <- file_ext (rv$metaPath)
+                 print (rv$metaExt)
 
-                 # read metadata
-                 if (rv$metadataExt %in% c ('csv', 'CSV')) {
-                   metadata <- read_csv (rv$metaPath)
-                 } else if (rv$imgExt %in% c ('json', 'JSON')) {
+                 # read metadata from .xlsx, .csv, or .json file
+                 if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
+                   metadata <- read_excel (path = rv$metaPath,
+                                           col_names = c ('ownerName','ownerEmail','species',
+                                                          'sampleDate','sampleYear','sampleDPI',
+                                                          'siteLoc','siteLocID','plotID',
+                                                          'sampleID','sampleNote','collection',
+                                                          'contributor'),
+                                           col_types = c ('text','text','text','date','numeric',
+                                                          'numeric','text','text','text','text',
+                                                          'text','text','text'), skip = 1)
+                 } else if (rv$metaExt %in% c ('csv', 'CSV')) {
+                   metadata <- read_csv (file = rv$metaPath, 
+                                         col_names = c ('ownerName','ownerEmail','species',
+                                                        'sampleDate','sampleYear','sampleDPI',
+                                                        'siteLoc','siteLocID','plotID',
+                                                        'sampleID','sampleNote','collection',
+                                                        'contributor'),
+                                         col_types = 'cccDiiccccccc', skip = 1)
+                 } else if (rv$metaExt %in% c ('json', 'JSON')) {
                    metadata <- read_json (rv$metaPath)
                  } else {
                    showModal (strong (
-                     modalDialog ("Only csv or json files are accepted.",
+                     modalDialog ("Only xlsx, csv or json files are accepted for metadata.",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
@@ -165,16 +183,49 @@ shinyServer (function (input, output, session)
                  # update metadata fields
                  updateTextInput (session = session,
                                   inputId = 'ownerName',
-                                 # label = 'Name',
                                   value = metadata$ownerName)
                  updateTextInput (session = session,
                                   inputId = 'ownerEmail',
-                                  #label = 'Email address',
                                   value = metadata$ownerEmail)
                  updateTextInput (session = session,
-                                  inputId = 'spp',
-                                  #label = 'Species',
-                                  value = metadata$spp)
+                                  inputId = 'species',
+                                  value = metadata$species)
+                 updateTextInput (session = session,
+                                  inputId = 'sampleDate',
+                                  value = metadata$sampleDate)
+                 updateTextInput (session = session,
+                                  inputId = 'sampleYear',
+                                  value = metadata$sampleYear)
+                 updateTextInput (session = session,
+                                  inputId = 'sampleDPI',
+                                  value = metadata$sampleDPI)
+                 updateTextInput (session = session,
+                                  inputId = 'siteLoc',
+                                  value = metadata$siteLoc)
+                 updateTextInput (session = session,
+                                  inputId = 'siteLocID',
+                                  value = metadata$siteLocID)
+                 updateTextInput (session = session,
+                                  inputId = 'plotID',
+                                  value = metadata$plotID)
+                 updateTextInput (session = session,
+                                  inputId = 'sampleNote',
+                                  value = metadata$sampleNote)
+                 updateTextInput (session = session,
+                                  inputId = 'sampleID',
+                                  value = metadata$sampleID)
+                 updateTextInput (session = session,
+                                  inputId = 'collection',
+                                  value = metadata$collection)
+                 updateTextInput (session = session,
+                                  inputId = 'contributor',
+                                  value = metadata$contributor)
+                 
+                 # make sure the metadata is reviewed
+                 updateRadioButtons (session = session, 
+                                     inputId = 'confirmMeta', 
+                                     selected = 'Not Confirmed')
+                 
 # TR I need to create a metadata file in csv and json format to test this function.
                }
   )
@@ -185,7 +236,7 @@ shinyServer (function (input, output, session)
       
       meta <- list (ownerName   = input$ownerName, 
                     ownerEmail  = input$ownerEmail,
-                    species     = input$spp,
+                    species     = input$species,
                     sampleDate  = input$sampleDate,
                     sampleYear  = input$sampleYear,
                     sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'only started', 
@@ -259,7 +310,7 @@ shinyServer (function (input, output, session)
             type = 'n', 
             axes = FALSE, 
             xlab = '',
-            ylab = '')
+            ylab = '') # TR Added to create scroll overflow
       
       window <- par()$usr
       
@@ -867,7 +918,7 @@ shinyServer (function (input, output, session)
       paste0 ('ringdata-', 
               input$ownerName,
               '_',
-              input$spp,
+              input$species,
               '_',
               input$siteLocID,
               '_',
@@ -918,7 +969,7 @@ shinyServer (function (input, output, session)
       paste0 ('ringdata-', 
               input$ownerName,
               '_',
-              input$spp,
+              input$species,
               '_',
               input$siteLocID,
               '_',

@@ -29,6 +29,7 @@ list.of.packages <- c (
   'raster',
   'rgdal',
   'readr',
+  'readxl',
   'sp',
   'tiff',
   'tools',
