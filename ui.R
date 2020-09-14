@@ -192,7 +192,7 @@ fluidPage (
                          actionButton (inputId = 'rotate180',
                                        label = NULL,
                                        width = '100%',
-                                       icon = icon('sync'),
+                                       icon = icon ('sync'),
                                        style = 'color: white; background-color: gray; border-color: black;'),
                         
                  ),
@@ -212,7 +212,7 @@ fluidPage (
                br (),
                
                # main image plot to show the processed image, the raw image is only stored
-               column (12, (div (style = 'min-width:600px;width:60vw;overflow-x:scroll;min-height:200px;height:60vh;overflow-y:scroll;',
+               column (12, (div (style = 'min-width:600px;width:60vw;overflow-x:scroll;min-height:100px;height:40vh;overflow-y:scroll;',
                            plotOutput (outputId = 'imageProc', 
                                        click = 'ring_point',
                                        inline = TRUE,
@@ -321,15 +321,15 @@ fluidPage (
     # tabpanel for plitting the growth curve
     tabPanel ('TRIAD Plot Board',
              {
-               mainPanel(
+               mainPanel (
                  
                  # horizontal bar breaker
-                 hr(),
+                 hr (),
                  
                  # plot the growth table
-                 plotlyOutput(outputId = 'ring_plot', 
-                              height = "500px", 
-                              width = "100%")
+                 plotlyOutput (outputId = 'ring_plot', 
+                               height = "500px", 
+                               width = "100%")
                )
              }),
     

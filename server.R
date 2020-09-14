@@ -49,7 +49,7 @@ shinyServer (function (input, output, session)
   # whenever new image was uploaded
   observeEvent (input$image,
                {
-                 printLog('observeEvent input$image')
+                 printLog ('observeEvent input$image')
                  
                  updateRadioButtons (session = session, 
                                      inputId = 'confirmMeta', 
@@ -86,11 +86,11 @@ shinyServer (function (input, output, session)
                    rv$imgMat <- readPNG (rv$imgPath)[,,1:3]
                  } else {      
                    showModal (strong (
-                     modalDialog ("Only JPEG, TIFF or PNG files are accepted.",
+                     modalDialog ("Error: Only JPEG, TIFF or PNG files are accepted!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
                      )))
                    
@@ -127,6 +127,91 @@ shinyServer (function (input, output, session)
                }
   )
   
+  # whenever a marker file is uploaded update all the markers and plots them
+  observeEvent (input$markers,
+                {
+                  printLog ('observeEvent input$markers')
+                  
+                  # get path to metadata
+                  rv$markersPath <- input$markers$datapath
+                  
+                  # get file extension
+                  rv$markersExt <- file_ext (rv$markersPath)
+                  
+                  # read markers file from .csv, or .json file
+                  if (rv$metaExt %in% c ('csv', 'CSV')) {
+                    markers <- read_csv (file = rv$markersPath, 
+                                         col_names = TRUE,
+                                          col_types = 'iddddcidd')
+                  } else if (rv$markersExt %in% c ('json', 'JSON')) {
+                    metadata <- read_json (rv$markersPath)
+                  } else {
+                    showModal (strong (
+                      modalDialog ("Error: Only csv or json files are accepted for marker files!",
+                                   easyClose = T,
+                                   fade = T,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                    
+                    return ()
+                  }
+                  showModal (strong (
+                    modalDialog ("Review and confirm metadata below.",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 's',
+                                 style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                 footer = NULL)))
+                  
+                  # update metadata fields
+                  updateTextInput (session = session,
+                                   inputId = 'ownerName',
+                                   value = metadata$ownerName)
+                  updateTextInput (session = session,
+                                   inputId = 'ownerEmail',
+                                   value = metadata$ownerEmail)
+                  updateTextInput (session = session,
+                                   inputId = 'species',
+                                   value = metadata$species)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleDate',
+                                   value = metadata$sampleDate)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleYear',
+                                   value = metadata$sampleYear)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleDPI',
+                                   value = metadata$sampleDPI)
+                  updateTextInput (session = session,
+                                   inputId = 'siteLoc',
+                                   value = metadata$siteLoc)
+                  updateTextInput (session = session,
+                                   inputId = 'siteLocID',
+                                   value = metadata$siteLocID)
+                  updateTextInput (session = session,
+                                   inputId = 'plotID',
+                                   value = metadata$plotID)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleNote',
+                                   value = metadata$sampleNote)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleID',
+                                   value = metadata$sampleID)
+                  updateTextInput (session = session,
+                                   inputId = 'collection',
+                                   value = metadata$collection)
+                  updateTextInput (session = session,
+                                   inputId = 'contributor',
+                                   value = metadata$contributor)
+                  
+                  # make sure the metadata is reviewed
+                  updateRadioButtons (session = session, 
+                                      inputId = 'confirmMeta', 
+                                      selected = 'Not Confirmed')
+                }
+  )
+  
   # whenever metadata is uploaded update all the metadata below and make user review it.
   observeEvent (input$metadata,
                {
@@ -161,11 +246,11 @@ shinyServer (function (input, output, session)
                    metadata <- read_json (rv$metaPath)
                  } else {
                    showModal (strong (
-                     modalDialog ("Only xlsx, csv or json files are accepted for metadata.",
+                     modalDialog ("Error: Only xlsx, csv or json files are accepted for metadata.",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style = 'background-color:#3b3a35; color:#91b0a4; ',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
 
                    return ()
@@ -255,39 +340,13 @@ shinyServer (function (input, output, session)
   
   autoInvalidate <- reactiveTimer (2000)
   
-  
-  # observeEvent(input$saveData,
-  #              {
-  #                printLog('observeEvent input$saveData')
-  #                
-  #                writePNG(imgProcessed(), 
-  #                         target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
-  #                
-  #                writePNG(rv$imgMat, 
-  #                         target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
-  #                
-  #                write(metaData(), 
-  #                      paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
-  #                
-  #                showModal(
-  #                  strong(
-  #                    modalDialog('Sample and metadata were stored!', 
-  #                                style='background-color:#3b3a35; color:#fce319; ',
-  #                                footer = NULL, 
-  #                                easyClose = T, 
-  #                                size = 'm')
-  #                  )
-  #                )
-  #              }
-  # )
-  
   output$imageProc <- renderPlot (
-    width = function(){
+    width = function (){
       floor (input$zoomlevel)
     },
-    height = function(){
+    height = function (){
       # floor(session$clientData$output_imageProc_width/rv$imgAsp)
-      floor (input$zoomlevel/rv$imgAsp)
+      floor (input$zoomlevel / rv$imgAsp)
     },
     {
       printLog ('output$imageProc renderPlot')
@@ -353,14 +412,17 @@ shinyServer (function (input, output, session)
         # check whether the last marker was a linker or there is another marker afterwards
         if (nrow (rv$markerTable) > max (wLinkers, na.rm = TRUE)) { 
           
-          # check whether the following marker is an increment or linker marker
-          if (rv$markerTable$type [wLinkers + 1] != 'Linker') {
-            segments (x0 = rv$markerTable [wLinkers, x], 
-                      y0 = rv$markerTable [wLinkers, y],
-                      x1 = rv$markerTable [wLinkers - 1, x], 
-                      y1 = rv$markerTable [wLinkers - 1, y], 
-                      lwd = 2, 
-                      col = 'cornflowerblue')
+          # loop over all linkers
+          for (i in 1:length (wLinker)) {
+            # check whether the following marker is an increment or linker marker
+            if (rv$markerTable$type [wLinkers [i] + 1] != 'Linker') {
+              segments (x0 = rv$markerTable [wLinkers [i], x], 
+                        y0 = rv$markerTable [wLinkers [i], y],
+                        x1 = rv$markerTable [wLinkers [i] - 1, x], 
+                        y1 = rv$markerTable [wLinkers [i] - 1, y], 
+                        lwd = 2, 
+                        col = 'cornflowerblue')
+            }
           }
         # the last marker was a linker
         } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE) ) {
@@ -576,12 +638,12 @@ shinyServer (function (input, output, session)
       if (length (dim (rv$imgMat)) == 2)
       {
         showModal (strong (
-          modalDialog("The image is monochrome!",
-                      easyClose = T,
-                      fade = T,
-                      size = 's',
-                      style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                      footer = NULL
+          modalDialog ("Warning: The image is monochrome!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL
           )))
         return (rv$imgMat)
       }
@@ -628,22 +690,22 @@ shinyServer (function (input, output, session)
                  if (nrow (rv$markerTable) == 0)
                  {
                    showModal (strong (
-                     modalDialog ("No ring marker is identified yet!",
+                     modalDialog ("Error: No ring marker is identified yet!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#b91b9a4; ',
+                                  style='background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
                      )))
                    return ()
                  # check whether only one marker has been set yet 
                  } else if (nrow (rv$markerTable) <= 2) {
                    showModal (strong (
-                     modalDialog ("The first two points cannot be linkers! Maybe start on a ring?",
+                     modalDialog ("Error: The first two points cannot be linkers! Maybe start on a ring?",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                  style ='background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
                      )))
                    return ()
@@ -665,11 +727,11 @@ shinyServer (function (input, output, session)
                  if (nrow (rv$markerTable) == 0)
                  {
                    showModal (strong (
-                     modalDialog ("No ring marker is identified yet!",
+                     modalDialog ("Error: No ring marker is identified yet!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#b91b9a4; ',
+                                  style='background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
                      )))
                    return ()
@@ -822,7 +884,7 @@ shinyServer (function (input, output, session)
                                          input$sampleYear + 1,
                                          input$sampleYear),
                                  ifelse (types [i] == 'Linker',
-                                         years [i-1],
+                                         ifelse (types [i-1] != 'Pith', years [i-1], years [i-1] - 1),
                                          years [i-1] + 1))
           }
         }
@@ -1032,11 +1094,11 @@ shinyServer (function (input, output, session)
       
       showModal (strong (
         
-        modalDialog ("Year does not match the sample's date!",
+        modalDialog ("Warning: Year does not match the sample's date!",
                      easyClose = T,
                      fade      = T,
                      size      = 's',
-                     style     = 'background-color:#3b3a35; color:#fce319; ',
+                     style     = 'background-color:#3b3a35; color:#f3bd48; ',
                      footer    = NULL
         )))
       
