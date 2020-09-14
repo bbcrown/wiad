@@ -8,8 +8,8 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
-# increase maximal size of images to 100 MB
-options (shiny.maxRequestSize = 100 * 1024^2)
+# increase maximal size of images to 170 MB
+options (shiny.maxRequestSize = 170 * 1024^2)
 
 shinyServer (function (input, output, session)
 {
@@ -38,7 +38,7 @@ shinyServer (function (input, output, session)
   # update the image aspect ratio
   observeEvent (rv$imgMat,
                {
-                 printLog('observeEvent rv$imgMat')
+                 printLog ('observeEvent rv$imgMat')
                  
                  imgDim <- dim (rv$imgMat)
                  rv$imgAsp <- imgDim[2] / imgDim[1]  
@@ -134,11 +134,9 @@ shinyServer (function (input, output, session)
 
                  # get path to metadata
                  rv$metaPath <- input$metadata$datapath
-                 print (rv$metaPath)
 
                  # get file extension
                  rv$metaExt <- file_ext (rv$metaPath)
-                 print (rv$metaExt)
 
                  # read metadata from .xlsx, .csv, or .json file
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
@@ -345,9 +343,8 @@ shinyServer (function (input, output, session)
         }
       }
       
-      # identify linker and pith markers
+      # identify linker markers
       wLinkers <- which (rv$markerTable$type == 'Linker')
-      wPith    <- which (rv$markerTable$type == 'Pith')
       
       # draw blue lines which symbolise linked segmemts, that are not
       # check whether there is at least one linker marker
@@ -366,7 +363,7 @@ shinyServer (function (input, output, session)
                       col = 'cornflowerblue')
           }
         # the last marker was a linker
-        } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE)) {
+        } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE) ) {
           segments (x0 = rv$markerTable [max (wLinkers, na.rm = TRUE), x], 
                     y0 = rv$markerTable [max (wLinkers, na.rm = TRUE), y],
                     x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
@@ -385,6 +382,10 @@ shinyServer (function (input, output, session)
               pch = 19,
               cex = 1.2,
               lwd = 2)
+      
+      
+      # identify the markers closest to the pith
+      wPith    <- which (rv$markerTable$type == 'Pith')
       
       # overplot the pith marker in red
       points (x = rv$markerTable [wPith, x], 
@@ -761,7 +762,7 @@ shinyServer (function (input, output, session)
     # initialise years vector
     years <- rep (NA, n)
     
-    # check whether there is no pith marker yet
+    # check whether there is no pith marker (which marks oldest ring or pith) yet
     if (sum (types == 'Pith', na.rm = TRUE) == 0){
 
       # check whether the measurement series starts at the bark
@@ -770,7 +771,8 @@ shinyServer (function (input, output, session)
         # loop over all points from bark towards the pith
         for (i in 1:n)
           years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowingSeason == 'only started',
+                               ifelse (input$sampleYearGrowingSeason %in% 
+                                         c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
@@ -782,7 +784,8 @@ shinyServer (function (input, output, session)
         # loop over all points from inner most ring towards the bark
         for (i in n:1)
           years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason == 'only started',
+                               ifelse (input$sampleYearGrowingSeason %in% 
+                                         c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
@@ -791,50 +794,63 @@ shinyServer (function (input, output, session)
       }
     # else there is a pith marker already
     } else if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+      
       # find the index of pith marker
       p <- which (types == 'Pith')
 
       # check whether the measurement series starts at the bark
       if (input$barkSide){
+        
         # loop over all points from bark to pith
-        for (i in 1:p)
-          years[i] <- ifelse (i == 1,
-                              ifelse (input$sampleYearGrowingSeason == 'only started',
-                                      input$sampleYear + 1,
-                                      input$sampleYear),
-                              ifelse (types [i] == 'Linker',
-                                      years [i-1],
-                                      years [i-1] - 1))
-        # loop over all point from pith towards the bark in potential second profile
-        for (i in (p + 1):n)
+        for (i in 1:p) {
           years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowingSeason == 'only started',
+                               ifelse (input$sampleYearGrowingSeason %in% 
+                                         c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
                                        years [i-1],
-                                       years [i-1] + 1))
+                                       years [i-1] - 1))
+        }
+        # only if the last point was not the oldest ring (i.e., pith marker) 
+        if (n > p) {
+          # loop over all point from pith towards the bark in potential second profile
+          for (i in (p + 1):n) {
+            years [i] <- ifelse (i == 1,
+                                 ifelse (input$sampleYearGrowingSeason %in% 
+                                           c ('only started', 'already ended'),
+                                         input$sampleYear + 1,
+                                         input$sampleYear),
+                                 ifelse (types [i] == 'Linker',
+                                         years [i-1],
+                                         years [i-1] + 1))
+          }
+        }
       # else the measurement series starts at the pith
       } else {
         # loop over points from potential second profile to the pith
-        for (i in n:p)
+        for (i in n:p) {
           years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason == 'only started',
+                               ifelse (input$sampleYearGrowingSeason %in% 
+                                         c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
                                ifelse (types [i] == 'Linker',
                                        years [i+1],
                                        years [i+1] - 1))
+        }
 
         # loop over points from pith to bark
-        for(i in (p-1):1)
+        for (i in (p-1):1) {
           years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason == 'only started',
+                               ifelse (input$sampleYearGrowingSeason %in% 
+                                         c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse(types [i] == 'Linker',
-                                      years [i+1],
-                                      years [i+1] + 1))
+                               ifelse (types [i] == 'Linker',
+                                       years [i+1],
+                                       years [i+1] + 1))
+        }
       }
     }
     

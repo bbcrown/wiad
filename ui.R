@@ -233,6 +233,12 @@ fluidPage (
                          checkboxInput (inputId = 'displayYears', 
                                         label = 'Display years', 
                                         value = TRUE)),
+                 
+                 # checkbox to check whether pith is contained in image
+                 column (2, 
+                         checkboxInput (inputId = 'pithContained', 
+                                        label = 'Pith in image', 
+                                        value = FALSE)),
                ),
 
                # horizontal bar breaker
@@ -245,7 +251,7 @@ fluidPage (
                  column (2, 
                          actionButton (inputId = 'clearCanvas', 
                                        label = 'Erase', 
-                                       icon = icon('eraser'), 
+                                       icon = icon ('eraser'), 
                                        class='btn-primary',
                                        width = '100%',
                                        style = 'font-weight: bold;')),
@@ -255,7 +261,7 @@ fluidPage (
                  column (2,  
                          actionButton (inputId = 'undoCanvas', 
                                        label = 'Undo',
-                                       icon = icon('undo'), 
+                                       icon = icon ('undo'), 
                                        class='btn-primary', 
                                        width = '100%', 
                                        style = 'font-weight: bold;')
@@ -265,7 +271,7 @@ fluidPage (
                  column (2, 
                          actionButton (inputId = 'linkerPoint', 
                                        label = 'Link',
-                                       icon = icon('link'), 
+                                       icon = icon ('link'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
                                        style = 'font-weight: bold;')
@@ -274,18 +280,18 @@ fluidPage (
                  # Convert type to 'pith'
                  column (2, 
                          actionButton (inputId = 'pith', 
-                                      label = 'Pith',
-                                      icon = icon ('bullseye'), 
-                                      class = 'btn-primary', 
-                                      width = '100%', 
-                                      style = 'font-weight: bold;')
+                                       label = 'Oldest Ring',
+                                       icon = icon ('bullseye'), 
+                                       class = 'btn-primary', 
+                                       width = '100%', 
+                                       style = 'font-weight: bold;')
                  ),
                  
-                 # Convert type to 'pith'
+                 # Convert type to 'misc'
                  column (2, 
                          actionButton (inputId = 'misc', 
                                        label = 'Misc',
-                                       icon = icon('discourse'), 
+                                       icon = icon ('discourse'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
                                        style = 'font-weight: bold;')
@@ -293,10 +299,10 @@ fluidPage (
                ),
                
                # section breaker
-               br(),
+               br (),
         
                # horizontal bar breaker
-               hr(),
+               hr (),
                
                # show the ring table 
                DT::dataTableOutput (outputId = 'growth_table'),
@@ -313,7 +319,7 @@ fluidPage (
     ),
     
     # tabpanel for plitting the growth curve
-    tabPanel('TRIAD Plot Board',
+    tabPanel ('TRIAD Plot Board',
              {
                mainPanel(
                  
