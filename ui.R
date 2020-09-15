@@ -212,11 +212,10 @@ fluidPage (
                br (),
                
                # main image plot to show the processed image, the raw image is only stored
-               column (12, (div (style = 'min-width:600px;width:60vw;overflow-x:scroll;min-height:100px;height:40vh;overflow-y:scroll;',
+               column (12, (div (style = 'min-width:600px;width:60vw;overflow-x:scroll;min-height:200px;height:40vh;overflow-y:scroll;',
                            plotOutput (outputId = 'imageProc', 
                                        click = 'ring_point',
-                                       inline = TRUE,
-                                       width = '100%')))
+                                       inline = TRUE)))
                ),
                
                # Checkbox input in a single fluid row
@@ -287,15 +286,15 @@ fluidPage (
                                        style = 'font-weight: bold;')
                  ),
                  
-                 # Convert type to 'misc'
-                 column (2, 
-                         actionButton (inputId = 'misc', 
-                                       label = 'Misc',
-                                       icon = icon ('discourse'), 
-                                       class = 'btn-primary', 
-                                       width = '100%', 
-                                       style = 'font-weight: bold;')
-                 ) 
+                 # # Convert type to 'misc'
+                 # column (2, 
+                 #         actionButton (inputId = 'misc', 
+                 #                       label = 'Misc',
+                 #                       icon = icon ('discourse'), 
+                 #                       class = 'btn-primary', 
+                 #                       width = '100%', 
+                 #                       style = 'font-weight: bold;')
+                 # ) 
                ),
                
                # section breaker

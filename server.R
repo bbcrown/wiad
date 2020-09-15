@@ -41,7 +41,7 @@ shinyServer (function (input, output, session)
                  printLog ('observeEvent rv$imgMat')
                  
                  imgDim <- dim (rv$imgMat)
-                 rv$imgAsp <- imgDim[2] / imgDim[1]  
+                 rv$imgAsp <- imgDim [2] / imgDim [1]  
                }
   )
   
@@ -127,7 +127,7 @@ shinyServer (function (input, output, session)
                }
   )
   
-  # whenever a marker file is uploaded update all the markers and plots them # TR needs review and work!!!
+  # whenever a marker file is uploaded update all the markers and plots them
   observeEvent (input$markers,
                 {
                   printLog ('observeEvent input$markers')
@@ -138,33 +138,63 @@ shinyServer (function (input, output, session)
                   # get file extension
                   rv$markersExt <- file_ext (rv$markersPath)
                   
-                  # read markers file from .csv, or .json file
-                  if (rv$markersExt %in% c ('csv', 'CSV')) {
-                    markers <- read_csv (file = rv$markersPath, 
-                                         col_names = TRUE,
-                                         col_types = 'iddddcidd')
-                    
-                    # update marker table
-                    rv$markerTable <- markers [, c ('no', 'x', 'y', 'relx', 'rely', 'type', 'year')]
-                  } else if (rv$markersExt %in% c ('json', 'JSON')) {
-                    markers <- read_json (rv$markersPath)
-                    # print (head (markers$markerData)) # TR
-                    # update marker table
-                    rv$markerTable <- markers$markerData
-                  } else {
+                  # check whether an image is loaded
+                  if (rv$notLoaded) {
                     showModal (strong (
-                      modalDialog ("Error: Only csv or json files are accepted for marker files!",
+                      modalDialog ("Error: Am image must be loaded first!",
                                    easyClose = T,
                                    fade = T,
                                    size = 's',
                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
                                    footer = NULL)))
-                    
                     return ()
                   }
                   
-                  # make sure to render plot so that new markers are displayed
-                  print (head (rv$markerTable))
+                  # check whether there are already markers set
+                  if (nrow (rv$markerTable) == 0) {
+                    
+                    # read markers file from .csv, or .json file
+                    if (rv$markersExt %in% c ('csv', 'CSV')) {
+                      
+                      # read csv file
+                      markers <- as.data.table (read_csv (file = rv$markersPath, 
+                                                          col_names = TRUE,
+                                                          col_types = 'iddddcidd'))
+                      
+                      # update marker table from csv file
+                      rv$markerTable <- markers [, .(no, x, y, relx, rely, type)]
+                      
+                    # upload marker table from json file, if there is none yet
+                    } else if (rv$markersExt %in% c ('json', 'JSON')) {
+                      
+                      # read json file
+                      markers <- read_json (rv$markersPath)
+                        
+                      # update marker table from json file 
+                      rv$markerTable <- data.table::rbindlist (markers$markerData)
+              
+                    } else {
+                      showModal (strong (
+                        modalDialog ("Error: Only csv or json files are accepted for marker files!",
+                                     easyClose = T,
+                                     fade = T,
+                                     size = 's',
+                                     style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                     footer = NULL)))
+                      return ()
+                    }
+                  } else {
+                    showModal (strong (
+                      modalDialog ("Error: Erase existing markers before uploading new markers!",
+                                   easyClose = T,
+                                   fade = T,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                  }
+                  
+                  # return
+                  return ()
                 }
   )
   
@@ -297,10 +327,10 @@ shinyServer (function (input, output, session)
   autoInvalidate <- reactiveTimer (2000)
   
   output$imageProc <- renderPlot (
-    width = function (){
+    width = function () {
       floor (input$zoomlevel)
     },
-    height = function (){
+    height = function () {
       # floor(session$clientData$output_imageProc_width/rv$imgAsp)
       floor (input$zoomlevel / rv$imgAsp)
     },
@@ -330,12 +360,12 @@ shinyServer (function (input, output, session)
                    window [3], 
                    window [2], 
                    window [4])
-      # print (head (rv$markerTable [, c ('x','y')])) # TR
-      marker_tbl <- rv$markerTable [, c ('x', 'y')]
-      #print (head (marker_tbl$x)) # TR
+      
+      marker_tbl <- rv$markerTable [, .(x, y)]
+      
       # plot all markers in yellow
-      points (marker_tbl$x,
-              marker_tbl$y, 
+      points (marker_tbl [, x],
+              marker_tbl [, y], 
               pch = 19, 
               cex = 1.2, 
               col = 'yellow')
@@ -372,20 +402,20 @@ shinyServer (function (input, output, session)
           for (i in 1:length (wLinkers)) {
             # check whether the following marker is an increment or linker marker
             if (rv$markerTable$type [wLinkers [i] + 1] != 'Linker') {
-              segments (x0 = rv$markerTable$x [wLinkers [i]], 
-                        y0 = rv$markerTable$y [wLinkers [i]],
-                        x1 = rv$markerTable$x [wLinkers [i] - 1], 
-                        y1 = rv$markerTable$y [wLinkers [i] - 1], 
+              segments (x0 = rv$markerTable [wLinkers [i], x], 
+                        y0 = rv$markerTable [wLinkers [i], y],
+                        x1 = rv$markerTable [wLinkers [i] - 1, x], 
+                        y1 = rv$markerTable [wLinkers [i] - 1, y], 
                         lwd = 2, 
                         col = 'cornflowerblue')
             }
           }
         # the last marker was a linker
         } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE) ) {
-          segments (x0 = rv$markerTable$x [max (wLinkers, na.rm = TRUE)], 
-                    y0 = rv$markerTable$y [max (wLinkers, na.rm = TRUE)],
-                    x1 = rv$markerTable$x [max (wLinkers, na.rm = TRUE) - 1], 
-                    y1 = rv$markerTable$y [max (wLinkers, na.rm = TRUE) - 1], 
+          segments (x0 = rv$markerTable [max (wLinkers, na.rm = TRUE), x], 
+                    y0 = rv$markerTable [max (wLinkers, na.rm = TRUE), y],
+                    x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
+                    y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
                     lwd = 2, 
                     col = 'cornflowerblue')  
         }
@@ -394,8 +424,8 @@ shinyServer (function (input, output, session)
       # and between the two linker markers for consecutive linker markers
       
       # overplot linker markers in blue
-      points (x = rv$markerTable$x [wLinkers], 
-              y = rv$markerTable$y [wLinkers],
+      points (x = rv$markerTable [wLinkers, x], 
+              y = rv$markerTable [wLinkers, y],
               col = 'cornflowerblue',
               pch = 19,
               cex = 1.2,
@@ -406,8 +436,8 @@ shinyServer (function (input, output, session)
       wPith <- which (rv$markerTable$type == 'Pith')
       
       # overplot the pith marker in red
-      points (x = rv$markerTable$x [wPith], 
-              y = rv$markerTable$y [wPith],
+      points (x = rv$markerTable [wPith, x], 
+              y = rv$markerTable [wPith, y],
               col = '#c90016',
               pch = 19,
               cex = 1.2,
@@ -421,7 +451,7 @@ shinyServer (function (input, output, session)
         slope <- diff (xy$y) / diff (xy$x)
         
         # rotate slope of guide by 90 degree after linker points
-        if (rv$markerTable$type [nrow (rv$markerTable)] == 'Linker') slope <- -1 / slope
+        if (rv$markerTable [nrow (rv$markerTable), type] == 'Linker') slope <- -1 / slope
         
         # calculate the intercept
         intercept <- xy$y [2] - slope * xy$x [2]
@@ -621,7 +651,7 @@ shinyServer (function (input, output, session)
                  
                  printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
                  
-                 if (rv$notLoaded == TRUE) return()
+                 if (rv$notLoaded == TRUE) return ()
                  
                  rv$slideShow <- 0 
                  
@@ -643,8 +673,7 @@ shinyServer (function (input, output, session)
                  if (rv$notLoaded==TRUE) return ()
                  
                  # check whether no marker has been set yet
-                 if (nrow (rv$markerTable) == 0)
-                 {
+                 if (nrow (rv$markerTable) == 0) {
                    showModal (strong (
                      modalDialog ("Error: No ring marker is identified yet!",
                                   easyClose = T,
@@ -687,7 +716,7 @@ shinyServer (function (input, output, session)
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
-                                  style='background-color:#3b3a35; color:#eb99a9; ',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
                      )))
                    return ()
@@ -708,19 +737,19 @@ shinyServer (function (input, output, session)
                  if (rv$notLoaded == TRUE) return ()
                  
                  # check there is more than one marker
-                 if (nrow (rv$markerTable) > 1)
+                 if (nrow (rv$markerTable) > 1) {
                    # delete last marker
                    rv$markerTable <- rv$markerTable [-nrow (rv$markerTable), ]
                  # else no or one marker was set yet
-                 else
+                 } else {
                    # create new marker table
                    rv$markerTable <- data.table (no   = integer (),
                                                  x    = numeric (),
                                                  y    = numeric (),
                                                  relx = numeric (),
                                                  rely = numeric (),
-                                                 type = character ()
-                   )
+                                                 type = character ())
+                 }
                  # increase check_table
                  rv$check_table <- rv$check_table + 1
                })
@@ -774,7 +803,7 @@ shinyServer (function (input, output, session)
     growth_table <- rv$markerTable
     
     # get types of markers
-    types <- growth_table$type
+    types <- growth_table [, type]
     n <- length (types)
     
     # initialise years vector
@@ -898,14 +927,13 @@ shinyServer (function (input, output, session)
     }
     
     # convert growth from pixels (using dots per inch input resolution) to mm
-    growth_table$growth <- growth_table$pixels / as.numeric (input$sampleDPI) * 25.4
+    growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4]
     
     # replace NAs with " " to generate empty cells
     growth_table$growth [is.na (growth_table$growth)] <- " "
     
     # return growth_table
-    print (head (growth_table)) # TR
-    return (datatable (growth_table))
+    return (growth_table)
   })
 
   output$growth_table <- DT::renderDataTable (
@@ -914,7 +942,6 @@ shinyServer (function (input, output, session)
       
       # get growth data
       tbl <- growthTable ()
-      #print (head (tbl)) # TR
       
       # return if there is no data
       if (nrow (tbl) == 0) return ()
@@ -924,7 +951,7 @@ shinyServer (function (input, output, session)
       
       # order table, aka starting with the most recent year
       tbl <- tbl [order (no)]
-      #print (head (tbl)) # TR
+      
       # display markers in data table below image
       datatable (tbl [ , 2:dim (tbl) [2]], options = list (initComplete = JS (
         "function(settings, json) {",
