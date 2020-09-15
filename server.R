@@ -376,7 +376,8 @@ shinyServer (function (input, output, session)
                     collection  = input$collection,
                     contributor = input$contributor,
                     markerData  = rv$markerTable,
-                    growth      = growthTable (), 
+                    growth      = growthTable (),
+                    pithInImage = input$pithContained,
                     status      = input$confirmMeta)
     }
   )
