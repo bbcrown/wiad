@@ -358,27 +358,29 @@ shinyServer (function (input, output, session)
     {
       printLog ('metaData reactive')
       
-      meta <- list (ownerName   = input$ownerName, 
-                    ownerEmail  = input$ownerEmail,
-                    species     = input$species,
-                    sampleDate  = input$sampleDate,
-                    sampleYear  = input$sampleYear,
+      meta <- list (ownerName        = input$ownerName, 
+                    ownerEmail       = input$ownerEmail,
+                    species          = input$species,
+                    sampleDate       = input$sampleDate,
+                    sampleYear       = input$sampleYear,
                     sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'only started', 
                                                ifelse (input$sampleYearGrowingSeason == 'already ended', 
                                                        'all', 'some'), 
                                                'none'), 
-                    sampleDPI   = input$sampleDPI,
-                    siteLoc     = input$siteLoc,
-                    siteLocID   = input$siteLocID,
-                    plotID      = input$plotID,
-                    sampleNote  = input$sampleNote,
-                    sampleID    = input$sampleID,
-                    collection  = input$collection,
-                    contributor = input$contributor,
-                    markerData  = rv$markerTable,
-                    growth      = growthTable (),
-                    pithInImage = input$pithContained,
-                    status      = input$confirmMeta)
+                    sampleDPI        = input$sampleDPI,
+                    siteLoc          = input$siteLoc,
+                    siteLocID        = input$siteLocID,
+                    plotID           = input$plotID,
+                    sampleNote       = input$sampleNote,
+                    sampleID         = input$sampleID,
+                    collection       = input$collection,
+                    contributor      = input$contributor,
+                    markerData       = rv$markerTable,
+                    growth           = growthTable (),
+                    pithInImage      = input$pithContained,
+                    lastRingComplete = ifelse (input$sampleYearGrowingSeason %in% c ('not started','already ended'), 
+                                               TRUE, FALSE),
+                    status           = input$confirmMeta)
     }
   )
   
