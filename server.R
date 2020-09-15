@@ -962,9 +962,7 @@ shinyServer (function (input, output, session)
         "}")
       )) 
       
-    },
-    
-    options = list (pageLength = 5)
+    }
   )
   
   output$downloadCSV <- downloadHandler (
