@@ -877,10 +877,10 @@ shinyServer (function (input, output, session)
                   
                   # initialise new point
                   newPoint <- data.table (no = no,
-                                          x = input$ring_point$x,
-                                          y = input$ring_point$y,
-                                          relx = input$ring_point$x / input$ring_point$domain$right,
-                                          rely = input$ring_point$y / input$ring_point$domain$top,
+                                          x = input$misc_point$x,
+                                          y = input$misc_point$y,
+                                          relx = input$misc_point$x / input$misc_point$domain$right,
+                                          rely = input$misc_point$y / input$misc_point$domain$top,
                                           type = 'Misc')
                   
                   # check that new point is different from old point

@@ -216,7 +216,7 @@ fluidPage (
                column (12, (div (style = 'width:60vw;overflow-x:auto;;overflow-y:auto;',
                            plotOutput (outputId = 'imageProc', 
                                        click = 'ring_point',
-                                       dblclick = 'misc',
+                                       dblclick = 'misc_point',
                                        inline = TRUE)))
                ),
                
