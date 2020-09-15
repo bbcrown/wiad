@@ -49,19 +49,20 @@ fluidPage (
                                      'image/png',
                                      'image/tiff')),
                
-               # the file input only accepts csv and json. # TR this needs work
+               # the file input only accepts csv and json.
                fileInput (inputId = 'markers', 
                           label = 'Upload markers file',
                           multiple = FALSE,
                           accept = c ('text/csv',
                                       'text/json')),
                
-               # the file input only accepts csv and json. # TR this needs work
+               # the file input only accepts csv and json.
                fileInput (inputId = 'metadata', 
                           label = 'Upload metadata or enter manually below',
                           multiple = FALSE,
                           accept = c ('text/csv',
-                                      'text/json')),
+                                      'text/json',
+                                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                
                # Horizontal line ----
                tags$hr (),

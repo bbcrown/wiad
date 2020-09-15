@@ -172,6 +172,61 @@ shinyServer (function (input, output, session)
                         
                       # update marker table from json file 
                       rv$markerTable <- data.table::rbindlist (markers$markerData)
+                      
+                      # update metadata fields
+                      updateTextInput (session = session,
+                                       inputId = 'ownerName',
+                                       value = markers$ownerName)
+                      updateTextInput (session = session,
+                                       inputId = 'ownerEmail',
+                                       value = markers$ownerEmail)
+                      updateTextInput (session = session,
+                                       inputId = 'species',
+                                       value = markers$species)
+                      updateTextInput (session = session,
+                                       inputId = 'sampleDate',
+                                       value = markers$sampleDate)
+                      updateTextInput (session = session,
+                                       inputId = 'sampleYear',
+                                       value = markers$sampleYear)
+                      updateTextInput (session = session,
+                                       inputId = 'sampleDPI',
+                                       value = markers$sampleDPI)
+                      updateTextInput (session = session,
+                                       inputId = 'siteLoc',
+                                       value = markers$siteLoc)
+                      updateTextInput (session = session,
+                                       inputId = 'siteLocID',
+                                       value = markers$siteLocID)
+                      updateTextInput (session = session,
+                                       inputId = 'plotID',
+                                       value = markers$plotID)
+                      updateTextInput (session = session,
+                                       inputId = 'sampleNote',
+                                       value = markers$sampleNote)
+                      updateTextInput (session = session,
+                                       inputId = 'sampleID',
+                                       value = markers$sampleID)
+                      updateTextInput (session = session,
+                                       inputId = 'collection',
+                                       value = markers$collection)
+                      updateTextInput (session = session,
+                                       inputId = 'contributor',
+                                       value = markers$contributor)
+                      
+                      # make sure the metadata is reviewed
+                      updateRadioButtons (session = session, 
+                                          inputId = 'confirmMeta', 
+                                          selected = 'Not Confirmed')
+                      
+                      # Prompt metadata review
+                      showModal (strong (
+                        modalDialog ("Review and confirm metadata below.",
+                                     easyClose = T,
+                                     fade = T,
+                                     size = 's',
+                                     style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                     footer = NULL)))
               
                     } else {
                       showModal (strong (
@@ -241,13 +296,6 @@ shinyServer (function (input, output, session)
 
                    return ()
                  }
-                 showModal (strong (
-                   modalDialog ("Review and confirm metadata below.",
-                                easyClose = T,
-                                fade = T,
-                                size = 's',
-                                style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                                footer = NULL)))
                  
                  # update metadata fields
                  updateTextInput (session = session,
@@ -294,6 +342,15 @@ shinyServer (function (input, output, session)
                  updateRadioButtons (session = session, 
                                      inputId = 'confirmMeta', 
                                      selected = 'Not Confirmed')
+                 
+                 # Prompt metadata review
+                 showModal (strong (
+                   modalDialog ("Review and confirm metadata below.",
+                                easyClose = T,
+                                fade = T,
+                                size = 's',
+                                style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                footer = NULL)))
                }
   )
   
