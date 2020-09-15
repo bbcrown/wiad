@@ -819,7 +819,7 @@ shinyServer (function (input, output, session)
                  
                  printLog ('observeEvent input$ring_point')
                  
-                 if (rv$notLoaded == TRUE) return()
+                 if (rv$notLoaded == TRUE) return ()
                  
                  if (input$confirmMeta == 'Not Confirmed') {
                      showModal (strong (
@@ -853,6 +853,44 @@ shinyServer (function (input, output, session)
                  rv$markerTable <- rbind (rv$markerTable, newPoint)
                })
   
+  observeEvent (input$misc,
+                {
+                  
+                  printLog ('observeEvent input$misc')
+                  
+                  if (rv$notLoaded == TRUE) return ()
+                  
+                  if (input$confirmMeta == 'Not Confirmed') {
+                    showModal (strong (
+                      modalDialog ("First review and confirm the metadata!",
+                                   easyClose = T,
+                                   fade = T,
+                                   size = 's',
+                                   style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                   footer = NULL
+                      )))
+                    return ()
+                  }
+                  
+                  # set point index to 1 for first marker or increase the last marker index by one
+                  no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
+                  
+                  # initialise new point
+                  newPoint <- data.table (no = no,
+                                          x = input$ring_point$x,
+                                          y = input$ring_point$y,
+                                          relx = input$ring_point$x / input$ring_point$domain$right,
+                                          rely = input$ring_point$y / input$ring_point$domain$top,
+                                          type = 'Misc')
+                  
+                  # check that new point is different from old point
+                  if (nrow (rv$markerTable) > 0){
+                    last <- rv$markerTable [nrow (rv$markerTable)]
+                    if (newPoint$x == last$x & newPoint$y == last$y) return ()
+                  }
+                  # add new point to the marker table
+                  rv$markerTable <- rbind (rv$markerTable, newPoint)
+                })
   
   growthTable <- reactive ({
     req (rv$check_table)
@@ -882,7 +920,7 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] == 'Linker',
+                               ifelse (types [i] %in% c ('Linker', 'Misc'),
                                        years [i-1],
                                        years [i-1] - 1)
           )
@@ -895,7 +933,7 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] == 'Linker',
+                               ifelse (types [i] %in% c ('Linker', 'Misc'),
                                        years [i+1],
                                        years [i+1] - 1))
       }
@@ -915,7 +953,7 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] == 'Linker',
+                               ifelse (types [i] %in% c ('Linker', 'Misc'),
                                        years [i-1],
                                        years [i-1] - 1))
         }
@@ -928,8 +966,10 @@ shinyServer (function (input, output, session)
                                            c ('only started', 'already ended'),
                                          input$sampleYear + 1,
                                          input$sampleYear),
-                                 ifelse (types [i] == 'Linker',
-                                         ifelse (types [i-1] != 'Pith', years [i-1], years [i-1] - 1),
+                                 ifelse (types [i] %in% c ('Linker', 'Misc'),
+                                         ifelse (types [i-1] != 'Pith', 
+                                                 years [i-1], 
+                                                 years [i-1] - 1),
                                          years [i-1] + 1))
           }
         }
@@ -942,7 +982,7 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] == 'Linker',
+                               ifelse (types [i]  %in% c ('Linker', 'Misc'),
                                        years [i+1],
                                        years [i+1] - 1))
         }
@@ -954,7 +994,7 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] == 'Linker',
+                               ifelse (types [i] %in% c ('Linker', 'Misc'),
                                        years [i+1],
                                        years [i+1] + 1))
         }
@@ -967,13 +1007,13 @@ shinyServer (function (input, output, session)
     # check whether at least two markers have been set
     if (nrow (growth_table) <= 1)  return (growth_table)
     
-    # calculate distances between markers, aka growth
-    # if one linker is set we measure the distance from linker to next marker
-    growth <- sqrt (diff (growth_table$x)^2 + diff (growth_table$y)^2)
+    # calculate distance from a linker or normal marker to the next normal marker
+    growth <- sqrt (diff (growth_table [type != 'Misc', x])^2 + 
+                    diff (growth_table [type != 'Misc', y])^2)
     if (input$barkSide) {
-      growth_table$pixels <- c (0, growth)
+      growth_table [type != 'Misc', pixels] <- c (0, growth)
     } else {
-      growth_table$pixels <- c (growth, 0)
+      growth_table [type != 'Misc', pixels] <- c (growth, 0)
     }
     # if two consecutive linkers are set, we measure from marker to linker and 
     # add the distance from second linker to the next marker, this allows to 
@@ -983,6 +1023,16 @@ shinyServer (function (input, output, session)
         # if one of the two preceeding markers is not a linker move on
         if (growth_table$type [i-1] != 'Linker' | growth_table$type [i-2] != 'Linker') next
         growth_table$pixels [i] <- growth_table$pixels [i-2] + growth_table$pixels [i]
+      }
+    }
+    
+    # calculate distance from a misc marker to the previous normal marker
+    if (length (growth_table [type == 'Misc']) > 0) {
+      for (i in 1:nrow (growth_table)) {
+        if (growth_table$type [i] == 'Misc') {
+          growth_table$pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [i-1])^2 +
+                                           (growth_table$y [i] - growth_table$y [i-1]))
+        } 
       }
     }
     
