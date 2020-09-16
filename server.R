@@ -1017,6 +1017,9 @@ shinyServer (function (input, output, session)
     # check whether at least two markers have been set
     if (nrow (growth_table) <= 1)  return (growth_table)
     
+    # intialise growth
+    growth <- rep (NA, n)
+    
     # replace growth for exceptional cases
     for (i in length (growth):2) { # first has to be normal and "growth" will be set to 0
       
