@@ -853,7 +853,7 @@ shinyServer (function (input, output, session)
                  rv$markerTable <- rbind (rv$markerTable, newPoint)
                })
   
-  observeEvent (input$misc,
+  observeEvent (input$misc_point,
                 {
                   
                   printLog ('observeEvent input$misc')
@@ -867,13 +867,23 @@ shinyServer (function (input, output, session)
                                    fade = T,
                                    size = 's',
                                    style ='background-color:#3b3a35; color:#b91b9a4; ',
-                                   footer = NULL
-                      )))
+                                   footer = NULL)))
                     return ()
                   }
                   
-                  # set point index to 1 for first marker or increase the last marker index by one
-                  no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
+                  # increase point index or throw error if this is the first point
+                  if (nrow (rv$markerTable) >= 1) {
+                    no <- nrow (rv$markerTable) + 1
+                  } else if (nrow (rv$markerTable) < 1) {
+                    showModal (strong (
+                      modalDialog ("Error: The first marker cannot be a misc marker!",
+                                   easyClose = T,
+                                   fade = T,
+                                   size = 's',
+                                   style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                   footer = NULL)))
+                    return ()
+                  }
                   
                   # initialise new point
                   newPoint <- data.table (no = no,
@@ -884,7 +894,7 @@ shinyServer (function (input, output, session)
                                           type = 'Misc')
                   
                   # check that new point is different from old point
-                  if (nrow (rv$markerTable) > 0){
+                  if (nrow (rv$markerTable) > 0) {
                     last <- rv$markerTable [nrow (rv$markerTable)]
                     if (newPoint$x == last$x & newPoint$y == last$y) return ()
                   }
@@ -1007,40 +1017,67 @@ shinyServer (function (input, output, session)
     # check whether at least two markers have been set
     if (nrow (growth_table) <= 1)  return (growth_table)
     
-    # calculate distance from a linker or normal marker to the next normal marker
-    growth <- sqrt (diff (growth_table [type != 'Misc', x])^2 + 
-                    diff (growth_table [type != 'Misc', y])^2)
-    if (input$barkSide) {
-      growth_table [type != 'Misc', pixels] <- c (0, growth)
-    } else {
-      growth_table [type != 'Misc', pixels] <- c (growth, 0)
-    }
-    # if two consecutive linkers are set, we measure from marker to linker and 
-    # add the distance from second linker to the next marker, this allows to 
-    # more precisely jump gaps in the sample
-    if (nrow (growth_table) >= 3) {
-      for (i in 3:nrow (growth_table)) {
-        # if one of the two preceeding markers is not a linker move on
-        if (growth_table$type [i-1] != 'Linker' | growth_table$type [i-2] != 'Linker') next
-        growth_table$pixels [i] <- growth_table$pixels [i-2] + growth_table$pixels [i]
+    # replace growth for exceptional cases
+    for (i in length (growth):2) { # first has to be normal and "growth" will be set to 0
+      
+      # identify the index for the penultimate linker marker 
+      penultimateLinker <-  Rfast::nth (which (growth_table [no < i, type] == 'Normal'), 
+                                        2, descending = TRUE)
+      
+      # identify the index for the last normal and linker marker and the next normal marker
+      lastPoint  <- max (which (growth_table [no < i, type] == 'Normal'))
+      lastLinker <- max (which (growth_table [no < i, type] == 'Linker'))
+      nextPoint  <- min (which (growth_table [no > i, type] == 'Normal')) 
+      
+      # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
+      # exception: two previous reference markers are linker markers
+      if (growth_table$type [i] %in% c ('Normal','Misc')) {
+        
+        # last reference marker was a normal marker
+        if (lastPoint > lastLinker) {
+          growth [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastPoint])^2 + 
+                              (growth_table$y [i] - growth_table$y [lastPoint])^2)
+          
+        # last reference point was a linker marker
+        } else if (lastPoint < lastLinker) {
+
+          # check whether the penultimate reference marker was a normal marker
+          if (lastPoint > penultimateLinker) {
+            growth [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
+                                (growth_table$y [i] - growth_table$y [lastLinker])^2)
+            
+          # or a linker, hence there were two consecutive linker markers
+          # in this case we measure from last normal marker to penultimate linker and 
+          # add the distance from last linker to the current marker 
+          # (i.e., jumping the gap between two linker markers)
+          } else if (lastPoint < penultimateLinker) {
+            growth [i] <- (sqrt ((growth_table$x [lastPoint] - 
+                                  growth_table$x [penultimateLinker])^2 + 
+                                 (growth_table$y [lastPoint] - 
+                                  growth_table$y [penultimateLinker])^2)) +
+                          (sqrt ((growth_table$x [lastLinker] - growth_table$x [i])^2 + 
+                                 (growth_table$y [lastLinker] - growth_table$y [i])^2))
+          }
+
+        # marker is a linker (i.e. no "growth" is calculated)
+        } else if (growth_table$type [i] == 'Linker') {
+          growth [i] <- NA
+        }
       }
     }
     
-    # calculate distance from a misc marker to the previous normal marker
-    if (length (growth_table [type == 'Misc']) > 0) {
-      for (i in 1:nrow (growth_table)) {
-        if (growth_table$type [i] == 'Misc') {
-          growth_table$pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [i-1])^2 +
-                                           (growth_table$y [i] - growth_table$y [i-1]))
-        } 
-      }
+    # add growth in pixels to the growth_table 
+    if (input$barkSide) {
+      growth_table$pixels <- c (0, growth)
+    } else {
+      growth_table$pixels <- c (growth, 0)
     }
     
     # convert growth from pixels (using dots per inch input resolution) to mm
     growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4]
     
     # replace NAs with " " to generate empty cells
-    growth_table$growth [is.na (growth_table$growth)] <- " "
+    #growth_table$growth [is.na (growth_table$growth)] <- " "
     
     # return growth_table
     return (growth_table)
