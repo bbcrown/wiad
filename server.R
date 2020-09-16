@@ -423,9 +423,16 @@ shinyServer (function (input, output, session)
       
       marker_tbl <- rv$markerTable [, .(x, y)]
       
-      # plot all markers in yellow
-      points (marker_tbl [, x],
-              marker_tbl [, y], 
+      # identify normal, linker, misc and pith markers
+      wNormal  <- which (rv$markerTable$type == 'Normal')
+      wLinkers <- which (rv$markerTable$type == 'Linker')
+      wMisc    <- which (rv$markerTable$type == 'Misc')
+      wPith    <- which (rv$markerTable$type == 'Pith')
+      
+      
+      # plot all normal markers in yellow
+      points (marker_tbl [wNormal, x],
+              marker_tbl [wNormal, y], 
               pch = 19, 
               cex = 1.2, 
               col = 'yellow')
@@ -434,8 +441,8 @@ shinyServer (function (input, output, session)
       if (input$displayYears) {
         years <- growthTable ()
         
-        # sort out all linkers
-        years <- years [years$type != "Linker"]
+        # find only normal markers
+        years <- years [years$type == "Normal"]
         if (nrow (years) > 1) {
           xs <- rollmean (years$x, 2)
           ys <- rollmean (years$y, 2)
@@ -447,9 +454,6 @@ shinyServer (function (input, output, session)
                 col = 'yellow')
         }
       }
-      
-      # identify linker markers
-      wLinkers <- which (rv$markerTable$type == 'Linker')
       
       # draw blue lines which symbolise linked segmemts, that are not
       # check whether there is at least one linker marker
@@ -483,22 +487,26 @@ shinyServer (function (input, output, session)
       # above code draws lines between last marker and linker markers for single linker markers
       # and between the two linker markers for consecutive linker markers
       
-      # overplot linker markers in blue
+      # plot linker markers in blue
       points (x = rv$markerTable [wLinkers, x], 
               y = rv$markerTable [wLinkers, y],
               col = 'cornflowerblue',
               pch = 19,
               cex = 1.2,
               lwd = 2)
+
+      # plot misc markers in Cambridge blue
+      points (x = rv$markerTable [wMisc, x],
+              y = rv$markerTable [wMisc, y],
+              col = '#91b9a4',
+              pch = 19,
+              cex = 1.2, 
+              lwd = 2)
       
-      
-      # identify the markers closest to the pith
-      wPith <- which (rv$markerTable$type == 'Pith')
-      
-      # overplot the pith marker in red
+      # plot the pith marker in crimson
       points (x = rv$markerTable [wPith, x], 
               y = rv$markerTable [wPith, y],
-              col = '#c90016',
+              col = '#a41034',
               pch = 19,
               cex = 1.2,
               lwd = 2)
@@ -1021,16 +1029,23 @@ shinyServer (function (input, output, session)
     growth <- rep (NA, n)
     
     # replace growth for exceptional cases
-    for (i in length (growth):2) { # first has to be normal and "growth" will be set to 0
+    for (i in n:2) { # first has to be normal and "growth" will be set to 0
       
-      # identify the index for the penultimate linker marker 
-      penultimateLinker <-  Rfast::nth (which (growth_table [no < i, type] == 'Normal'), 
-                                        2, descending = TRUE)
+      # identify the index for the last and penultimate linker marker, if they exists
+      if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 1) {
+        lastLinker <- max (which (growth_table [no < i, type] == 'Linker'))
+        if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 2) {
+          penultimateLinker <-  Rfast::nth (which (growth_table [no < i, type] == 'Linker'), 
+                                          2, descending = TRUE)
+        }
+      } else {
+        lastLinker        <- 0
+        penultimateLinker <- 0
+      }
       
-      # identify the index for the last normal and linker marker and the next normal marker
+      # identify the index for the last normal marker
       lastPoint  <- max (which (growth_table [no < i, type] == 'Normal'))
-      lastLinker <- max (which (growth_table [no < i, type] == 'Linker'))
-      nextPoint  <- min (which (growth_table [no > i, type] == 'Normal')) 
+      
       
       # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
       # exception: two previous reference markers are linker markers
@@ -1068,13 +1083,9 @@ shinyServer (function (input, output, session)
         }
       }
     }
-    
+
     # add growth in pixels to the growth_table 
-    if (input$barkSide) {
-      growth_table$pixels <- c (0, growth)
-    } else {
-      growth_table$pixels <- c (growth, 0)
-    }
+    growth_table$pixels <- growth
     
     # convert growth from pixels (using dots per inch input resolution) to mm
     growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4]
