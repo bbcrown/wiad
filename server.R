@@ -1033,7 +1033,11 @@ shinyServer (function (input, output, session)
       
       # identify the index for the last and penultimate linker marker, if they exists
       if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 1) {
-        lastLinker <- max (which (growth_table [no < i, type] == 'Linker'))
+        if (min (which (growth_table$type == 'Linker'), na.rm = TRUE) < i) {
+          lastLinker <- max (which (growth_table [no < i, type] == 'Linker')) # TR This does currently throw a warning every time i is smaller than the first linker
+        } else {
+          lastLinker <- 0
+        }
         if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 2) {
           penultimateLinker <-  Rfast::nth (which (growth_table [no < i, type] == 'Linker'), 
                                           2, descending = TRUE)
