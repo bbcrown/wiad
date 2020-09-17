@@ -90,7 +90,7 @@ fluidPage (
                numericInput (inputId = 'sampleYear', 
                              label = 'Sample year', 
                              min = 1800, 
-                             max = year(Sys.Date()),
+                             max = year (Sys.Date ()),
                              value = 2019),
                
                # checkbox to check whether growing season had started in sample year

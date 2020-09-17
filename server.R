@@ -21,7 +21,7 @@ shinyServer (function (input, output, session)
   # declaring reactive value
   rv <- reactiveValues (
     
-    imgMat = readPNG ('not_loaded.png')[,,1:3], #RGB matrix loaded based on the image
+    imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], #RGB matrix loaded based on the image
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to update the table
@@ -1037,10 +1037,11 @@ shinyServer (function (input, output, session)
         if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 2) {
           penultimateLinker <-  Rfast::nth (which (growth_table [no < i, type] == 'Linker'), 
                                           2, descending = TRUE)
+        } else {
+          penultimateLinker <- 0
         }
       } else {
-        lastLinker        <- 0
-        penultimateLinker <- 0
+        lastLinker <- 0
       }
       
       # identify the index for the last normal marker
@@ -1060,7 +1061,7 @@ shinyServer (function (input, output, session)
         } else if (lastPoint < lastLinker) {
 
           # check whether the penultimate reference marker was a normal marker
-          if (lastPoint > penultimateLinker) {
+          if (lastPoint > penultimateLinker) { # TR There is an issue here when we have only one linker marker
             growth [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
                                 (growth_table$y [i] - growth_table$y [lastLinker])^2)
             
