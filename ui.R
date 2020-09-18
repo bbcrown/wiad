@@ -225,9 +225,9 @@ fluidPage (
                  
                  # checkbox to check whether measuring starts at the bark
                  column (2, 
-                   checkboxInput (inputId = 'barkSide', 
-                                  label = 'Bark first', 
-                                  value = TRUE)),
+                         checkboxInput (inputId = 'barkFirst', 
+                                        label = 'Bark first', 
+                                        value = TRUE)),
                  
                  # checkbox to check whether years should be displayed
                  column (2, 
@@ -237,7 +237,7 @@ fluidPage (
                  
                  # checkbox to check whether pith is contained in image
                  column (2, 
-                         checkboxInput (inputId = 'pithContained', 
+                         checkboxInput (inputId = 'pithInImage', 
                                         label = 'Pith in image', 
                                         value = FALSE)),
                ),

@@ -51,10 +51,12 @@ shinyServer (function (input, output, session)
                {
                  printLog ('observeEvent input$image')
                  
+                 # reset radio button, so that metadata needs to be confirmed
                  updateRadioButtons (session = session, 
                                      inputId = 'confirmMeta', 
                                      selected = 'Not Confirmed')
                  
+                 # generate working directory id
                  rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
                                           pattern = ' |:', 
                                           replacement = '-'),
@@ -62,8 +64,7 @@ shinyServer (function (input, output, session)
                                                   size = 32,
                                                   replace = TRUE),
                                           collapse = ""), 
-                                   sep = '_'
-                 )
+                                   sep = '_')
                  
                  # set the sub directory for the sample
                  rv$wrkDir <- paste0 (ARCHIVE_DIR, 'W-', rv$wrkID, '/')
@@ -97,25 +98,29 @@ shinyServer (function (input, output, session)
                    return ()
                  }
                  
+                 # change notLoaded boolean now that image is loaded
                  rv$notLoaded <- FALSE
                  
+                 # get image directory
                  imgDim <- dim (rv$imgMat)
                  
-                 writePNG (rv$imgMat,  
-                          
-                          paste0 (rv$wrkDir,
-                                  'imgorg-',
-                                  rv$wrkID,
-                                  '.png'))
+                 # write image to the temporary working directory
+                 writePNG (rv$imgMat, paste0 (rv$wrkDir,
+                                              'imgorg-',
+                                              rv$wrkID,
+                                              '.png'))
                  
+                 # get the image matrix
                  if (imgDim [2] < imgDim [1]) {
                    rv$imgMat <- rotateRGB (rv$imgMat)
                  }
                  
+                 # reset image resolution to make sure that it is checked by user
                  updateNumericInput (session = session,
                                      inputId = 'sampleDPI',
                                      value = NULL)
                  
+                 # reset the markerTable
                  rv$markerTable <- data.table ( # data.table contains the marker data
                    no   = integer (),   # no ID
                    x    = numeric (),   # x
@@ -132,7 +137,7 @@ shinyServer (function (input, output, session)
                 {
                   printLog ('observeEvent input$markers')
                   
-                  # get path to metadata
+                  # get path to path to the marker file
                   rv$markersPath <- input$markers$datapath
                   
                   # get file extension
@@ -189,9 +194,22 @@ shinyServer (function (input, output, session)
                       updateTextInput (session = session,
                                        inputId = 'sampleYear',
                                        value = markers$sampleYear)
+                      updateRadioButtons (session = session,
+                                          inputId = 'sampleYearGrowingSeason',
+                                          selected = ifelse (markers$sampleYearGrowth == 'none', 
+                                                             'not started', 
+                                                             ifelse (markers$sampleYearGrowth == 'some', 
+                                                                     'only started', 
+                                                                     'already ended')))
                       updateTextInput (session = session,
                                        inputId = 'sampleDPI',
                                        value = markers$sampleDPI)
+                      updateCheckboxInput (session = session,
+                                           inputId = 'pithInImage',
+                                           value = markers$pithInImage)
+                      updateCheckboxInput (session = session,
+                                           inputId = 'barkFirst',
+                                           value = markers$barkFirst)
                       updateTextInput (session = session,
                                        inputId = 'siteLoc',
                                        value = markers$siteLoc)
@@ -268,21 +286,25 @@ shinyServer (function (input, output, session)
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
                    metadata <- read_excel (path = rv$metaPath,
                                            col_names = c ('ownerName','ownerEmail','species',
-                                                          'sampleDate','sampleYear','sampleDPI',
-                                                          'siteLoc','siteLocID','plotID',
-                                                          'sampleID','sampleNote','collection',
-                                                          'contributor'),
+                                                          'sampleDate','sampleYear',
+                                                          'sampleYearGrowth','sampleDPI',
+                                                          'pithInImage','barkFirst','siteLoc',
+                                                          'siteLocID','plotID','sampleID',
+                                                          'sampleNote','collection','contributor'),
                                            col_types = c ('text','text','text','date','numeric',
-                                                          'numeric','text','text','text','text',
-                                                          'text','text','text'), skip = 1)
+                                                          'text','numeric','logical','logical',
+                                                          'text','text','text','text','text',
+                                                          'text','text'), 
+                                           skip = 1)
                  } else if (rv$metaExt %in% c ('csv', 'CSV')) {
                    metadata <- read_csv (file = rv$metaPath, 
                                          col_names = c ('ownerName','ownerEmail','species',
-                                                        'sampleDate','sampleYear','sampleDPI',
-                                                        'siteLoc','siteLocID','plotID',
-                                                        'sampleID','sampleNote','collection',
-                                                        'contributor'),
-                                         col_types = 'cccDiiccccccc', skip = 1)
+                                                        'sampleDate','sampleYear',
+                                                        'sampleYearGrowth','sampleDPI',
+                                                        'pithInImage','barkFirst','siteLoc',
+                                                        'siteLocID','plotID','sampleID',
+                                                        'sampleNote','collection','contributor'),
+                                         col_types = 'cccDicillccccccc', skip = 1)
                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
                    metadata <- read_json (rv$metaPath)
                  } else {
@@ -313,9 +335,22 @@ shinyServer (function (input, output, session)
                  updateTextInput (session = session,
                                   inputId = 'sampleYear',
                                   value = metadata$sampleYear)
+                 updateRadioButtons (session  = session,
+                                     inputId  = 'sampleYearGrowingSeason',
+                                     selected = ifelse (metadata$sampleYearGrowth == 'none', 
+                                                        'not started', 
+                                                        ifelse (metadata$sampleYearGrowth == 'some', 
+                                                                'only started', 
+                                                                'already ended')))
                  updateTextInput (session = session,
                                   inputId = 'sampleDPI',
                                   value = metadata$sampleDPI)
+                 updateCheckboxInput (session = session,
+                                      inputId = 'pithInImage',
+                                      value = metadata$pithInImage)
+                 updateCheckboxInput (session = session,
+                                      inputId = 'barkFirst',
+                                      value = metadata$barkFirst)
                  updateTextInput (session = session,
                                   inputId = 'siteLoc',
                                   value = metadata$siteLoc)
@@ -363,11 +398,12 @@ shinyServer (function (input, output, session)
                     species          = input$species,
                     sampleDate       = input$sampleDate,
                     sampleYear       = input$sampleYear,
-                    sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'only started', 
+                    sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'not started', 'none',
                                                ifelse (input$sampleYearGrowingSeason == 'already ended', 
-                                                       'all', 'some'), 
-                                               'none'), 
+                                                       'all', 'some')),
                     sampleDPI        = input$sampleDPI,
+                    pithInImage      = input$pithInImage,
+                    barkFirst        = input$barkFirst,
                     siteLoc          = input$siteLoc,
                     siteLocID        = input$siteLocID,
                     plotID           = input$plotID,
@@ -377,9 +413,6 @@ shinyServer (function (input, output, session)
                     contributor      = input$contributor,
                     markerData       = rv$markerTable,
                     growth           = growthTable (),
-                    pithInImage      = input$pithContained,
-                    lastRingComplete = ifelse (input$sampleYearGrowingSeason %in% c ('not started','already ended'), 
-                                               TRUE, FALSE),
                     status           = input$confirmMeta)
     }
   )
@@ -610,25 +643,25 @@ shinyServer (function (input, output, session)
                }
   )
   
-  observeEvent(input$selContrast,
+  observeEvent (input$selContrast,
                {
-                 printLog('observeEvent input$selContrast')
+                 printLog ('observeEvent input$selContrast')
                  
                  rv$procband <- 'Contrast'
                }
   )
   
-  observeEvent(input$selTotBr,
+  observeEvent (input$selTotBr,
                {
-                 printLog('observeEvent input$selTotBr')
+                 printLog ('observeEvent input$selTotBr')
                  
                  rv$procband <- 'Brightness'
                }
   )
   
-  observeEvent(input$selRGB,
+  observeEvent (input$selRGB,
                {
-                 printLog('observeEvent input$selRGB')
+                 printLog ('observeEvent input$selRGB')
                  
                  rv$procband <- 'RGB'
                }
@@ -636,14 +669,14 @@ shinyServer (function (input, output, session)
   
   totbrightness <- reactive (
     {
-      printLog('totbrightness reactive')
+      printLog ('totbrightness reactive')
       
       tmp <- 
-        rv$imgMat[,,1] + 
-        rv$imgMat[,,2] + 
-        rv$imgMat[,,3]
+        rv$imgMat [,,1] + 
+        rv$imgMat [,,2] + 
+        rv$imgMat [,,3]
       
-      tmp/3
+      tmp / 3
     }
   )
   
@@ -913,7 +946,7 @@ shinyServer (function (input, output, session)
   growthTable <- reactive ({
     req (rv$check_table)
     req (rv$markerTable)
-    req (input$barkSide)
+    req (input$barkFirst)
     
     # copy markerTable into growth_table
     growth_table <- rv$markerTable
@@ -929,7 +962,7 @@ shinyServer (function (input, output, session)
     if (sum (types == 'Pith', na.rm = TRUE) == 0){
 
       # check whether the measurement series starts at the bark
-      if (input$barkSide) {
+      if (input$barkFirst) {
 
         # loop over all points from bark towards the pith
         for (i in 1:n)
@@ -962,7 +995,7 @@ shinyServer (function (input, output, session)
       p <- which (types == 'Pith')
 
       # check whether the measurement series starts at the bark
-      if (input$barkSide){
+      if (input$barkFirst){
         
         # loop over all points from bark to pith
         for (i in 1:p) {
@@ -1183,7 +1216,7 @@ shinyServer (function (input, output, session)
     }
   )
   
-  output$downloadJSON <- downloadHandler(
+  output$downloadJSON <- downloadHandler (
     
     filename = function () {
       
@@ -1217,7 +1250,7 @@ shinyServer (function (input, output, session)
         writePNG (rv$imgMat, 
                   target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
-        write (toJSON (metaData()), 
+        write (toJSON (metaData ()), 
                paste0 (rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
       }
