@@ -24,7 +24,8 @@ shinyServer (function (input, output, session)
     imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], #RGB matrix loaded based on the image
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
-    check_table = 0, # a flag to update the table
+    check_table = 0, # a flag to make sure a marker table exists
+    check_linker = 0, # a flag to make sure a linker has been set
     
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (), # no ID
@@ -763,8 +764,9 @@ shinyServer (function (input, output, session)
                                                y = numeric (),
                                                relx = numeric (),
                                                rely = numeric (),
-                                               type = character ()
-                 )
+                                               type = character ())
+                 
+                 # make sure to update table
                  rv$check_table <- rv$check_table + 1
                })
   
@@ -772,7 +774,7 @@ shinyServer (function (input, output, session)
                {
                  printLog ('observeEvent input$linkerPoint')
                  
-                 if (rv$notLoaded==TRUE) return ()
+                 if (rv$notLoaded == TRUE) return ()
                  
                  # check whether no marker has been set yet
                  if (nrow (rv$markerTable) == 0) {
@@ -785,7 +787,7 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # check whether only one marker has been set yet 
+                 # check whether only one or two markers have been set yet 
                  } else if (nrow (rv$markerTable) <= 2) {
                    showModal (strong (
                      modalDialog ("Error: The first two points cannot be linkers! Maybe start on a ring?",
@@ -796,11 +798,16 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # else more than one marker have been set and the type is switched
+                 # else more than two normal markers have been set and the type of this marker is switched
                  } else {
                    rv$markerTable [no == nrow (rv$markerTable), 
-                                   type:=switch (type, 'Linker' = 'Normal', 'Normal' = 'Linker')]
+                                   type := switch (type, 'Linker' = 'Normal', 'Normal' = 'Linker')]
+                   
+                   # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
+                   
+                   # validate that a linker has been set
+                   rv$check_linker <- rv$check_linker + 1
                  }
                })
   
@@ -826,6 +833,8 @@ shinyServer (function (input, output, session)
                  } else {
                    rv$markerTable [no == nrow (rv$markerTable), 
                                    type := switch (type, 'Pith' = 'Normal', 'Normal' = 'Pith')]
+                   
+                   # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
                  }
                })
@@ -852,7 +861,8 @@ shinyServer (function (input, output, session)
                                                  rely = numeric (),
                                                  type = character ())
                  }
-                 # increase check_table
+                 
+                 #  validate that a marker table exists
                  rv$check_table <- rv$check_table + 1
                })
   
@@ -861,8 +871,10 @@ shinyServer (function (input, output, session)
                  
                  printLog ('observeEvent input$ring_point')
                  
+                 # check that images is loaded
                  if (rv$notLoaded == TRUE) return ()
                  
+                 # check that metadata has been confirmed
                  if (input$confirmMeta == 'Not Confirmed') {
                      showModal (strong (
                      modalDialog ("First review and confirm the metadata!",
@@ -870,8 +882,8 @@ shinyServer (function (input, output, session)
                                   fade = T,
                                   size = 's',
                                   style ='background-color:#3b3a35; color:#b91b9a4; ',
-                                  footer = NULL
-                     )))
+                                  footer = NULL)))
+                   
                    return ()
                  }
                  
@@ -1146,7 +1158,7 @@ shinyServer (function (input, output, session)
       # return if there is no data
       if (nrow (tbl) == 0) return ()
       
-      # check that the table has been updated # TR Not sure why this is needed
+      # check that the table has been updated
       req (rv$check_table)
       
       # order table, aka starting with the most recent year
