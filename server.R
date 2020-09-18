@@ -492,11 +492,12 @@ shinyServer (function (input, output, session)
       # check whether there is at least one linker marker
       if (sum (wLinkers, na.rm = TRUE) >= 1) {
         
-        # check whether the last marker was a linker or there is another marker afterwards
+        # check whether the last marker was a linker
         if (nrow (rv$markerTable) > max (wLinkers, na.rm = TRUE)) { 
           
           # loop over all linkers
           for (i in 1:length (wLinkers)) {
+            
             # check whether the following marker is an increment or linker marker
             if (rv$markerTable$type [wLinkers [i] + 1] != 'Linker') {
               segments (x0 = rv$markerTable [wLinkers [i], x], 
