@@ -463,12 +463,23 @@ shinyServer (function (input, output, session)
       wPith    <- which (rv$markerTable$type == 'Pith')
       
       
-      # plot all normal markers in yellow
-      points (marker_tbl [wNormal, x],
-              marker_tbl [wNormal, y], 
-              pch = 19, 
-              cex = 1.2, 
-              col = 'yellow')
+      # plot all normal markers in yellow, if markers should be displayed
+      if (input$displayMarkers) {
+        points (x = marker_tbl [wNormal, x],
+                y = marker_tbl [wNormal, y], 
+                pch = 19, 
+                cex = 1.2, 
+                col = 'yellow')
+      }
+      
+      # plot marker numbers, if desired
+      if (input$displayMarkerIDs) {
+        text (x = marker_tbl$x,
+              y = marker_tbl$y,
+              labels = rv$markerTable$no,
+              pos = 1,
+              col = colours [['colour']] [colours [['type']] == 'Normal'])
+      }
       
       # plot years between two markers to more easily identify the growth rings
       if (input$displayYears) {
@@ -521,30 +532,32 @@ shinyServer (function (input, output, session)
       # above code draws lines between last marker and linker markers for single linker markers
       # and between the two linker markers for consecutive linker markers
       
-      # plot linker markers in blue
-      points (x = rv$markerTable [wLinkers, x], 
-              y = rv$markerTable [wLinkers, y],
-              col = 'cornflowerblue',
-              pch = 19,
-              cex = 1.2,
-              lwd = 2)
-
-      # plot misc markers in Cambridge blue
-      points (x = rv$markerTable [wMisc, x],
-              y = rv$markerTable [wMisc, y],
-              col = '#91b9a4',
-              pch = 19,
-              cex = 1.2, 
-              lwd = 2)
-      
-      # plot the pith marker in crimson as a round point when oldest ring and larger cross 
-      # when the actual pith
-      points (x = rv$markerTable [wPith, x], 
-              y = rv$markerTable [wPith, y],
-              col = '#a41034',
-              pch = ifelse (input$pithInImage, 4, 19),
-              cex = ifelse (input$pithInImage, 2, 1.2),
-              lwd = 2)
+      # plot linker markers in blue, if markers should be displayed
+      if (input$displayMarkers) {
+        points (x = rv$markerTable [wLinkers, x], 
+                y = rv$markerTable [wLinkers, y],
+                col = 'cornflowerblue',
+                pch = 19,
+                cex = 1.2,
+                lwd = 2)
+  
+        # plot misc markers in Cambridge blue
+        points (x = rv$markerTable [wMisc, x],
+                y = rv$markerTable [wMisc, y],
+                col = '#91b9a4',
+                pch = 19,
+                cex = 1.2, 
+                lwd = 2)
+        
+        # plot the pith marker in crimson as a round point when oldest ring and larger cross 
+        # when the actual pith
+        points (x = rv$markerTable [wPith, x], 
+                y = rv$markerTable [wPith, y],
+                col = '#a41034',
+                pch = ifelse (input$pithInImage, 4, 19),
+                cex = ifelse (input$pithInImage, 2, 1.2),
+                lwd = 2)
+      }
       
       # check whether there are already two points to draw a guide 
       if (nrow (marker_tbl) > 1) { 

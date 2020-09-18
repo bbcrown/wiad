@@ -43,7 +43,7 @@ fluidPage (
                
                # the file input only accepts jpeg, png or tiff.
                fileInput (inputId = 'image', 
-                          label = 'Choose the image file',
+                          label = 'Choose image file',
                           multiple = FALSE,
                           accept = c('image/jpeg',
                                      'image/png',
@@ -58,7 +58,7 @@ fluidPage (
                
                # the file input only accepts csv and json.
                fileInput (inputId = 'metadata', 
-                          label = 'Upload metadata or enter manually below',
+                          label = 'Upload metadata or enter it manually below',
                           multiple = FALSE,
                           accept = c ('text/csv',
                                       'text/json',
@@ -229,17 +229,31 @@ fluidPage (
                                         label = 'Bark first', 
                                         value = TRUE)),
                  
-                 # checkbox to check whether years should be displayed
-                 column (2, 
-                         checkboxInput (inputId = 'displayYears', 
-                                        label = 'Display years', 
-                                        value = TRUE)),
-                 
                  # checkbox to check whether pith is contained in image
                  column (2, 
                          checkboxInput (inputId = 'pithInImage', 
                                         label = 'Pith in image', 
                                         value = FALSE)),
+                 
+                 # checkbox to check whether markers should be displayed
+                 column (2,
+                         checkboxInput (inputId = 'displayMarkers',
+                                        label = 'Show markers',
+                                        value = TRUE)),
+                 
+                 # checkbox to check whether years should be displayed
+                 column (2,
+                         checkboxInput (inputId = 'displayYears',
+                                        label = 'Show years',
+                                        value = TRUE)),
+
+                 
+                 # checkbox to check whether marker numbers should be displayed
+                 column (3,
+                         checkboxInput (inputId = 'displayMarkerIDs',
+                                        label = 'Show marker numbers',
+                                        value = FALSE)),
+
                ),
 
                # horizontal bar breaker
@@ -288,15 +302,6 @@ fluidPage (
                                        style = 'font-weight: bold;')
                  ),
                  
-                 # # Convert type to 'misc'
-                 # column (2, 
-                 #         actionButton (inputId = 'misc', 
-                 #                       label = 'Misc',
-                 #                       icon = icon ('discourse'), 
-                 #                       class = 'btn-primary', 
-                 #                       width = '100%', 
-                 #                       style = 'font-weight: bold;')
-                 # ) 
                ),
                
                # section breaker
@@ -335,17 +340,17 @@ fluidPage (
              }),
     
     # tabpabel for the about page
-    tabPanel('About TRIAD',
+    tabPanel ('About TRIAD',
              
              # load from the markdown document
-             includeMarkdown('about.md')
+             includeMarkdown ('about.md')
     ),
     
     # tabpanel for fair use and copyright policy
-    tabPanel('Fair Use Policy',
+    tabPanel ('Fair Use Policy',
              
              #load from the markdown document
-             includeMarkdown('fair-use.md')
+             includeMarkdown ('fair-use.md')
     )
     
   )

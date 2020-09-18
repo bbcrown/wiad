@@ -41,7 +41,7 @@ list.of.packages <- c (
 new.packages <- list.of.packages [!(list.of.packages %in% installed.packages () [,"Package"])]
 
 # install new (not installed) packages from CRAN
-if (length(new.packages)) 
+if (length (new.packages)) 
   install.packages (new.packages, 
                     repos = 'http://cran.rstudio.com/')
 
@@ -56,10 +56,15 @@ if (system ('hostname', intern = T) %in% c ('phenocam') &
 # MACRO to control log outputs
 PRINT_LOGS <- TRUE
 
-#temporary archive directory
+# temporary archive directory
 ARCHIVE_DIR <- 'images/'
   
 # create a directory for uploaded images, this is probably needed only for development stages
 dir.create (ARCHIVE_DIR, showWarnings = FALSE)
 
+# colours for ploting markers
+colours <- tibble (
+  type    = c ('Normal','Linker','Pith','Misc'), 
+  colours = c ('yellow','cornflowerblue','#a41034','#91b9a4')
+)
 
