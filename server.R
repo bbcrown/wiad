@@ -25,7 +25,6 @@ shinyServer (function (input, output, session)
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to make sure a marker table exists
-    check_linker = 0, # a flag to make sure a linker has been set
     
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (), # no ID
@@ -475,8 +474,8 @@ shinyServer (function (input, output, session)
       if (input$displayYears) {
         years <- growthTable ()
         
-        # find only normal markers
-        years <- years [years$type == "Normal"]
+        # find only normal and pith markers
+        years <- years [years$type %in% c ('Normal', 'Pith')]
         if (nrow (years) > 1) {
           xs <- rollmean (years$x, 2)
           ys <- rollmean (years$y, 2)
@@ -538,12 +537,13 @@ shinyServer (function (input, output, session)
               cex = 1.2, 
               lwd = 2)
       
-      # plot the pith marker in crimson
+      # plot the pith marker in crimson as a round point when oldest ring and larger cross 
+      # when the actual pith
       points (x = rv$markerTable [wPith, x], 
               y = rv$markerTable [wPith, y],
               col = '#a41034',
-              pch = 19,
-              cex = 1.2,
+              pch = ifelse (input$pithInImage, 4, 19),
+              cex = ifelse (input$pithInImage, 2, 1.2),
               lwd = 2)
       
       # check whether there are already two points to draw a guide 
@@ -798,16 +798,24 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # else more than two normal markers have been set and the type of this marker is switched
+                 # check whether this is the third linker marker in a row 
+                 } else if (sum (tail (rv$markerTable$type, n = 2) == 'Linker', na.rm = TRUE) == 2) {
+                   showModal (strong (
+                     modalDialog ("Error: You can set a maximum of two consecutive linkers!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style ='background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL
+                     )))
+                   return ()
+                   # else more than two normal markers have been set and the type of this marker is switched
                  } else {
                    rv$markerTable [no == nrow (rv$markerTable), 
                                    type := switch (type, 'Linker' = 'Normal', 'Normal' = 'Linker')]
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
-                   
-                   # validate that a linker has been set
-                   rv$check_linker <- rv$check_linker + 1
                  }
                })
   
@@ -903,8 +911,12 @@ shinyServer (function (input, output, session)
                    last <- rv$markerTable [nrow (rv$markerTable)]
                    if (newPoint$x == last$x & newPoint$y == last$y) return ()
                  }
+                 
                  # add new point to the marker table
                  rv$markerTable <- rbind (rv$markerTable, newPoint)
+                 
+                 # validate that a marker table exists
+                 rv$check_table <- rv$check_table + 1
                })
   
   observeEvent (input$misc_point,
@@ -952,14 +964,17 @@ shinyServer (function (input, output, session)
                     last <- rv$markerTable [nrow (rv$markerTable)]
                     if (newPoint$x == last$x & newPoint$y == last$y) return ()
                   }
+                  
                   # add new point to the marker table
                   rv$markerTable <- rbind (rv$markerTable, newPoint)
+                  
+                  # validate that marker table exists
+                  rv$check_table <- rv$check_table + 1
                 })
   
   growthTable <- reactive ({
     req (rv$check_table)
     req (rv$markerTable)
-    req (input$barkFirst)
     
     # copy markerTable into growth_table
     growth_table <- rv$markerTable
@@ -972,7 +987,7 @@ shinyServer (function (input, output, session)
     years <- rep (NA, n)
     
     # check whether there is no pith marker (which marks oldest ring or pith) yet
-    if (sum (types == 'Pith', na.rm = TRUE) == 0){
+    if (sum (types == 'Pith', na.rm = TRUE) == 0) {
 
       # check whether the measurement series starts at the bark
       if (input$barkFirst) {
@@ -989,8 +1004,9 @@ shinyServer (function (input, output, session)
                                        years [i-1] - 1)
           )
       # else the measurement series starts at the inner most ring
-      } else {
-        # loop over all points from inner most ring towards the bark
+      } else if (!input$barkFirst) {
+        
+        # loop over all points from inner most ring towards the bark in reverse order
         for (i in n:1)
           years [i] <- ifelse (i == n,
                                ifelse (input$sampleYearGrowingSeason %in% 
@@ -1021,6 +1037,7 @@ shinyServer (function (input, output, session)
                                        years [i-1],
                                        years [i-1] - 1))
         }
+        
         # only if the last point was not the oldest ring (i.e., pith marker) 
         if (n > p) {
           # loop over all point from pith towards the bark in potential second profile
@@ -1038,7 +1055,8 @@ shinyServer (function (input, output, session)
           }
         }
       # else the measurement series starts at the pith
-      } else {
+      } else if (!input$barkFirst) {
+        
         # loop over points from potential second profile to the pith
         for (i in n:p) {
           years [i] <- ifelse (i == n,
@@ -1074,29 +1092,35 @@ shinyServer (function (input, output, session)
     # intialise growth
     growth <- rep (NA, n)
     
-    # replace growth for exceptional cases
-    for (i in n:2) { # first has to be normal and "growth" will be set to 0
+    # calculate "growth" for the various markers and combination 
+    # first marker has to be normal and "growth" will be set to 0 for the first marker
+    # loop over remaining markers to figure out their "growth"
+    for (i in n:2) { 
       
       # identify the index for the last and penultimate linker marker, if they exists
       if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 1) {
-        if (min (which (growth_table$type == 'Linker'), na.rm = TRUE) < i) {
-          lastLinker <- max (which (growth_table [no < i, type] == 'Linker')) # TR This does currently throw a warning every time i is smaller than the first linker
+        
+        # check whether there is still a previously set linker
+        if (min (which (growth_table$type == 'Linker')) < i) {
+          lastLinker <- max (which (growth_table [no < i, type] == 'Linker')) 
         } else {
           lastLinker <- 0
         }
-        if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 2) {
-          penultimateLinker <-  Rfast::nth (which (growth_table [no < i, type] == 'Linker'), 
-                                          2, descending = TRUE)
+        
+        # check whether at least two smaller linkers were set
+        if (sum (growth_table [no < i, type] == 'Linker', na.rm = TRUE) >= 2) {
+          penultimateLinker <- Rfast::nth (which (growth_table [no < i, type] == 'Linker'), 
+                                                2, descending = TRUE)
         } else {
           penultimateLinker <- 0
         }
       } else {
         lastLinker <- 0
+        penultimateLinker <- 0
       }
       
       # identify the index for the last normal marker
       lastPoint  <- max (which (growth_table [no < i, type] == 'Normal'))
-      
       
       # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
       # exception: two previous reference markers are linker markers
