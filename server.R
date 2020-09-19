@@ -463,13 +463,13 @@ shinyServer (function (input, output, session)
       wPith    <- which (rv$markerTable$type == 'Pith')
       
       
-      # plot all normal markers in yellow, if markers should be displayed
+      # plot all normal markers, if markers should be displayed
       if (input$displayMarkers) {
         points (x = marker_tbl [wNormal, x],
                 y = marker_tbl [wNormal, y], 
                 pch = 19, 
                 cex = 1.2, 
-                col = 'yellow')
+                col = colours [['colour']] [colour [['type']] == 'Normal'])
       }
       
       # plot marker numbers, if desired
@@ -478,7 +478,7 @@ shinyServer (function (input, output, session)
               y = marker_tbl$y,
               labels = rv$markerTable$no,
               pos = 1,
-              col = colours [['colour']] [colours [['type']] == 'Normal'])
+              col = colours [['colour']] [colour [['type']] == rv$markerTable$type])
       }
       
       # plot years between two markers to more easily identify the growth rings
@@ -495,7 +495,7 @@ shinyServer (function (input, output, session)
                 y = ys,
                 labels = years,
                 pos = 3,
-                col = 'yellow')
+                col = colours [['colour']] [colour [['type']] == 'Normal'])
         }
       }
       
@@ -516,7 +516,7 @@ shinyServer (function (input, output, session)
                         x1 = rv$markerTable [wLinkers [i] - 1, x], 
                         y1 = rv$markerTable [wLinkers [i] - 1, y], 
                         lwd = 2, 
-                        col = 'cornflowerblue')
+                        col = colours [['colour']] [colour [['type']] == 'Linker'])
             }
           }
         # the last marker was a linker
@@ -526,7 +526,7 @@ shinyServer (function (input, output, session)
                     x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
                     y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
                     lwd = 2, 
-                    col = 'cornflowerblue')  
+                    col = colours [['colour']] [colour [['type']] == 'Linker'])  
         }
       }
       # above code draws lines between last marker and linker markers for single linker markers
@@ -536,7 +536,7 @@ shinyServer (function (input, output, session)
       if (input$displayMarkers) {
         points (x = rv$markerTable [wLinkers, x], 
                 y = rv$markerTable [wLinkers, y],
-                col = 'cornflowerblue',
+                col = colours [['colour']] [colour [['type']] == 'Linker'],
                 pch = 19,
                 cex = 1.2,
                 lwd = 2)
@@ -544,7 +544,7 @@ shinyServer (function (input, output, session)
         # plot misc markers in Cambridge blue
         points (x = rv$markerTable [wMisc, x],
                 y = rv$markerTable [wMisc, y],
-                col = '#91b9a4',
+                col = colours [['colour']] [colour [['type']] == 'Misc'],
                 pch = 19,
                 cex = 1.2, 
                 lwd = 2)
@@ -553,7 +553,7 @@ shinyServer (function (input, output, session)
         # when the actual pith
         points (x = rv$markerTable [wPith, x], 
                 y = rv$markerTable [wPith, y],
-                col = '#a41034',
+                col = colours [['colour']] [colour [['type']] == 'Pith'],
                 pch = ifelse (input$pithInImage, 4, 19),
                 cex = ifelse (input$pithInImage, 2, 1.2),
                 lwd = 2)
@@ -576,13 +576,13 @@ shinyServer (function (input, output, session)
         if (is.finite (slope)) {
           abline (intercept, 
                   slope,
-                  col = 'yellow',
+                  col = colours [['colour']] [colour [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         } else {
           # plot vertical line between the markers, if slope is not finite
           abline (v = mean (xy$x),
-                  col = 'yellow',
+                  col = colours [['colour']] [colour [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         }

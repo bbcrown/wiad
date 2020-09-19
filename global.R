@@ -9,7 +9,7 @@
 #######################################################################
 
 # loading auxiliary functions that are called in server.R and ui.R
-source('funcs.R')
+source ('funcs.R')
 
 
 # list of required packages
@@ -64,7 +64,7 @@ dir.create (ARCHIVE_DIR, showWarnings = FALSE)
 
 # colours for ploting markers
 colours <- tibble (
-  type    = c ('Normal','Linker','Pith','Misc'), 
-  colours = c ('yellow','cornflowerblue','#a41034','#91b9a4')
+  type   = c ('Normal','Linker','Pith','Misc'), 
+  colour = c ('yellow','cornflowerblue','#a41034','#91b9a4')
 )
 
