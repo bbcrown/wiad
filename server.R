@@ -469,7 +469,7 @@ shinyServer (function (input, output, session)
                 y = marker_tbl [wNormal, y], 
                 pch = 19, 
                 cex = 1.2, 
-                col = colours [['colour']] [colour [['type']] == 'Normal'])
+                col = colours [['colour']] [colours [['type']] == 'Normal'])
       }
       
       # plot marker numbers, if desired
@@ -478,7 +478,7 @@ shinyServer (function (input, output, session)
               y = marker_tbl$y,
               labels = rv$markerTable$no,
               pos = 1,
-              col = colours [['colour']] [colour [['type']] == rv$markerTable$type])
+              col = '#666666')
       }
       
       # plot years between two markers to more easily identify the growth rings
@@ -495,7 +495,7 @@ shinyServer (function (input, output, session)
                 y = ys,
                 labels = years,
                 pos = 3,
-                col = colours [['colour']] [colour [['type']] == 'Normal'])
+                col = colours [['colour']] [colours [['type']] == 'Normal'])
         }
       }
       
@@ -516,7 +516,7 @@ shinyServer (function (input, output, session)
                         x1 = rv$markerTable [wLinkers [i] - 1, x], 
                         y1 = rv$markerTable [wLinkers [i] - 1, y], 
                         lwd = 2, 
-                        col = colours [['colour']] [colour [['type']] == 'Linker'])
+                        col = colours [['colour']] [colours [['type']] == 'Linker'])
             }
           }
         # the last marker was a linker
@@ -526,7 +526,7 @@ shinyServer (function (input, output, session)
                     x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
                     y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
                     lwd = 2, 
-                    col = colours [['colour']] [colour [['type']] == 'Linker'])  
+                    col = colours [['colour']] [colours [['type']] == 'Linker'])  
         }
       }
       # above code draws lines between last marker and linker markers for single linker markers
@@ -536,7 +536,7 @@ shinyServer (function (input, output, session)
       if (input$displayMarkers) {
         points (x = rv$markerTable [wLinkers, x], 
                 y = rv$markerTable [wLinkers, y],
-                col = colours [['colour']] [colour [['type']] == 'Linker'],
+                col = colours [['colour']] [colours [['type']] == 'Linker'],
                 pch = 19,
                 cex = 1.2,
                 lwd = 2)
@@ -544,7 +544,7 @@ shinyServer (function (input, output, session)
         # plot misc markers in Cambridge blue
         points (x = rv$markerTable [wMisc, x],
                 y = rv$markerTable [wMisc, y],
-                col = colours [['colour']] [colour [['type']] == 'Misc'],
+                col = colours [['colour']] [colours [['type']] == 'Misc'],
                 pch = 19,
                 cex = 1.2, 
                 lwd = 2)
@@ -553,7 +553,7 @@ shinyServer (function (input, output, session)
         # when the actual pith
         points (x = rv$markerTable [wPith, x], 
                 y = rv$markerTable [wPith, y],
-                col = colours [['colour']] [colour [['type']] == 'Pith'],
+                col = colours [['colour']] [colours [['type']] == 'Pith'],
                 pch = ifelse (input$pithInImage, 4, 19),
                 cex = ifelse (input$pithInImage, 2, 1.2),
                 lwd = 2)
@@ -576,13 +576,13 @@ shinyServer (function (input, output, session)
         if (is.finite (slope)) {
           abline (intercept, 
                   slope,
-                  col = colours [['colour']] [colour [['type']] == 'Normal'],
+                  col = colours [['colour']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         } else {
           # plot vertical line between the markers, if slope is not finite
           abline (v = mean (xy$x),
-                  col = colours [['colour']] [colour [['type']] == 'Normal'],
+                  col = colours [['colour']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         }

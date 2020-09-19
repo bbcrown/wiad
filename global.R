@@ -33,6 +33,7 @@ list.of.packages <- c (
   'Rfast',
   'sp',
   'tiff',
+  'tibble',
   'tools',
   'zoo'
 )
