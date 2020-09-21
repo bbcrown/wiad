@@ -1122,8 +1122,9 @@ shinyServer (function (input, output, session)
         
         # check whether at least two smaller linkers were set
         if (sum (growth_table [no < i, type] == 'Linker', na.rm = TRUE) >= 2) {
-          penultimateLinker <- Rfast::nth (which (growth_table [no < i, type] == 'Linker'), 
-                                                2, descending = TRUE)
+          penultimateLinker <- head (tail (sort (which (growth_table [no < i, type] == 'Linker')), 
+                                           n = 2), 
+                                     n = 1)
         } else {
           penultimateLinker <- 0
         }
