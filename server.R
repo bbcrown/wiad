@@ -25,6 +25,7 @@ shinyServer (function (input, output, session)
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to make sure a marker table exists
+    insert = 0, # an index for where to insert the next marker
     
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (),   # no ID
@@ -49,7 +50,7 @@ shinyServer (function (input, output, session)
                }
   )
   
-  # update the "growth" table
+  # delete specific row in "growth" table
   observeEvent (input$deleteRow,
                 {
                   printLog ('observeEvent input$deleteRow')
@@ -65,6 +66,23 @@ shinyServer (function (input, output, session)
                   
                   # reduce all marker numbers that were higher than the deleted marker
                   rv$markerTable [no > rowNum, no := no - 1]
+                }
+  )
+  
+  # insert row after specific row in "growth" table
+  observeEvent (input$insertRow,
+                {
+                  printLog ('observeEvent input$deleteRow')
+                  
+                  # check that the markerTable and outTable exist
+                  req (rv$markerTable)
+                  
+                  # get the row number that should be deleted
+                  rowNum <- parseRowNumber (input$insertRow)
+                  print (rowNum)
+                  
+                  # set insert to the row number so that input$normal_point and input$misc_point know 
+                  rv$insert <- rowNum
                 }
   )
   
@@ -910,10 +928,10 @@ shinyServer (function (input, output, session)
                  rv$check_table <- rv$check_table + 1
                })
   
-  observeEvent (input$ring_point,
+  observeEvent (input$normal_point,
                {
                  
-                 printLog ('observeEvent input$ring_point')
+                 printLog ('observeEvent input$normal_point')
                  
                  # check that images is loaded
                  if (rv$notLoaded == TRUE) return ()
@@ -935,11 +953,11 @@ shinyServer (function (input, output, session)
                  no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
                  
                  # initialise new point
-                 newPoint <- data.table (no = no,
-                                         x = input$ring_point$x,
-                                         y = input$ring_point$y,
-                                         relx = input$ring_point$x / input$ring_point$domain$right,
-                                         rely = input$ring_point$y / input$ring_point$domain$top,
+                 newPoint <- data.table (no = ifelse (rv$insert == 0, no, rv$insert+1),
+                                         x  = input$normal_point$x,
+                                         y  = input$normal_point$y,
+                                         relx = input$normal_point$x / input$normal_point$domain$right,
+                                         rely = input$normal_point$y / input$normal_point$domain$top,
                                          type = 'Normal')
                  
                  # check that new point is different from old point
@@ -948,8 +966,23 @@ shinyServer (function (input, output, session)
                    if (newPoint$x == last$x & newPoint$y == last$y) return ()
                  }
                  
-                 # add new point to the marker table
-                 rv$markerTable <- rbind (rv$markerTable, newPoint)
+                 # insert or append new point to the marker table
+                 if (rv$insert > 0) {
+                   
+                   # insert marker after identified row 
+                   rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ], 
+                                            newPoint,
+                                            rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
+                                            fill = TRUE)
+                   
+                   # increase all marker number with higher no than the inserted marker
+                   rv$markerTable [no > rv$insert, no := no + 1]
+                   
+                   # reset insert index to 0
+                   rv$insert <- 0
+                 } else if (rv$insert == 0) {
+                   rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
+                 }
                  
                  # validate that a marker table exists
                  rv$check_table <- rv$check_table + 1
@@ -988,9 +1021,9 @@ shinyServer (function (input, output, session)
                   }
                   
                   # initialise new point
-                  newPoint <- data.table (no = no,
-                                          x = input$misc_point$x,
-                                          y = input$misc_point$y,
+                  newPoint <- data.table (no = ifelse (rv$insert == 0, no, rv$insert+1),
+                                          x  = input$misc_point$x,
+                                          y  = input$misc_point$y,
                                           relx = input$misc_point$x / input$misc_point$domain$right,
                                           rely = input$misc_point$y / input$misc_point$domain$top,
                                           type = 'Misc')
@@ -1001,8 +1034,25 @@ shinyServer (function (input, output, session)
                     if (newPoint$x == last$x & newPoint$y == last$y) return ()
                   }
                   
-                  # add new point to the marker table
-                  rv$markerTable <- rbind (rv$markerTable, newPoint)
+                  # insert new point to the marker table
+                  if (rv$insert > 0) {
+                    
+                    # insert marker after identified row 
+                    rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ], 
+                                             newPoint,
+                                             rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
+                                             fill = TRUE)
+                    
+                    # increase all marker number with higher no than the inserted marker
+                    rv$markerTable [no > rv$insert, no := no + 1]
+                    
+                    # reset insert index to 0
+                    rv$insert <- 0
+                    
+                  # or append new point in the end
+                  } else if () {
+                    rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
+                  }
                   
                   # validate that marker table exists
                   rv$check_table <- rv$check_table + 1

@@ -119,7 +119,7 @@ displayDataTable <- function (df, id1, id2, ...) {
         # The id prefix with index
         inputId = paste (id2, i, sep="_"),
         label   = NULL,
-        icon    = icon ('plus-circle'),
+        icon    = icon ('plus-square'),
         onclick = 'Shiny.setInputValue(\"insertRow\", this.id, {priority: "event"})'))
   }
   

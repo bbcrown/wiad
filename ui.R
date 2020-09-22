@@ -215,7 +215,7 @@ fluidPage (
                # main image plot to show the processed image, the raw image is only stored
                column (12, (div (style = 'width:60vw;overflow-x:auto;overflow-y:auto;',
                            plotOutput (outputId = 'imageProc', 
-                                       click    = 'ring_point',
+                                       click    = 'normal_point',
                                        dblclick = 'misc_point',
                                        inline   = TRUE)))
                ),
