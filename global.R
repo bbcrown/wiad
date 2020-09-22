@@ -29,7 +29,6 @@ list.of.packages <- c (
   'rgdal',
   'readr',
   'readxl',
-  'Rfast',
   'sp',
   'tiff',
   'tibble',
