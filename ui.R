@@ -16,12 +16,12 @@ fluidPage (
   theme = shinytheme ('slate'),
   
   #adding JS functionalities
-  shinyjs::useShinyjs(),
+  shinyjs::useShinyjs (),
   
   # UI header
-  tags$head(
+  tags$head (
     
-    tags$style(HTML('
+    tags$style (HTML('
     .shiny-output-error-validation {
     color: red;
     }
@@ -30,10 +30,10 @@ fluidPage (
   ),
   
   # title of the page
-  titlePanel('TRIAD: Tree Ring Image Analysis and Dataset'),
+  titlePanel ('TRIAD: Tree Ring Image Analysis and Dataset'),
   
   # the tabset containts four tab panels
-  tabsetPanel(
+  tabsetPanel (
     
     # main tab panel
     tabPanel ('TRIAD Toolbox',
@@ -213,11 +213,11 @@ fluidPage (
                br (),
                
                # main image plot to show the processed image, the raw image is only stored
-               column (12, (div (style = 'width:60vw;overflow-x:auto;;overflow-y:auto;',
+               column (12, (div (style = 'width:60vw;overflow-x:auto;overflow-y:auto;',
                            plotOutput (outputId = 'imageProc', 
-                                       click = 'ring_point',
+                                       click    = 'ring_point',
                                        dblclick = 'misc_point',
-                                       inline = TRUE)))
+                                       inline   = TRUE)))
                ),
                
                # Checkbox input in a single fluid row
@@ -289,8 +289,7 @@ fluidPage (
                                        icon = icon ('link'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
-                                       style = 'font-weight: bold;')
-                 ), 
+                                       style = 'font-weight: bold;')), 
                  
                  # Convert type to 'pith'
                  column (2, 
@@ -299,8 +298,7 @@ fluidPage (
                                        icon = icon ('bullseye'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
-                                       style = 'font-weight: bold;')
-                 ),
+                                       style = 'font-weight: bold;')),
                  
                ),
                
@@ -310,16 +308,21 @@ fluidPage (
                # horizontal bar breaker
                hr (),
                
-               # show the ring table 
-               DT::dataTableOutput (outputId = 'growth_table'),
+               # show the growth table 
+               DT::dataTableOutput (outputId = 'growth_table')
+               
+             ), # end of fluid row with datatable
+             
+             # Two download buttons in a single fluid row
+             fluidRow (
                
                # to download the ring table in CSV
                downloadButton (outputId = 'downloadCSV', 
-                               label = 'Download CSV'),
+                               label    = 'Download CSV'),
                
                # to download the ring table in JSON format, this will include metadat
                downloadButton (outputId = 'downloadJSON', 
-                               label = 'Download JSON') 
+                               label    = 'Download JSON') 
                
              ) 
     ),

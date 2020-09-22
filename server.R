@@ -27,13 +27,17 @@ shinyServer (function (input, output, session)
     check_table = 0, # a flag to make sure a marker table exists
     
     markerTable = data.table ( # data.table contains the marker data
-      no   = integer (), # no ID
-      x    = numeric (), # x
-      y    = numeric (), # y
-      relx = numeric (), # relative x
-      rely = numeric (), # relative y
-      type = character ())
-    )
+      no   = integer (),   # no ID
+      x    = numeric (),   # x
+      y    = numeric (),   # y
+      relx = numeric (),   # relative x
+      rely = numeric (),   # relative y
+      type = character (), # type of marker ("Normal","Linker","Misc", or "Pith")
+      pixels = numeric (),   # "growth" in pixels of the image
+      growth = numeric (),   # "growth" in micrometers
+      delete = character (), # column to add "delete" actions button 
+      insert = character ()) # column to add "insert" action button
+  )
   
   # update the image aspect ratio
   observeEvent (rv$imgMat,
@@ -43,6 +47,25 @@ shinyServer (function (input, output, session)
                  imgDim <- dim (rv$imgMat)
                  rv$imgAsp <- imgDim [2] / imgDim [1]  
                }
+  )
+  
+  # update the "growth" table
+  observeEvent (input$deleteRow,
+                {
+                  printLog ('observeEvent input$deleteRow')
+
+                  # check that the markerTable and outTable exist
+                  req (rv$markerTable)
+
+                  # get the row number that should be deleted
+                  rowNum <- parseRowNumber (input$deleteRow)
+                  
+                  # delete the row
+                  rv$markerTable <- rv$markerTable [-rowNum, ]
+                  
+                  # reduce all marker numbers that were higher than the deleted marker
+                  rv$markerTable [no > rowNum, no := no - 1]
+                }
   )
   
   #=================================================================
@@ -81,7 +104,7 @@ shinyServer (function (input, output, session)
                  # read image
                  if (rv$imgExt %in% c ('jpg', 'jpeg', 'JPG', 'JPEG')) {
                    rv$imgMat <- readJPEG (rv$imgPath)
-                 } else if (rv$imgExt %in% c('tiff', 'tif', 'TIF', 'TIFF')) {
+                 } else if (rv$imgExt %in% c ('tiff', 'tif', 'TIF', 'TIFF')) {
                    rv$imgMat <- readTIFF (rv$imgPath)
                  } else if (rv$imgExt %in% c ('png','PNG')) {
                    rv$imgMat <- readPNG (rv$imgPath)[,,1:3]
@@ -989,7 +1012,7 @@ shinyServer (function (input, output, session)
     req (rv$check_table)
     req (rv$markerTable)
     
-    # copy markerTable into growth_table
+    # copy rv$markerTable into growth_table
     growth_table <- rv$markerTable
     
     # get types of markers
@@ -1175,8 +1198,8 @@ shinyServer (function (input, output, session)
     # add growth in pixels to the growth_table 
     growth_table$pixels <- growth
     
-    # convert growth from pixels (using dots per inch input resolution) to mm
-    growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4]
+    # convert growth from pixels (using dots per inch input resolution) to micrometers
+    growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4 * 1000]
     
     # replace NAs with " " to generate empty cells
     #growth_table$growth [is.na (growth_table$growth)] <- " "
@@ -1189,27 +1212,23 @@ shinyServer (function (input, output, session)
     {
       printLog ('output$growth_table renderDataTable')
       
+      # check that the marker table exists
+      req (rv$check_table)
+      req (rv$markerTable)
+      
       # get growth data
-      tbl <- growthTable ()
+      rv$markerTable <- growthTable ()
       
       # return if there is no data
-      if (nrow (tbl) == 0) return ()
-      
-      # check that the table has been updated
-      req (rv$check_table)
+      if (nrow (rv$markerTable) == 0) return ()
       
       # order table, aka starting with the most recent year
-      tbl <- tbl [order (no)]
+      rv$markerTable <- rv$markerTable [order (no)]
       
-      # display markers in data table below image
-      datatable (tbl [ , 2:dim (tbl) [2]], options = list (initComplete = JS (
-        "function(settings, json) {",
-        "$(this.api().table().header()).css({'background-color': '#484e55', 'color': '#fff'});",
-        "$('.dataTables_info').css({'color':'#888'});",
-        "$('.dataTables_filter').css({'color':'#888'});",
-        "$('.dataTables_length').css({'color':'#888'}, );",
-        "}")
-      )) 
+      # add a delete button and display the formatted datatable
+      displayDataTable (rv$markerTable, 
+                        id1 = 'delete',
+                        id2 = 'insert') 
       
     }
   )

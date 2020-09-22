@@ -11,7 +11,6 @@
 # loading auxiliary functions that are called in server.R and ui.R
 source ('funcs.R')
 
-
 # list of required packages
 list.of.packages <- c (
   'abind',
