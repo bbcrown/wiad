@@ -79,7 +79,6 @@ shinyServer (function (input, output, session)
                   
                   # get the row number that should be deleted
                   rowNum <- parseRowNumber (input$insertRow)
-                  print (rowNum)
                   
                   # set insert to the row number so that input$normal_point and input$misc_point know 
                   rv$insert <- rowNum
@@ -217,7 +216,8 @@ shinyServer (function (input, output, session)
                       markers <- read_json (rv$markersPath)
                         
                       # update marker table from json file 
-                      rv$markerTable <- data.table::rbindlist (markers$markerData)
+                      rv$markerTable <- data.table::rbindlist (markers$markerData, 
+                                                               fill = TRUE)
                       
                       # update metadata fields
                       updateTextInput (session = session,
@@ -248,6 +248,8 @@ shinyServer (function (input, output, session)
                       updateCheckboxInput (session = session,
                                            inputId = 'pithInImage',
                                            value = markers$pithInImage)
+                      print ('upload json')
+                      print (markers$pithInImage)
                       updateCheckboxInput (session = session,
                                            inputId = 'barkFirst',
                                            value = markers$barkFirst)
@@ -389,6 +391,8 @@ shinyServer (function (input, output, session)
                  updateCheckboxInput (session = session,
                                       inputId = 'pithInImage',
                                       value = metadata$pithInImage)
+                 print ('upload meta')
+                 print (pithInImage)
                  updateCheckboxInput (session = session,
                                       inputId = 'barkFirst',
                                       value = metadata$barkFirst)
@@ -592,6 +596,8 @@ shinyServer (function (input, output, session)
         
         # plot the pith marker in crimson as a round point when oldest ring and larger cross 
         # when the actual pith
+        print ('renderPlot')
+        print (input$pithInImage)
         points (x = rv$markerTable [wPith, x], 
                 y = rv$markerTable [wPith, y],
                 col = colours [['colour']] [colours [['type']] == 'Pith'],
@@ -969,14 +975,14 @@ shinyServer (function (input, output, session)
                  # insert or append new point to the marker table
                  if (rv$insert > 0) {
                    
+                   # increase all marker number with higher no than the inserted marker
+                   rv$markerTable [no > rv$insert, no := no + 1]
+                   
                    # insert marker after identified row 
                    rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ], 
                                             newPoint,
                                             rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
                                             fill = TRUE)
-                   
-                   # increase all marker number with higher no than the inserted marker
-                   rv$markerTable [no > rv$insert, no := no + 1]
                    
                    # reset insert index to 0
                    rv$insert <- 0
@@ -1037,20 +1043,21 @@ shinyServer (function (input, output, session)
                   # insert new point to the marker table
                   if (rv$insert > 0) {
                     
+                    
+                    # increase all marker number with higher no than the inserted marker
+                    rv$markerTable [no > rv$insert, no := no + 1]
+                    
                     # insert marker after identified row 
                     rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ], 
                                              newPoint,
                                              rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
                                              fill = TRUE)
                     
-                    # increase all marker number with higher no than the inserted marker
-                    rv$markerTable [no > rv$insert, no := no + 1]
-                    
                     # reset insert index to 0
                     rv$insert <- 0
                     
                   # or append new point in the end
-                  } else if () {
+                  } else if (rv$insert == 0) {
                     rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                   }
                   
