@@ -26,6 +26,7 @@ shinyServer (function (input, output, session)
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to make sure a marker table exists
     insert = 0, # an index for where to insert the next marker
+    index  = 0, # an index of the last modified marker
     
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (),   # no ID
@@ -500,6 +501,9 @@ shinyServer (function (input, output, session)
       # make copy of marker table
       marker_tbl <- rv$markerTable [, .(x, y)]
       
+      # check that there are markers to plot
+      if (nrow (marker_tbl) == 0) return ()
+      
       # identify normal, linker, misc and pith markers
       wNormal  <- which (rv$markerTable$type == 'Normal')
       wLinkers <- which (rv$markerTable$type == 'Linker')
@@ -822,6 +826,10 @@ shinyServer (function (input, output, session)
                                                rely = numeric (),
                                                type = character ())
                  
+                 # reset indices for insertion and last set marker
+                 rv$insert <- 0
+                 rv$index  <- 0
+                 
                  # make sure to update table
                  rv$check_table <- rv$check_table + 1
                })
@@ -865,9 +873,10 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                   # else more than two normal markers have been set and the type of this marker is switched
+                   # else more than two normal markers have been set and 
+                   # the type of the last indexed marker is switched
                  } else {
-                   rv$markerTable [no == nrow (rv$markerTable), 
+                   rv$markerTable [no == rv$index, 
                                    type := switch (type, 'Linker' = 'Normal', 'Normal' = 'Linker')]
                    
                    # validate that a marker table exists
@@ -895,7 +904,8 @@ shinyServer (function (input, output, session)
                    return ()
                  # else at least one marker was set
                  } else {
-                   rv$markerTable [no == nrow (rv$markerTable), 
+                   # change the marker type of the last indexed marker
+                   rv$markerTable [no == rv$index, 
                                    type := switch (type, 'Pith' = 'Normal', 'Normal' = 'Pith')]
                    
                    # validate that a marker table exists
@@ -913,8 +923,19 @@ shinyServer (function (input, output, session)
                  
                  # check there is more than one marker
                  if (nrow (rv$markerTable) > 1) {
-                   # delete last marker
-                   rv$markerTable <- rv$markerTable [-nrow (rv$markerTable), ]
+                   
+                   # check whether the last indexed marker was not the last marker
+                   if (rv$index == 0) {
+                     rv$markerTable <- rv$markerTable [-nrow (rv$markerTable), ]
+
+                   # delete the last indexed marker and set the index to 0
+                   # N.B. Currently there is only memory of one index and thereafter 
+                   #      points will be deleted from the end of the markerTable  
+                   } else {
+                     rv$markerTable <- rv$markerTable [-rv$index, ]
+                     rv$index <- 0
+                   }
+                   
                  # else no or one marker was set yet
                  } else {
                    # create new marker table
@@ -967,6 +988,9 @@ shinyServer (function (input, output, session)
                    last <- rv$markerTable [nrow (rv$markerTable)]
                    if (newPoint$x == last$x & newPoint$y == last$y) return ()
                  }
+                 
+                 # save index of new point
+                 rv$index <- newPoint$no
                  
                  # insert or append new point to the marker table
                  if (rv$insert > 0) {
@@ -1036,9 +1060,11 @@ shinyServer (function (input, output, session)
                     if (newPoint$x == last$x & newPoint$y == last$y) return ()
                   }
                   
+                  # save index of new point
+                  rv$index <- newPoint$no
+                  
                   # insert new point to the marker table
                   if (rv$insert > 0) {
-                    
                     
                     # increase all marker number with higher no than the inserted marker
                     rv$markerTable [no > rv$insert, no := no + 1]
