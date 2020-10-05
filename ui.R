@@ -50,14 +50,14 @@ fluidPage (
                                      'image/tiff')),
                
                # the file input only accepts csv and json.
-               fileInput (inputId = 'markers', 
+               fileInput (inputId = 'markerUpload', 
                           label = 'Upload markers file',
                           multiple = FALSE,
                           accept = c ('text/csv',
                                       'text/json')),
                
                # the file input only accepts csv and json.
-               fileInput (inputId = 'metadata', 
+               fileInput (inputId = 'metadataUpload', 
                           label = 'Upload metadata or enter it manually below',
                           multiple = FALSE,
                           accept = c ('text/csv',

@@ -173,12 +173,12 @@ shinyServer (function (input, output, session)
   )
   
   # whenever a marker file is uploaded update all the markers and plots them
-  observeEvent (input$markers,
+  observeEvent (input$markerUpload,
                 {
-                  printLog ('observeEvent input$markers')
+                  printLog ('observeEvent input$markerUpload')
                   
                   # get path to path to the marker file
-                  rv$markersPath <- input$markers$datapath
+                  rv$markersPath <- input$markerUpload$datapath
                   
                   # get file extension
                   rv$markersExt <- file_ext (rv$markersPath)
@@ -247,12 +247,10 @@ shinyServer (function (input, output, session)
                                        value = markers$sampleDPI)
                       updateCheckboxInput (session = session,
                                            inputId = 'pithInImage',
-                                           value = markers$pithInImage)
-                      print ('upload json')
-                      print (markers$pithInImage)
+                                           value = unlist (markers$pithInImage))
                       updateCheckboxInput (session = session,
                                            inputId = 'barkFirst',
-                                           value = markers$barkFirst)
+                                           value = unlist (markers$barkFirst))
                       updateTextInput (session = session,
                                        inputId = 'siteLoc',
                                        value = markers$siteLoc)
@@ -315,7 +313,7 @@ shinyServer (function (input, output, session)
   )
   
   # whenever metadata is uploaded update all the metadata below and make user review it.
-  observeEvent (input$metadata,
+  observeEvent (input$metadataUpload,
                {
                  printLog ('observeEvent input$metadata')
 
@@ -390,12 +388,10 @@ shinyServer (function (input, output, session)
                                   value = metadata$sampleDPI)
                  updateCheckboxInput (session = session,
                                       inputId = 'pithInImage',
-                                      value = metadata$pithInImage)
-                 print ('upload meta')
-                 print (pithInImage)
+                                      value = unlist (metadata$pithInImage))
                  updateCheckboxInput (session = session,
                                       inputId = 'barkFirst',
-                                      value = metadata$barkFirst)
+                                      value = unlist (metadata$barkFirst))
                  updateTextInput (session = session,
                                   inputId = 'siteLoc',
                                   value = metadata$siteLoc)
@@ -475,6 +471,7 @@ shinyServer (function (input, output, session)
     {
       printLog ('output$imageProc renderPlot')
       
+      # check for image
       imgtmp <- imgProcessed ()
       if (is.null (imgtmp)) return ()
       
@@ -493,12 +490,14 @@ shinyServer (function (input, output, session)
       
       window <- par()$usr
       
+      # plot image
       rasterImage (imgtmp, 
                    window [1], 
                    window [3], 
                    window [2], 
                    window [4])
       
+      # make copy of marker table
       marker_tbl <- rv$markerTable [, .(x, y)]
       
       # identify normal, linker, misc and pith markers
@@ -506,7 +505,6 @@ shinyServer (function (input, output, session)
       wLinkers <- which (rv$markerTable$type == 'Linker')
       wMisc    <- which (rv$markerTable$type == 'Misc')
       wPith    <- which (rv$markerTable$type == 'Pith')
-      
       
       # plot all normal markers, if markers should be displayed
       if (input$displayMarkers) {
@@ -596,14 +594,12 @@ shinyServer (function (input, output, session)
         
         # plot the pith marker in crimson as a round point when oldest ring and larger cross 
         # when the actual pith
-        print ('renderPlot')
-        print (input$pithInImage)
         points (x = rv$markerTable [wPith, x], 
                 y = rv$markerTable [wPith, y],
                 col = colours [['colour']] [colours [['type']] == 'Pith'],
                 pch = ifelse (input$pithInImage, 4, 19),
-                cex = ifelse (input$pithInImage, 2, 1.2),
-                lwd = 2)
+                cex = ifelse (input$pithInImage, 1.8, 1.2),
+                lwd = ifelse (input$pithInImage, 3, 2))
       }
       
       # check whether there are already two points to draw a guide 
@@ -1065,7 +1061,10 @@ shinyServer (function (input, output, session)
                   rv$check_table <- rv$check_table + 1
                 })
   
+  # calculate the growth when necessary (i.e. to display or for download)
   growthTable <- reactive ({
+    
+    # check for requirements
     req (rv$check_table)
     req (rv$markerTable)
     
@@ -1258,9 +1257,6 @@ shinyServer (function (input, output, session)
     
     # convert growth from pixels (using dots per inch input resolution) to micrometers
     growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4 * 1000]
-    
-    # replace NAs with " " to generate empty cells
-    #growth_table$growth [is.na (growth_table$growth)] <- " "
     
     # return growth_table
     return (growth_table)
