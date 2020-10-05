@@ -34,29 +34,10 @@ shinyServer (function (input, output, session)
       relx = numeric (),   # relative x
       rely = numeric (),   # relative y
       type = character (), # type of marker ("Normal","Linker","Misc", or "Pith")
-      pixels = numeric (),    # "growth" in pixels of the image
-      growth = numeric (),    # "growth" in micrometers
-      delete = character (),  # column to add "delete" actions button 
-      insert = character ()), # column to add "insert" action button
-    
-    metadata = data.table ( # data.table with meta data once confirmed
-      ownerName        = character (), # name of the data owner
-      ownerEmail       = character (), # email address of data owner
-      species          = character (), # name of species
-      sampleDate       = date (),      # date the sample was collected
-      sampleYear       = numeric (),   # year the sample was collected
-      sampleYearGrowth = character (), # flag to describe if any growth had occured in the sample year
-      sampleDPI        = numeric (),   # resolution of the image in dots per inch
-      pithInImage      = logical (),   # flag whether the pith is visible in the image
-      barkFirst        = logical (),   # flag whether the measurement starts at the bark
-      siteLoc          = character (), # site name
-      siteLocID        = character (), # site identifier
-      plotID           = character (), # plot identifier
-      sampleNote       = character (), # any additional sample note
-      sampleID         = character (), # the samples identifier
-      collection       = character (), # name of the collection
-      contributor      = character (), # name of the contributor
-      status           = character ()) # status of the metadata, which should always be "Confirmed"
+      pixels = numeric (),   # "growth" in pixels of the image
+      growth = numeric (),   # "growth" in micrometers
+      delete = character (), # column to add "delete" actions button 
+      insert = character ()) # column to add "insert" action button
   )
   
   # update the image aspect ratio
@@ -264,17 +245,11 @@ shinyServer (function (input, output, session)
                       updateTextInput (session = session,
                                        inputId = 'sampleDPI',
                                        value = markers$sampleDPI)
-                      print ('before upload json')  # TR
-                      print (markers$pithInImage) # TR
-                      print (rv$metadata$pithInImage) # TR
-                      print (input$pithInImage) # TR
                       updateCheckboxInput (session = session,
                                            inputId = 'pithInImage',
                                            value = markers$pithInImage)
-                      print ('after upload json')  # TR
-                      print (markers$pithInImage) # TR
-                      print (rv$metadata$pithInImage) # TR
-                      print (input$pithInImage) # TR
+                      print ('upload json')
+                      print (markers$pithInImage)
                       updateCheckboxInput (session = session,
                                            inputId = 'barkFirst',
                                            value = markers$barkFirst)
@@ -339,56 +314,6 @@ shinyServer (function (input, output, session)
                 }
   )
   
-  # make sure metadata is confirmed once pithInImage checkbox was changed
-  observeEvent (input$pithInImage,
-                {
-                  printLog ('observeEvent input$pithInImage')
-                  
-                  # return if metadata was not confirmed yet
-                  if (input$confirmMeta == 'Not Confirmed') return ()
-                  
-                  # make sure the metadata is reviewed
-                  updateRadioButtons (session = session, 
-                                      inputId = 'confirmMeta', 
-                                      selected = 'Not Confirmed')
-                  
-                  # Prompt metadata review
-                  showModal (strong (
-                    modalDialog ("Metadata was changed. Please confirm metadata below before continuing.",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                                 footer = NULL)))
-                  return ()
-                }
-  )
-  
-  # make sure metadata is confirmed once barkFirest checkbox was changed
-  observeEvent (input$barkFirst,
-                {
-                  printLog ('observeEvent input$barkFirst')
-                  
-                  # return if metadata was not confirmed yet
-                  if (input$confirmMeta == 'Not Confirmed') return ()
-                  
-                  # make sure the metadata is reviewed
-                  updateRadioButtons (session = session, 
-                                      inputId = 'confirmMeta', 
-                                      selected = 'Not Confirmed')
-                  
-                  # Prompt metadata review
-                  showModal (strong (
-                    modalDialog ("Metadata was changed. Please confirm metadata below before continuing.",
-                                 easyClose = T,
-                                 fade = T,
-                                 size = 's',
-                                 style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                                 footer = NULL)))
-                  return ()
-                }
-  )
-  
   # whenever metadata is uploaded update all the metadata below and make user review it.
   observeEvent (input$metadata,
                {
@@ -402,7 +327,7 @@ shinyServer (function (input, output, session)
 
                  # read metadata from .xlsx, .csv, or .json file
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
-                   rv$metadata <- read_excel (path = rv$metaPath,
+                   metadata <- read_excel (path = rv$metaPath,
                                            col_names = c ('ownerName','ownerEmail','species',
                                                           'sampleDate','sampleYear',
                                                           'sampleYearGrowth','sampleDPI',
@@ -415,7 +340,7 @@ shinyServer (function (input, output, session)
                                                           'text','text'), 
                                            skip = 1)
                  } else if (rv$metaExt %in% c ('csv', 'CSV')) {
-                   rv$metadata <- read_csv (file = rv$metaPath, 
+                   metadata <- read_csv (file = rv$metaPath, 
                                          col_names = c ('ownerName','ownerEmail','species',
                                                         'sampleDate','sampleYear',
                                                         'sampleYearGrowth','sampleDPI',
@@ -424,7 +349,7 @@ shinyServer (function (input, output, session)
                                                         'sampleNote','collection','contributor'),
                                          col_types = 'cccDicillccccccc', skip = 1)
                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
-                   rv$metadata <- read_json (rv$metaPath)
+                   metadata <- read_json (rv$metaPath)
                  } else {
                    showModal (strong (
                      modalDialog ("Error: Only xlsx, csv or json files are accepted for metadata.",
@@ -440,62 +365,58 @@ shinyServer (function (input, output, session)
                  # update metadata fields
                  updateTextInput (session = session,
                                   inputId = 'ownerName',
-                                  value = rv$metadata$ownerName)
+                                  value = metadata$ownerName)
                  updateTextInput (session = session,
                                   inputId = 'ownerEmail',
-                                  value = rv$metadata$ownerEmail)
+                                  value = metadata$ownerEmail)
                  updateTextInput (session = session,
                                   inputId = 'species',
-                                  value = rv$metadata$species)
+                                  value = metadata$species)
                  updateTextInput (session = session,
                                   inputId = 'sampleDate',
-                                  value = rv$metadata$sampleDate)
+                                  value = metadata$sampleDate)
                  updateTextInput (session = session,
                                   inputId = 'sampleYear',
-                                  value = rv$metadata$sampleYear)
+                                  value = metadata$sampleYear)
                  updateRadioButtons (session  = session,
                                      inputId  = 'sampleYearGrowingSeason',
-                                     selected = ifelse (rv$metadata$sampleYearGrowth == 'none', 
+                                     selected = ifelse (metadata$sampleYearGrowth == 'none', 
                                                         'not started', 
-                                                        ifelse (rv$metadata$sampleYearGrowth == 'some', 
+                                                        ifelse (metadata$sampleYearGrowth == 'some', 
                                                                 'only started', 
                                                                 'already ended')))
                  updateTextInput (session = session,
                                   inputId = 'sampleDPI',
-                                  value = rv$metadata$sampleDPI)
-                 print ('before upload meta') # TR
-                 print (rv$metadata$pithInImage) # TR
-                 print (input$pithInImage) # TR
+                                  value = metadata$sampleDPI)
                  updateCheckboxInput (session = session,
                                       inputId = 'pithInImage',
-                                      value = rv$metadata$pithInImage)
-                 print ('after upload meta') # TR
-                 print (rv$metadata$pithInImage) # TR
-                 print (input$pithInImage) # TR
+                                      value = metadata$pithInImage)
+                 print ('upload meta')
+                 print (pithInImage)
                  updateCheckboxInput (session = session,
                                       inputId = 'barkFirst',
-                                      value = rv$metadata$barkFirst)
+                                      value = metadata$barkFirst)
                  updateTextInput (session = session,
                                   inputId = 'siteLoc',
-                                  value = rv$metadata$siteLoc)
+                                  value = metadata$siteLoc)
                  updateTextInput (session = session,
                                   inputId = 'siteLocID',
-                                  value = rv$metadata$siteLocID)
+                                  value = metadata$siteLocID)
                  updateTextInput (session = session,
                                   inputId = 'plotID',
-                                  value = rv$metadata$plotID)
+                                  value = metadata$plotID)
                  updateTextInput (session = session,
                                   inputId = 'sampleNote',
-                                  value = rv$metadata$sampleNote)
+                                  value = metadata$sampleNote)
                  updateTextInput (session = session,
                                   inputId = 'sampleID',
-                                  value = rv$metadata$sampleID)
+                                  value = metadata$sampleID)
                  updateTextInput (session = session,
                                   inputId = 'collection',
                                   value = metadata$collection)
                  updateTextInput (session = session,
                                   inputId = 'contributor',
-                                  value = rv$metadata$contributor)
+                                  value = metadata$contributor)
                  
                  # make sure the metadata is reviewed
                  updateRadioButtons (session = session, 
@@ -516,43 +437,28 @@ shinyServer (function (input, output, session)
   metaData <- reactive (
     {
       printLog ('metaData reactive')
-
-      # check that metadata is confirmed 
-      if (input$confirmMeta == 'Confirmed') {
-        meta <- list (
-          ownerName        = rv$metadata$ownerName,
-          ownerEmail       = rv$metadata$ownerEmail,
-          species          = rv$metadata$species,
-          sampleDate       = rv$metadata$sampleDate,
-          sampleYear       = rv$metadata$sampleYear,
-          sampleYearGrowth = ifelse (rv$metadata$sampleYearGrowingSeason         == 'not started', 'none',
-                                     ifelse (rv$metadata$sampleYearGrowingSeason == 'already ended',
-                                             'all', 'some')),
-          sampleDPI        = rv$metadata$sampleDPI,
-          pithInImage      = rv$metadata$pithInImage,
-          barkFirst        = rv$metadata$barkFirst,
-          siteLoc          = rv$metadata$siteLoc,
-          siteLocID        = rv$metadata$siteLocID,
-          plotID           = rv$metadata$plotID,
-          sampleNote       = rv$metadata$sampleNote,
-          sampleID         = rv$metadata$sampleID,
-          collection       = rv$metadata$collection,
-          contributor      = rv$metadata$contributor,
-          growth           = rv$markerTable,
-          status           = rv$metadata$confirmMeta) 
-        
-        return (meta)
-      } else {
-        # Prompt metadata review
-        showModal (strong (
-          modalDialog ("Review and confirm metadata first below.",
-                       easyClose = T,
-                       fade = T,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                       footer = NULL)))
-        return ()
-      }
+      
+      meta <- list (ownerName        = input$ownerName, 
+                    ownerEmail       = input$ownerEmail,
+                    species          = input$species,
+                    sampleDate       = input$sampleDate,
+                    sampleYear       = input$sampleYear,
+                    sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'not started', 'none',
+                                               ifelse (input$sampleYearGrowingSeason == 'already ended', 
+                                                       'all', 'some')),
+                    sampleDPI        = input$sampleDPI,
+                    pithInImage      = input$pithInImage,
+                    barkFirst        = input$barkFirst,
+                    siteLoc          = input$siteLoc,
+                    siteLocID        = input$siteLocID,
+                    plotID           = input$plotID,
+                    sampleNote       = input$sampleNote,
+                    sampleID         = input$sampleID,
+                    collection       = input$collection,
+                    contributor      = input$contributor,
+                    markerData       = rv$markerTable,
+                    growth           = growthTable (),
+                    status           = input$confirmMeta)
     }
   )
   
@@ -620,7 +526,7 @@ shinyServer (function (input, output, session)
               col = '#666666')
       }
       
-      # plot years between two markers to more easily identify the growth rings, if desired
+      # plot years between two markers to more easily identify the growth rings
       if (input$displayYears) {
         years <- growthTable ()
         
@@ -688,24 +594,16 @@ shinyServer (function (input, output, session)
                 cex = 1.2, 
                 lwd = 2)
         
-        
-        print ('before renderPlot')  # TR
-        print (rv$metadata$pithInImage) # TR
-        print (input$pithInImage) # TR
-        # check whether there is an oldest ring or pith
-        if (sum (wPith, na.rm = TRUE) >= 1) {
-          # plot the pith marker in crimson as a round point when oldest ring and 
-          # as larger cross when the actual pith
-          points (x = rv$markerTable [wPith, x], 
-                  y = rv$markerTable [wPith, y],
-                  col = colours [['colour']] [colours [['type']] == 'Pith'],
-                  pch = ifelse (input$pithInImage, 4, 19),
-                  cex = ifelse (input$pithInImage, 2, 1.2),
-                  lwd = 2)
-        }
-        print ('after renderPlot')  # TR 
-        print (rv$metadata$pithInImage) # TR
-        print (input$pithInImage) # TR
+        # plot the pith marker in crimson as a round point when oldest ring and larger cross 
+        # when the actual pith
+        print ('renderPlot')
+        print (input$pithInImage)
+        points (x = rv$markerTable [wPith, x], 
+                y = rv$markerTable [wPith, y],
+                col = colours [['colour']] [colours [['type']] == 'Pith'],
+                pch = ifelse (input$pithInImage, 4, 19),
+                cex = ifelse (input$pithInImage, 2, 1.2),
+                lwd = 2)
       }
       
       # check whether there are already two points to draw a guide 
@@ -1013,7 +911,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$undoCanvas, 
                {
                  
-                 printLog ('observeEvent input$undoCanvas')
+                 printLog('observeEvent input$undoCanvas')
                  
                  if (rv$notLoaded == TRUE) return ()
                  
@@ -1494,10 +1392,8 @@ shinyServer (function (input, output, session)
     
     printLog ('observeEvent input$confirmMeta')
     
-    # check that metadata was confirmed 
     if (input$confirmMeta == 'Not Confirmed') return ()
     
-    # if the year in the sample date and the year are not equal, throw error
     if (year (input$sampleDate) != input$sampleYear) {
       
       showModal (strong (
@@ -1510,47 +1406,13 @@ shinyServer (function (input, output, session)
                      footer    = NULL
         )))
       
-      # assure that radio button is on "Not confirmed".
       updateRadioButtons (session, 
                           inputId  = 'confirmMeta', 
                           selected = 'Not Confirmed')
-      
-    # else update metadata
-    } else {
-      rv$metadata$ownerName        <- input$ownerName
-      rv$metadata$ownerEmail       <- input$ownerEmail
-      rv$metadata$species          <- input$species
-      rv$metadata$sampleDate       <- input$sampleDate
-      rv$metadata$sampleYear       <- input$sampleYear
-      rv$metadata$sampleYearGrowth <- ifelse (input$sampleYearGrowingSeason == 'not started', 'none', 
-                                              ifelse (imput$sampleYearGrowingSeason == 'only started', 'some', 
-                                                      'all'))
-      rv$metadata$sampleDPI        <- input$sampleDPI
-      print ('before confirm meta')  # TR 
-      print (rv$metadata$pithInImage) # TR
-      print (input$pithInImage) # TR
-      rv$metadata$pithInImage      <- input$pithInImage
-      print ('after confirm meta') # TR
-      print (rv$metadata$pithInImage) # TR
-      print (input$pithInImage) # TR
-      rv$metadata$barkFirst        <- input$barkFirst
-      rv$metadata$siteLoc          <- input$siteLoc
-      rv$metadata$siteLocID        <- input$siteLocID
-      rv$metadata$plotID           <- input$plotID
-      rv$metadata$sampleNote       <- input$sampleNote
-      rv$metadata$sampleID         <- input$sampleID
-      rv$metadata$collection       <- input$collection
-      rv$metadata$contributor      <- input$contributor
-      rv$metadata$confirmMeta      <- input$confirmMeta
-      
-      # make sure the radio button is set to "Confirmed"
-      updateRadioButtons (session = session, 
-                          inputId = 'confirmMeta', 
-                          selected = 'Confirmed')
     }
   })
   
-  output$ring_plot <- renderPlotly ({
+  output$ring_plot <- renderPlotly({
     
     printLog ('output$ring_plot renderPlotly')
     
