@@ -15,7 +15,7 @@ fluidPage (
   # loading the "slate" theme
   theme = shinytheme ('slate'),
   
-  #adding JS functionalities
+  # adding JS functionalities
   shinyjs::useShinyjs (),
   
   # UI header
@@ -162,7 +162,7 @@ fluidPage (
                          actionButton (inputId = 'selRGB', 
                                        label = 'True Color',
                                        width = '100%', 
-                                       icon = icon('image'))
+                                       icon = icon ('image'))
                  ),
                  
                  # select monochoromic total brightness
@@ -170,14 +170,14 @@ fluidPage (
                          actionButton (inputId = 'selTotBr', 
                                       label = 'Brightness',
                                       width = '100%', 
-                                      icon = icon('sun')) 
+                                      icon = icon ('sun')) 
                  ),
                  # to show only the blue channel
                  column (4, 
                          actionButton (inputId = 'selBlue', 
                                        label = 'Blue', 
                                        width = '100%', 
-                                       icon = icon('tint'))
+                                       icon = icon ('tint'))
                  )
                ),
                

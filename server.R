@@ -73,16 +73,65 @@ shinyServer (function (input, output, session)
   # insert row after specific row in "growth" table
   observeEvent (input$insertRow,
                 {
-                  printLog ('observeEvent input$deleteRow')
+                  printLog ('observeEvent input$insertRow')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
                   
-                  # get the row number that should be deleted
+                  # get the row number (e.g. marker number) after which the new marker should be inserted
                   rowNum <- parseRowNumber (input$insertRow)
                   
-                  # set insert to the row number so that input$normal_point and input$misc_point know 
+                  # share the row number (e.g. marker number)  
                   rv$insert <- rowNum
+                  
+                  # check whether user wants to insert a missing ring using input modal
+                  showModal (strong (
+                    modalDialog ("Do you want to insert a missing ring or other marker?",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 'm',
+                                 style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                 footer = tagList (
+                                   actionButton (inputId = 'missingRing',
+                                                 label   = 'Missing ring'),
+                                   modalButton (label   = 'Other'))))
+                  )
+                }
+  )
+  
+  # insert a missing ring after specific row in "growth" table
+  observeEvent (input$missingRing,
+                {
+                  printLog ('observeEvent input$missingRing')
+                  
+                  # check that the markerTable and outTable exist
+                  req (rv$markerTable)
+
+                  # initialise missing ring
+                  missingRing <- data.table (no   = rv$insert+1,
+                                             x    = rv$markerTable$x    [rv$insert],
+                                             y    = rv$markerTable$y    [rv$insert],
+                                             relx = rv$markerTable$relx [rv$insert],
+                                             rely = rv$markerTable$rely [rv$insert],
+                                             type = 'Missing')
+                  
+                  # save index of new point for "undo"
+                  rv$index <- missingRing$no
+
+                  # increase all marker numbers after the inserted marker
+                  rv$markerTable [no > rv$insert, no := no + 1]
+
+                  # insert marker after identified row
+                  rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ],
+                                           missingRing,
+                                           rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
+                                           fill = TRUE)
+
+                  # reset insert index to 0
+                  rv$insert <- 0
+                  
+                  # close modal dialog
+                  removeModal ()
                 }
   )
   
@@ -453,8 +502,7 @@ shinyServer (function (input, output, session)
                     sampleID         = input$sampleID,
                     collection       = input$collection,
                     contributor      = input$contributor,
-                    markerData       = rv$markerTable,
-                    growth           = growthTable (),
+                    markerData       = growthTable (),
                     status           = input$confirmMeta)
     }
   )
@@ -1219,6 +1267,9 @@ shinyServer (function (input, output, session)
     # first marker has to be normal and "growth" will be set to 0 for the first marker
     # loop over remaining markers to figure out their "growth"
     for (i in n:2) { 
+      
+      # jump to next iteration for "Missing" ring markers 
+      if (growth_table$type [i] == 'Missing') next
       
       # identify the index for the last and penultimate linker marker, if they exists
       if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 1) {
