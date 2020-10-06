@@ -933,7 +933,12 @@ shinyServer (function (input, output, session)
                    #      points will be deleted from the end of the markerTable  
                    } else {
                      rv$markerTable <- rv$markerTable [-rv$index, ]
+                     
+                     # reset index of last marker
                      rv$index <- 0
+                     
+                     # make sure that the no are consecutive, after marker was deleted
+                     rv$markerTable$no <- 1:nrow (rv$markerTable)
                    }
                    
                  # else no or one marker was set yet
