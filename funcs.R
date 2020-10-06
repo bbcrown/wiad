@@ -102,6 +102,7 @@ printLog <- function (msg = NULL, init = F, finit = F){
 #' @param id id prefix to add to each actionButton. The buttons will be id'd as id_INDEX.
 #' @return A DT::datatable with escaping turned off that has the delete buttons in the first column and \code{df} in the other
 displayDataTable <- function (df, id1, id2, ...) {
+  
   # function to create one delete button as string
   f <- function (i) {
     as.character (
@@ -112,6 +113,7 @@ displayDataTable <- function (df, id1, id2, ...) {
         icon    = icon ('trash-alt'),
         onclick = 'Shiny.setInputValue(\"deleteRow\", this.id, {priority: "event"})'))
   }
+  
   # function to create one insert button as string
   g <- function (i) {
     as.character (
@@ -129,9 +131,11 @@ displayDataTable <- function (df, id1, id2, ...) {
   
   # return output data table
   DT::datatable (cbind (df, delete = deleteCol, insert = insertCol),
+                 
                  # Need to disable escaping for html as string to work
                  escape = FALSE, rownames = FALSE,
                  options = list (
+                   
                    # Disable sorting for the delete column
                    columnDefs = list (
                      list (targets = c (9, 10), sortable = FALSE)),

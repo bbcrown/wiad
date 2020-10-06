@@ -37,6 +37,7 @@ shinyServer (function (input, output, session)
       type = character (), # type of marker ("Normal","Linker","Misc", or "Pith")
       pixels = numeric (),   # "growth" in pixels of the image
       growth = numeric (),   # "growth" in micrometers
+      year   = numeric (),   # year of formation
       delete = character (), # column to add "delete" actions button 
       insert = character ()) # column to add "insert" action button
   )
@@ -557,14 +558,21 @@ shinyServer (function (input, output, session)
       wLinkers <- which (rv$markerTable$type == 'Linker')
       wMisc    <- which (rv$markerTable$type == 'Misc')
       wPith    <- which (rv$markerTable$type == 'Pith')
+      wMissing <- which (rv$markerTable$type == 'Missing')
       
-      # plot all normal markers, if markers should be displayed
+      # plot all normal markers indicate missing rings, if markers should be displayed
       if (input$displayMarkers) {
         points (x = marker_tbl [wNormal, x],
                 y = marker_tbl [wNormal, y], 
                 pch = 19, 
                 cex = 1.2, 
                 col = colours [['colour']] [colours [['type']] == 'Normal'])
+        # make empty darker cirlces around the marker to indicate missing years
+        points (x = marker_tbl [wMissing, x],
+                y = marker_tbl [wMissing, y], 
+                pch = 1, 
+                cex = 1.5, 
+                col = colours [['colour']] [colours [['type']] == 'Missing'])
       }
       
       # plot marker numbers, if desired
@@ -1494,7 +1502,7 @@ shinyServer (function (input, output, session)
     
     printLog ('output$ring_plot renderPlotly')
     
-    tbl <- datatable (growthTable ())
+    tbl <- growthTable ()
     
     # check whether there is at least one growth icrement
     if (nrow (tbl) == 0) 

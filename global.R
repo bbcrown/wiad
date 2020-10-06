@@ -63,7 +63,7 @@ dir.create (ARCHIVE_DIR, showWarnings = FALSE)
 
 # colours for ploting markers
 colours <- tibble (
-  type   = c ('Normal','Linker','Pith','Misc'), 
-  colour = c ('yellow','cornflowerblue','#a41034','#91b9a4')
+  type   = c ('Normal','Linker','Pith','Misc','Missing'), 
+  colour = c ('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
 )
 
