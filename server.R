@@ -15,10 +15,12 @@ shinyServer (function (input, output, session)
 {
   
   # sent the initial log message
+  #--------------------------------------------------------------------------------------
   printLog (init = TRUE)
   
   
   # declaring reactive value
+  #--------------------------------------------------------------------------------------
   rv <- reactiveValues (
     
     imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], #RGB matrix loaded based on the image
@@ -43,6 +45,7 @@ shinyServer (function (input, output, session)
   )
   
   # update the image aspect ratio
+  #--------------------------------------------------------------------------------------
   observeEvent (rv$imgMat,
                {
                  printLog ('observeEvent rv$imgMat')
@@ -53,6 +56,7 @@ shinyServer (function (input, output, session)
   )
   
   # delete specific row in "growth" table
+  #--------------------------------------------------------------------------------------
   observeEvent (input$deleteRow,
                 {
                   printLog ('observeEvent input$deleteRow')
@@ -72,6 +76,7 @@ shinyServer (function (input, output, session)
   )
   
   # insert row after specific row in "growth" table
+  #--------------------------------------------------------------------------------------
   observeEvent (input$insertRow,
                 {
                   printLog ('observeEvent input$insertRow')
@@ -101,6 +106,7 @@ shinyServer (function (input, output, session)
   )
   
   # insert a missing ring after specific row in "growth" table
+  #--------------------------------------------------------------------------------------
   observeEvent (input$missingRing,
                 {
                   printLog ('observeEvent input$missingRing')
@@ -136,7 +142,7 @@ shinyServer (function (input, output, session)
                 }
   )
   
-  #=================================================================
+  #--------------------------------------------------------------------------------------
   # whenever new image was uploaded
   observeEvent (input$image,
                {
@@ -224,6 +230,7 @@ shinyServer (function (input, output, session)
   )
   
   # whenever a marker file is uploaded update all the markers and plots them
+  #--------------------------------------------------------------------------------------
   observeEvent (input$markerUpload,
                 {
                   printLog ('observeEvent input$markerUpload')
@@ -363,19 +370,18 @@ shinyServer (function (input, output, session)
                 }
   )
   
-  # whenever metadata is uploaded update all the metadata below and make user review it.
+  # whenever metadata is uploaded update all the metadata below and make user review it
+  #--------------------------------------------------------------------------------------
   observeEvent (input$metadataUpload,
                {
                  printLog ('observeEvent input$metadataUpload')
 
                  # get path to metadata
                  rv$metaPath <- input$metadataUpload$datapath
-                 print (rv$metaPath)
-
+                 
                  # get file extension
                  rv$metaExt <- file_ext (rv$metaPath)
-                 print (rv$metaExt)
-
+                 
                  # read metadata from .xlsx, .csv, or .json file
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
                    metadata <- read_excel (path = rv$metaPath,
@@ -483,6 +489,8 @@ shinyServer (function (input, output, session)
                }
   )
   
+  # create metaData object that is pulled when metadata is saved
+  #--------------------------------------------------------------------------------------
   metaData <- reactive (
     {
       printLog ('metaData reactive')
@@ -512,6 +520,8 @@ shinyServer (function (input, output, session)
   
   autoInvalidate <- reactiveTimer (2000)
   
+  # render markers on the image
+  #--------------------------------------------------------------------------------------
   output$imageProc <- renderPlot (
     width = function () {
       floor (input$zoomlevel)
@@ -704,7 +714,6 @@ shinyServer (function (input, output, session)
                }
   )
   
-  
   observeEvent (input$selBlue,
                {
                  printLog ('observeEvent input$selBlue')
@@ -712,7 +721,6 @@ shinyServer (function (input, output, session)
                  rv$procband <- 'Blue'
                }
   )
-  
   
   observeEvent (input$selGreen,
                {
@@ -729,7 +737,6 @@ shinyServer (function (input, output, session)
                  rv$procband <- 'Hue'
                }
   )
-  
   
   observeEvent (input$selSat,
                {
@@ -866,6 +873,8 @@ shinyServer (function (input, output, session)
     }
   )
   
+  # erase all previous markers
+  #--------------------------------------------------------------------------------------
   observeEvent (input$clearCanvas, 
                {
                  printLog ('observeEvent input$clearCanvas')
@@ -892,6 +901,8 @@ shinyServer (function (input, output, session)
                  rv$check_table <- rv$check_table + 1
                })
   
+  # swtich marker type of previsouly set marker from "Normal" to "Linker"
+  #--------------------------------------------------------------------------------------
   observeEvent (input$linkerPoint, 
                {
                  printLog ('observeEvent input$linkerPoint')
@@ -942,6 +953,8 @@ shinyServer (function (input, output, session)
                  }
                })
   
+  # change type of previously set marker from "Normal" to "Pith"
+  #--------------------------------------------------------------------------------------
   observeEvent (input$pith, 
                {
                  printLog ('observeEvent input$linkerPoint')
@@ -971,7 +984,8 @@ shinyServer (function (input, output, session)
                  }
                })
   
-  # undo last marker action
+  # undo last marker 
+  #--------------------------------------------------------------------------------------
   observeEvent (input$undoCanvas, 
                {
                  
@@ -1014,6 +1028,8 @@ shinyServer (function (input, output, session)
                  rv$check_table <- rv$check_table + 1
                })
   
+  # add a "Normal" marker by simple click
+  #--------------------------------------------------------------------------------------
   observeEvent (input$normal_point,
                {
                  
@@ -1044,7 +1060,10 @@ shinyServer (function (input, output, session)
                                          y  = input$normal_point$y,
                                          relx = input$normal_point$x / input$normal_point$domain$right,
                                          rely = input$normal_point$y / input$normal_point$domain$top,
-                                         type = 'Normal')
+                                         type = 'Normal',
+                                         growth = NA,
+                                         pixels = NA,
+                                         year   = NA)
                  
                  # check that new point is different from old point
                  if (nrow (rv$markerTable) > 0){
@@ -1077,6 +1096,8 @@ shinyServer (function (input, output, session)
                  rv$check_table <- rv$check_table + 1
                })
   
+  # add a "Misc" point by double click
+  #--------------------------------------------------------------------------------------
   observeEvent (input$misc_point,
                 {
                   
@@ -1151,6 +1172,7 @@ shinyServer (function (input, output, session)
                 })
   
   # calculate the growth when necessary (i.e. to display or for download)
+  #--------------------------------------------------------------------------------------
   growthTable <- reactive ({
     
     # check for requirements
@@ -1270,8 +1292,8 @@ shinyServer (function (input, output, session)
     # check whether at least two markers have been set
     if (nrow (growth_table) <= 1)  return (growth_table)
     
-    # intialise growth
-    growth <- rep (NA, n)
+    # intialise growth in pixels
+    pixels <- rep (NA, n)
     
     # calculate "growth" for the various markers and combination 
     # first marker has to be normal and "growth" will be set to 0 for the first marker
@@ -1313,7 +1335,7 @@ shinyServer (function (input, output, session)
         
         # last reference marker was a normal marker
         if (lastPoint > lastLinker) {
-          growth [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastPoint])^2 + 
+          pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastPoint])^2 + 
                               (growth_table$y [i] - growth_table$y [lastPoint])^2)
           
         # last reference point was a linker marker
@@ -1321,7 +1343,7 @@ shinyServer (function (input, output, session)
 
           # check whether the penultimate reference marker was a normal marker
           if (lastPoint > penultimateLinker) { # TR There is an issue here when we have only one linker marker
-            growth [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
+            pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
                                 (growth_table$y [i] - growth_table$y [lastLinker])^2)
             
           # or a linker, hence there were two consecutive linker markers
@@ -1329,7 +1351,7 @@ shinyServer (function (input, output, session)
           # add the distance from last linker to the current marker 
           # (i.e., jumping the gap between two linker markers)
           } else if (lastPoint < penultimateLinker) {
-            growth [i] <- (sqrt ((growth_table$x [lastPoint] - 
+            pixels [i] <- (sqrt ((growth_table$x [lastPoint] - 
                                   growth_table$x [penultimateLinker])^2 + 
                                  (growth_table$y [lastPoint] - 
                                   growth_table$y [penultimateLinker])^2)) +
@@ -1339,13 +1361,13 @@ shinyServer (function (input, output, session)
 
         # marker is a linker (i.e. no "growth" is calculated)
         } else if (growth_table$type [i] == 'Linker') {
-          growth [i] <- NA
+          pixels [i] <- NA
         }
       }
     }
 
     # add growth in pixels to the growth_table 
-    growth_table$pixels <- growth
+    growth_table$pixels <- pixels
     
     # convert growth from pixels (using dots per inch input resolution) to micrometers
     growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4 * 1000]
@@ -1354,6 +1376,8 @@ shinyServer (function (input, output, session)
     return (growth_table)
   })
 
+  # render the growth table
+  #--------------------------------------------------------------------------------------
   output$growth_table <- DT::renderDataTable (
     {
       printLog ('output$growth_table renderDataTable')
@@ -1379,6 +1403,8 @@ shinyServer (function (input, output, session)
     }
   )
   
+  # download a csv file with the marker locations and growth
+  #--------------------------------------------------------------------------------------
   output$downloadCSV <- downloadHandler (
     
     filename = function () {
@@ -1431,6 +1457,8 @@ shinyServer (function (input, output, session)
     }
   )
   
+  # download a json file with the metadata and marker locations and growth
+  #--------------------------------------------------------------------------------------
   output$downloadJSON <- downloadHandler (
     
     filename = function () {
@@ -1476,6 +1504,8 @@ shinyServer (function (input, output, session)
     }
   )
   
+  # confirm the metadata
+  #--------------------------------------------------------------------------------------
   observeEvent (input$confirmMeta, {
     
     printLog ('observeEvent input$confirmMeta')
@@ -1500,6 +1530,8 @@ shinyServer (function (input, output, session)
     }
   })
   
+  # draw plot of absolute ring width
+  #--------------------------------------------------------------------------------------
   output$ring_plot <- renderPlotly({
     
     printLog ('output$ring_plot renderPlotly')
@@ -1556,6 +1588,8 @@ shinyServer (function (input, output, session)
   }
   )
   
+  # rotate image 180 degree
+  #--------------------------------------------------------------------------------------
   observeEvent (input$rotate180,{
     rv$imgMat <- rotateRGB (rotateRGB (rv$imgMat))
   })
