@@ -366,13 +366,15 @@ shinyServer (function (input, output, session)
   # whenever metadata is uploaded update all the metadata below and make user review it.
   observeEvent (input$metadataUpload,
                {
-                 printLog ('observeEvent input$metadata')
+                 printLog ('observeEvent input$metadataUpload')
 
                  # get path to metadata
-                 rv$metaPath <- input$metadata$datapath
+                 rv$metaPath <- input$metadataUpload$datapath
+                 print (rv$metaPath)
 
                  # get file extension
                  rv$metaExt <- file_ext (rv$metaPath)
+                 print (rv$metaExt)
 
                  # read metadata from .xlsx, .csv, or .json file
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
