@@ -682,8 +682,11 @@ shinyServer (function (input, output, session)
         xy <- marker_tbl [(nrow (marker_tbl)-1):nrow (marker_tbl)]
         slope <- diff (xy$y) / diff (xy$x)
         
-        # rotate slope of guide by 90 degree after linker points
-        if (rv$markerTable [nrow (rv$markerTable), type] == 'Linker') slope <- -1 / slope
+        # rotate slope of guide by 90 degree after single linker point
+        if (rv$markerTable [nrow (rv$markerTable),     type] == 'Linker' &
+            rv$markerTable [nrow (rv$markerTable) - 1, type] != 'Linker') {
+          slope <- -1 / slope
+        }
         
         # calculate the intercept
         intercept <- xy$y [2] - slope * xy$x [2]
@@ -1599,7 +1602,7 @@ shinyServer (function (input, output, session)
       printLog ('output$downloadTemplate downloadHandler filename')
       
       # paste file name together
-      paste0 ('metadataTemplate',
+      paste0 ('TRIAD_metadata_template',
               format (Sys.time (),
                       format = '%Y-%m-%d-%H%M%S'),
               '.xlsx')

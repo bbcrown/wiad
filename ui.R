@@ -21,12 +21,13 @@ fluidPage (
   # UI header
   tags$head (
     
-    tags$style (HTML('
-    .shiny-output-error-validation {
-    color: red;
-    }
-
-    '))
+    tags$style (HTML ('
+    .shiny-output-error-validation {color: red;}')),
+    
+    tags$style ('
+    .link {color: #91b9a4;} 
+    .link {float: right;} 
+    .link:hover {color: #a41034;}') # TR change these colours to something more pleasant
   ),
   
   # title of the page
@@ -64,9 +65,13 @@ fluidPage (
                                       'text/json',
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                
+               # bring the link closer to the metadata upload
+               div (style = "margin-top:-35px; color:#91b9a4"),
+               
                # download link to retrieve metadata template
-               downloadLink (outputId = 'downloadTemplate',
-                             label = 'Download metadata template'),
+               downloadLink (outputId = '&nbsp; downloadTemplate',
+                             label = 'Download metadata template', 
+                             class = 'link'),
                
                # Horizontal line ----
                tags$hr (),
