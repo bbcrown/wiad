@@ -584,6 +584,7 @@ shinyServer (function (input, output, session)
                 y = marker_tbl [wMissing, y], 
                 pch = 1, 
                 cex = 1.5, 
+                lwd = 2,
                 col = colours [['colour']] [colours [['type']] == 'Missing'])
       }
       
@@ -1586,6 +1587,31 @@ shinyServer (function (input, output, session)
     return (p)
     
   }
+  )
+  
+  # download metadata template
+  #--------------------------------------------------------------------------------------
+  output$downloadTemplate <- downloadHandler (
+    
+    filename = function () {
+    
+      # write log
+      printLog ('output$downloadTemplate downloadHandler filename')
+      
+      # paste file name together
+      paste0 ('metadataTemplate',
+              format (Sys.time (),
+                      format = '%Y-%m-%d-%H%M%S'),
+              '.xlsx')
+    },
+    content = function (file) {
+      
+      # write log
+      printLog ('output$downloadTemplate downloadHandler content')
+      
+      # download existing metadata template file
+      file.copy ('TRIAD-metadata-template-2020-09-14.xlsx', file)
+    }
   )
   
   # rotate image 180 degree

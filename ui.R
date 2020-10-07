@@ -64,6 +64,10 @@ fluidPage (
                                       'text/json',
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                
+               # download link to retrieve metadata template
+               downloadLink (outputId = 'downloadTemplate',
+                             label = 'Download metadata template'),
+               
                # Horizontal line ----
                tags$hr (),
                
