@@ -359,7 +359,7 @@ fluidPage (
     ),
     
     # tabpanel for fair use and copyright policy
-    tabPanel ('Fair Use Policy',
+    tabPanel ('Fair use policy',
              
              #load from the markdown document
              includeMarkdown ('fair-use.md')

@@ -26,7 +26,7 @@ The mission of the TRIAD team is to advance eco-physiological sciences by provid
 ### The TRIAD team
 
 ## Core team
-TRIAD was the idea of Tim Rademacher, which was developed together with Bijan Seyednasrollah and David Basler. Bijan led the development of the TRIAD v0.1. 
+TRIAD was the idea of Tim Rademacher, which was developed into a vision together with Bijan Seyednasrollah and David Basler. Bijan Seyednasroolah then led the development of the TRIAD v0.1.1.1. 
 
 ## Extended collaborators 
 Many people have contributed in the development and testing of the tools and software offered through TRIAD. In particular, we want to thank Tessa Mandra, Elise Miller, David Orwig, Neil Pederson, and Donglai Wei. 
