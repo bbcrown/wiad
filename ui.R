@@ -37,7 +37,7 @@ fluidPage (
   tabsetPanel (
     
     # main tab panel
-    tabPanel ('TRIAD Toolbox',
+    tabPanel ('Toolbox',
              
              # sidebar panel
              sidebarPanel (
@@ -337,7 +337,7 @@ fluidPage (
     ),
     
     # tabpanel for plitting the growth curve
-    tabPanel ('TRIAD Plot Board',
+    tabPanel ('Plot board',
              {
                mainPanel (
                  
@@ -352,7 +352,7 @@ fluidPage (
              }),
     
     # tabpabel for the about page
-    tabPanel ('About TRIAD',
+    tabPanel ('About',
              
              # load from the markdown document
              includeMarkdown ('about.md')
