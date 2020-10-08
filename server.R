@@ -573,7 +573,7 @@ shinyServer (function (input, output, session)
       wMissing <- which (rv$markerTable$type == 'Missing')
       
       # plot all normal markers indicate missing rings, if markers should be displayed
-      if (input$displayMarkers) {
+      if (input$displayLabels) {
         points (x = marker_tbl [wNormal, x],
                 y = marker_tbl [wNormal, y], 
                 pch = 19, 
@@ -589,7 +589,7 @@ shinyServer (function (input, output, session)
       }
       
       # plot marker numbers, if desired
-      if (input$displayMarkerIDs) {
+      if (input$displayLabelIDs) {
         text (x = marker_tbl$x,
               y = marker_tbl$y,
               labels = rv$markerTable$no,
@@ -649,7 +649,7 @@ shinyServer (function (input, output, session)
       # and between the two linker markers for consecutive linker markers
       
       # plot linker markers in blue, if markers should be displayed
-      if (input$displayMarkers) {
+      if (input$displayLabels) {
         points (x = rv$markerTable [wLinkers, x], 
                 y = rv$markerTable [wLinkers, y],
                 col = colours [['colour']] [colours [['type']] == 'Linker'],
@@ -993,7 +993,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$undoCanvas, 
                {
                  
-                 printLog('observeEvent input$undoCanvas')
+                 printLog ('observeEvent input$undoCanvas')
                  
                  if (rv$notLoaded == TRUE) return ()
                  
@@ -1599,9 +1599,11 @@ shinyServer (function (input, output, session)
     filename = function () {
     
       # write log
+      #----------------------------------------------------------------------------------
       printLog ('output$downloadTemplate downloadHandler filename')
       
       # paste file name together
+      #----------------------------------------------------------------------------------
       paste0 ('TRIAD_metadata_template',
               format (Sys.time (),
                       format = '%Y-%m-%d-%H%M%S'),
@@ -1610,9 +1612,11 @@ shinyServer (function (input, output, session)
     content = function (file) {
       
       # write log
+      #----------------------------------------------------------------------------------
       printLog ('output$downloadTemplate downloadHandler content')
       
       # download existing metadata template file
+      #----------------------------------------------------------------------------------
       file.copy ('TRIAD-metadata-template-2020-09-14.xlsx', file)
     }
   )

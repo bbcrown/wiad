@@ -51,8 +51,8 @@ fluidPage (
                                      'image/tiff')),
                
                # the file input only accepts csv and json.
-               fileInput (inputId = 'markerUpload', 
-                          label = 'Upload markers file',
+               fileInput (inputId = 'labelUpload', 
+                          label = 'Upload labels file',
                           multiple = FALSE,
                           accept = c ('text/csv',
                                       'text/json')),
@@ -244,23 +244,23 @@ fluidPage (
                                         label = 'Pith in image', 
                                         value = FALSE)),
                  
-                 # checkbox to check whether markers should be displayed
-                 column (2,
-                         checkboxInput (inputId = 'displayMarkers',
-                                        label = 'Show markers',
-                                        value = TRUE)),
-                 
                  # checkbox to check whether years should be displayed
                  column (2,
                          checkboxInput (inputId = 'displayYears',
                                         label = 'Show years',
                                         value = TRUE)),
+                 
+                 # checkbox to check whether labels should be displayed
+                 column (2,
+                         checkboxInput (inputId = 'displayLabels',
+                                        label = 'Show labels',
+                                        value = TRUE)),
 
                  
-                 # checkbox to check whether marker numbers should be displayed
+                 # checkbox to check whether label numbers should be displayed
                  column (3,
-                         checkboxInput (inputId = 'displayMarkerIDs',
-                                        label = 'Show marker numbers',
+                         checkboxInput (inputId = 'displayLabelIDs',
+                                        label = 'Show label numbers',
                                         value = FALSE)),
 
                ),
