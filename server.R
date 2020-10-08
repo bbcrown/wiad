@@ -1622,6 +1622,26 @@ shinyServer (function (input, output, session)
   observeEvent (input$rotate180,{
     rv$imgMat <- rotateRGB (rotateRGB (rv$imgMat))
   })
+  
+  # update oldest ring/pith action button label depending on whether the pith is in the image or not
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$pithInImage, {
+    
+    # write log
+    #------------------------------------------------------------------------------------
+    printLog ('input$pithInImage changed button')
+    
+    # update the label on the pith/oldest ring action button
+    #------------------------------------------------------------------------------------
+    updateActionButton (session = session, 
+                        inputId = 'pith',
+                        label = ifelse (input$pithInImage, 'Pith','Oldest ring'))
+
+    # return
+    #------------------------------------------------------------------------------------
+    return ()
+  })
+  
   printLog (finit = TRUE)
 }
 )

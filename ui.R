@@ -286,7 +286,7 @@ fluidPage (
                          actionButton (inputId = 'undoCanvas', 
                                        label = 'Undo',
                                        icon = icon ('undo'), 
-                                       class='btn-primary', 
+                                       class = 'btn-primary', 
                                        width = '100%', 
                                        style = 'font-weight: bold;')
                  ),
@@ -303,7 +303,7 @@ fluidPage (
                  # Convert type to 'pith'
                  column (2, 
                          actionButton (inputId = 'pith', 
-                                       label = 'Oldest Ring',
+                                       label = 'Oldest ring',
                                        icon = icon ('bullseye'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
