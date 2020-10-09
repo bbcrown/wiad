@@ -15,6 +15,7 @@ source ('funcs.R')
 list.of.packages <- c (
   'abind',
   'data.table',
+  'dplR',
   'DT',
   'imager',
   'jsonlite',

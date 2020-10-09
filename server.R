@@ -8,7 +8,9 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
-# increase maximal size of images to maxImageSize
+# increase maximal size of images to maxImageSize in MB 
+# maxImageSize is initialised in global.R
+#----------------------------------------------------------------------------------------
 options (shiny.maxRequestSize = maxImageSize * 1024^2)
 
 shinyServer (function (input, output, session)
@@ -17,7 +19,6 @@ shinyServer (function (input, output, session)
   # sent the initial log message
   #--------------------------------------------------------------------------------------
   printLog (init = TRUE)
-  
   
   # declaring reactive value
   #--------------------------------------------------------------------------------------
@@ -67,6 +68,9 @@ shinyServer (function (input, output, session)
                   # get the row number that should be deleted
                   rowNum <- parseRowNumber (input$deleteRow)
                   
+                  # correct for the fact the the table is displayed from back to front 
+                  rowNum <- nrow (rv$markerTable) - rowNum + 1
+                  
                   # delete the row
                   rv$markerTable <- rv$markerTable [-rowNum, ]
                   
@@ -86,6 +90,9 @@ shinyServer (function (input, output, session)
                   
                   # get the row number (e.g. marker number) after which the new marker should be inserted
                   rowNum <- parseRowNumber (input$insertRow)
+                  
+                  # correct for the fact the the table is displayed from back to front 
+                  rowNum <- nrow (rv$markerTable) - rowNum + 1
                   
                   # share the row number (e.g. marker number)  
                   rv$insert <- rowNum
@@ -1539,9 +1546,11 @@ shinyServer (function (input, output, session)
   output$growth_plot <- renderPlotly ({
     
     # write log
+    #------------------------------------------------------------------------------------
     printLog ('output$growth_plot renderPlotly')
     
     # check that markerTable exists
+    #------------------------------------------------------------------------------------
     tbl <- growthTable ()
     
     # check whether there is at least one growth icrement
@@ -1588,7 +1597,7 @@ shinyServer (function (input, output, session)
     
     # filter out linker labels
     #------------------------------------------------------------------------------------
-    data <- tbl [type != 'Linker']
+    data <- tbl [type %in% c ('Normal','Pith')]
     
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
@@ -1604,8 +1613,8 @@ shinyServer (function (input, output, session)
                   x = ~year, 
                   y = ~toplot,
                   type = 'scatter',
-                  mode = 'lines',
-                  marker = list (color = '#e26828')) %>%
+                  mode = 'lines+markers',
+                  marker = list (color = colours [['colour']] [colours [['type']] == 'Normal'])) %>%
       layout (xaxis  = xAxis,
               yaxis  = yAxis,
               margin = m)
@@ -1667,7 +1676,7 @@ shinyServer (function (input, output, session)
                   x = ~year, 
                   y = ~toplot,
                   type = 'scatter',
-                  mode = 'lines',
+                  mode = 'lines+markers',
                   marker = list (color = '#e26828')
     ) %>%
       layout (xaxis = xAxis,
