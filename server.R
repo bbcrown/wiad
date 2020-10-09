@@ -229,17 +229,17 @@ shinyServer (function (input, output, session)
                }
   )
   
-  # whenever a marker file is uploaded update all the markers and plots them
+  # whenever a marker file is uploaded update all the labels and plot them
   #--------------------------------------------------------------------------------------
-  observeEvent (input$markerUpload,
+  observeEvent (input$labelUpload,
                 {
-                  printLog ('observeEvent input$markerUpload')
+                  printLog ('observeEvent input$labelUpload')
                   
                   # get path to path to the marker file
-                  rv$markersPath <- input$markerUpload$datapath
+                  rv$labelsPath <- input$labelUpload$datapath
                   
                   # get file extension
-                  rv$markersExt <- file_ext (rv$markersPath)
+                  rv$labelsExt <- file_ext (rv$labelsPath)
                   
                   # check whether an image is loaded
                   if (rv$notLoaded) {
@@ -253,83 +253,83 @@ shinyServer (function (input, output, session)
                     return ()
                   }
                   
-                  # check whether there are already markers set
+                  # check whether there are already labels set
                   if (nrow (rv$markerTable) == 0) {
                     
-                    # read markers file from .csv, or .json file
-                    if (rv$markersExt %in% c ('csv', 'CSV')) {
+                    # read label file from .csv, or .json file
+                    if (rv$labelsExt %in% c ('csv', 'CSV')) {
                       
                       # read csv file
-                      markers <- as.data.table (read_csv (file = rv$markersPath, 
+                      labels <- as.data.table (read_csv (file = rv$labelsPath, 
                                                           col_names = TRUE,
                                                           col_types = 'iddddcidd'))
                       
                       # update marker table from csv file
-                      rv$markerTable <- markers [, .(no, x, y, relx, rely, type)]
+                      rv$markerTable <- labels [, .(no, x, y, relx, rely, type)]
                       
                     # upload marker table from json file, if there is none yet
-                    } else if (rv$markersExt %in% c ('json', 'JSON')) {
+                    } else if (rv$labelsExt %in% c ('json', 'JSON')) {
                       
                       # read json file
-                      markers <- read_json (rv$markersPath)
+                      labels <- read_json (rv$labelsPath)
                         
                       # update marker table from json file 
-                      rv$markerTable <- data.table::rbindlist (markers$markerData, 
+                      rv$markerTable <- data.table::rbindlist (labels$markerData, 
                                                                fill = TRUE)
                       
                       # update metadata fields
                       updateTextInput (session = session,
                                        inputId = 'ownerName',
-                                       value = markers$ownerName)
+                                       value = labels$ownerName)
                       updateTextInput (session = session,
                                        inputId = 'ownerEmail',
-                                       value = markers$ownerEmail)
+                                       value = labels$ownerEmail)
                       updateTextInput (session = session,
                                        inputId = 'species',
-                                       value = markers$species)
+                                       value = labels$species)
                       updateTextInput (session = session,
                                        inputId = 'sampleDate',
-                                       value = markers$sampleDate)
+                                       value = labels$sampleDate)
                       updateTextInput (session = session,
                                        inputId = 'sampleYear',
-                                       value = markers$sampleYear)
+                                       value = labels$sampleYear)
                       updateRadioButtons (session = session,
                                           inputId = 'sampleYearGrowingSeason',
-                                          selected = ifelse (markers$sampleYearGrowth == 'none', 
+                                          selected = ifelse (labels$sampleYearGrowth == 'none', 
                                                              'not started', 
-                                                             ifelse (markers$sampleYearGrowth == 'some', 
+                                                             ifelse (labels$sampleYearGrowth == 'some', 
                                                                      'only started', 
                                                                      'already ended')))
                       updateTextInput (session = session,
                                        inputId = 'sampleDPI',
-                                       value = markers$sampleDPI)
+                                       value = labels$sampleDPI)
                       updateCheckboxInput (session = session,
                                            inputId = 'pithInImage',
-                                           value = unlist (markers$pithInImage))
+                                           value = unlist (labels$pithInImage))
                       updateCheckboxInput (session = session,
                                            inputId = 'barkFirst',
-                                           value = unlist (markers$barkFirst))
+                                           value = unlist (labels$barkFirst))
                       updateTextInput (session = session,
                                        inputId = 'siteLoc',
-                                       value = markers$siteLoc)
+                                       value = labels$siteLoc)
                       updateTextInput (session = session,
                                        inputId = 'siteLocID',
-                                       value = markers$siteLocID)
+                                       value = labels$siteLocID)
                       updateTextInput (session = session,
                                        inputId = 'plotID',
-                                       value = markers$plotID)
+                                       value = labels$plotID)
                       updateTextInput (session = session,
                                        inputId = 'sampleNote',
-                                       value = markers$sampleNote)
+                                       value = labels$sampleNote)
                       updateTextInput (session = session,
                                        inputId = 'sampleID',
-                                       value = markers$sampleID)
+                                       value = labels$sampleID)
                       updateTextInput (session = session,
                                        inputId = 'collection',
-                                       value = markers$collection)
+                                       value = labels$collection)
                       updateTextInput (session = session,
                                        inputId = 'contributor',
-                                       value = markers$contributor)
+                                       value = labels$contributor)
                       
                       # make sure the metadata is reviewed
                       updateRadioButtons (session = session, 
@@ -357,7 +357,7 @@ shinyServer (function (input, output, session)
                     }
                   } else {
                     showModal (strong (
-                      modalDialog ("Error: Erase existing markers before uploading new markers!",
+                      modalDialog ("Error: Erase existing labels before uploading new labels!",
                                    easyClose = T,
                                    fade = T,
                                    size = 's',
@@ -520,7 +520,7 @@ shinyServer (function (input, output, session)
   
   autoInvalidate <- reactiveTimer (2000)
   
-  # render markers on the image
+  # render labels on the image
   #--------------------------------------------------------------------------------------
   output$imageProc <- renderPlot (
     width = function () {
@@ -562,17 +562,17 @@ shinyServer (function (input, output, session)
       # make copy of marker table
       marker_tbl <- rv$markerTable [, .(x, y)]
       
-      # check that there are markers to plot
+      # check that there are labels to plot
       if (nrow (marker_tbl) == 0) return ()
       
-      # identify normal, linker, misc and pith markers
+      # identify normal, linker, misc and pith labels
       wNormal  <- which (rv$markerTable$type == 'Normal')
       wLinkers <- which (rv$markerTable$type == 'Linker')
       wMisc    <- which (rv$markerTable$type == 'Misc')
       wPith    <- which (rv$markerTable$type == 'Pith')
       wMissing <- which (rv$markerTable$type == 'Missing')
       
-      # plot all normal markers indicate missing rings, if markers should be displayed
+      # plot all normal labels indicate missing rings, if labels should be displayed
       if (input$displayLabels) {
         points (x = marker_tbl [wNormal, x],
                 y = marker_tbl [wNormal, y], 
@@ -597,11 +597,11 @@ shinyServer (function (input, output, session)
               col = '#666666')
       }
       
-      # plot years between two markers to more easily identify the growth rings
+      # plot years between two labels to more easily identify the growth rings
       if (input$displayYears) {
         years <- growthTable ()
         
-        # find only normal and pith markers
+        # find only normal and pith labels
         years <- years [years$type %in% c ('Normal', 'Pith')]
         if (nrow (years) > 1) {
           xs <- rollmean (years$x, 2)
@@ -645,10 +645,10 @@ shinyServer (function (input, output, session)
                     col = colours [['colour']] [colours [['type']] == 'Linker'])  
         }
       }
-      # above code draws lines between last marker and linker markers for single linker markers
-      # and between the two linker markers for consecutive linker markers
+      # above code draws lines between last marker and linker labels for single linker labels
+      # and between the two linker labels for consecutive linker labels
       
-      # plot linker markers in blue, if markers should be displayed
+      # plot linker labels in blue, if labels should be displayed
       if (input$displayLabels) {
         points (x = rv$markerTable [wLinkers, x], 
                 y = rv$markerTable [wLinkers, y],
@@ -657,7 +657,7 @@ shinyServer (function (input, output, session)
                 cex = 1.2,
                 lwd = 2)
   
-        # plot misc markers in Cambridge blue
+        # plot misc labels in Cambridge blue
         points (x = rv$markerTable [wMisc, x],
                 y = rv$markerTable [wMisc, y],
                 col = colours [['colour']] [colours [['type']] == 'Misc'],
@@ -699,7 +699,7 @@ shinyServer (function (input, output, session)
                   lwd = 2, 
                   lty = 2)
         } else {
-          # plot vertical line between the markers, if slope is not finite
+          # plot vertical line between the labels, if slope is not finite
           abline (v = mean (xy$x),
                   col = colours [['colour']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
@@ -877,7 +877,7 @@ shinyServer (function (input, output, session)
     }
   )
   
-  # erase all previous markers
+  # erase all previous labels
   #--------------------------------------------------------------------------------------
   observeEvent (input$clearCanvas, 
                {
@@ -924,7 +924,7 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # check whether only one or two markers have been set yet 
+                 # check whether only one or two labels have been set yet 
                  } else if (nrow (rv$markerTable) <= 2) {
                    showModal (strong (
                      modalDialog ("Error: The first two points cannot be linkers! Maybe start on a ring?",
@@ -946,7 +946,7 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                   # else more than two normal markers have been set and 
+                   # else more than two normal labels have been set and 
                    # the type of the last indexed marker is switched
                  } else {
                    rv$markerTable [no == rv$index, 
@@ -1186,7 +1186,7 @@ shinyServer (function (input, output, session)
     # copy rv$markerTable into growth_table
     growth_table <- rv$markerTable
     
-    # get types of markers
+    # get types of labels
     types <- growth_table [, type]
     n <- length (types)
     
@@ -1293,18 +1293,18 @@ shinyServer (function (input, output, session)
     # add years to growth table
     growth_table$year <- years
     
-    # check whether at least two markers have been set
+    # check whether at least two labels have been set
     if (nrow (growth_table) <= 1)  return (growth_table)
     
     # intialise growth in pixels
     pixels <- rep (NA, n)
     
-    # calculate "growth" for the various markers and combination 
+    # calculate "growth" for the various labels and combination 
     # first marker has to be normal and "growth" will be set to 0 for the first marker
-    # loop over remaining markers to figure out their "growth"
+    # loop over remaining labels to figure out their "growth"
     for (i in n:2) { 
       
-      # jump to next iteration for "Missing" ring markers 
+      # jump to next iteration for "Missing" ring labels 
       if (growth_table$type [i] == 'Missing') next
       
       # identify the index for the last and penultimate linker marker, if they exists
@@ -1334,7 +1334,7 @@ shinyServer (function (input, output, session)
       lastPoint  <- max (which (growth_table [no < i, type] == 'Normal'))
       
       # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
-      # exception: two previous reference markers are linker markers
+      # exception: two previous reference labels are linker labels
       if (growth_table$type [i] %in% c ('Normal','Misc')) {
         
         # last reference marker was a normal marker
@@ -1350,10 +1350,10 @@ shinyServer (function (input, output, session)
             pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
                                 (growth_table$y [i] - growth_table$y [lastLinker])^2)
             
-          # or a linker, hence there were two consecutive linker markers
+          # or a linker, hence there were two consecutive linker labels
           # in this case we measure from last normal marker to penultimate linker and 
           # add the distance from last linker to the current marker 
-          # (i.e., jumping the gap between two linker markers)
+          # (i.e., jumping the gap between two linker labels)
           } else if (lastPoint < penultimateLinker) {
             pixels [i] <- (sqrt ((growth_table$x [lastPoint] - 
                                   growth_table$x [penultimateLinker])^2 + 
@@ -1449,7 +1449,7 @@ shinyServer (function (input, output, session)
       
       tbl <- growthTable ()
       
-      # if there are no markers yet
+      # if there are no labels yet
       if (nrow (tbl) == 0) return ()
       
       # write csv file
@@ -1534,20 +1534,23 @@ shinyServer (function (input, output, session)
     }
   })
   
-  # draw plot of absolute ring width
+  # draw plot of absolute growth
   #--------------------------------------------------------------------------------------
-  output$ring_plot <- renderPlotly({
+  output$growth_plot <- renderPlotly ({
     
-    printLog ('output$ring_plot renderPlotly')
+    # write log
+    printLog ('output$growth_plot renderPlotly')
     
+    # check that markerTable exists
     tbl <- growthTable ()
+    print (tbl)
     
     # check whether there is at least one growth icrement
+    #------------------------------------------------------------------------------------
     if (nrow (tbl) == 0) 
       return ()
     
-    
-    fontList <- list(
+    fontList <- list (
       family = "Courier New, monospace",
       size = 16,
       color = "#7f7f7f"
@@ -1589,8 +1592,67 @@ shinyServer (function (input, output, session)
     
     return (p)
     
-  }
-  )
+  })
+
+  # draw plot of detrended growth
+  #--------------------------------------------------------------------------------------
+  output$detrended_growth_plot <- renderPlotly ({
+    
+    # write log
+    printLog ('output$detranded_growth_plot renderPlotly')
+    
+    # check that markerTable exists
+    tbl <- growthTable ()
+    print (tbl)
+    
+    # check whether there is at least one growth icrement
+    #------------------------------------------------------------------------------------
+    if (nrow (tbl) == 0) 
+      return ()
+    
+    fontList <- list (
+      family = "Courier New, monospace",
+      size = 16,
+      color = "#7f7f7f"
+    )
+    
+    xAxis <- list(
+      title = "Year",
+      titlefont = fontList
+    )
+    
+    yAxis <- list (
+      title = ifelse (test = is.na (input$sampleDPI),
+                      no = "Radial growth increment (mm)",
+                      yes ="Radial growth increment (pixels)"), 
+      titlefont = fontList
+    )
+    
+    tbl [, year := as.factor (year)]
+    
+    data <- tbl [type != 'Linker']
+    
+    if (is.na (input$sampleDPI)){
+      data [, toplot := pixels]
+    } else {
+      data [, toplot := growth]
+    }
+    
+    p <- plot_ly (data = data, 
+                  x = ~year, 
+                  y = ~toplot,
+                  type = 'scatter',
+                  mode = 'lines',
+                  marker = list (color = '#e26828')
+    ) %>%
+      layout (xaxis = xAxis,
+              yaxis = yAxis)
+    
+    p$elementId <- NULL
+    
+    return (p)
+    
+  })
   
   # download metadata template
   #--------------------------------------------------------------------------------------

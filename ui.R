@@ -38,7 +38,10 @@ fluidPage (
     
     # main tab panel
     tabPanel ('Toolbox',
-             
+              
+             # section breaker
+             br (),
+              
              # sidebar panel
              sidebarPanel (
                
@@ -52,7 +55,7 @@ fluidPage (
                
                # the file input only accepts csv and json.
                fileInput (inputId = 'labelUpload', 
-                          label = 'Upload labels file',
+                          label = 'Upload label file',
                           multiple = FALSE,
                           accept = c ('text/csv',
                                       'text/json')),
@@ -161,9 +164,10 @@ fluidPage (
                
              ),
              
+             # main panel with control, image and data table
              mainPanel (
                
-               # two buttons in a single row
+               # three buttons in a single row
                fluidRow (
                  
                  # select true color RGB 
@@ -198,18 +202,17 @@ fluidPage (
                fluidRow (
                  
                  # rotation button
-                 column (2,
-                         actionButton (inputId = 'rotate180',
-                                       label = NULL,
-                                       width = '100%',
-                                       icon = icon ('sync'),
-                                       style = 'color: white; background-color: gray; border-color: black;'),
+                 column (2, actionButton (inputId = 'rotate180',
+                                          label = NULL,
+                                          width = '100%',
+                                          icon = icon ('sync'),
+                                          style = 'color: white; background-color: gray; border-color: black;'),
                         
                  ),
                  
                  # zoom level bar
                  column (10, sliderInput (inputId = 'zoomlevel',
-                                          label = 'Width', 
+                                          label = NULL, 
                                           min = 400, 
                                           max = 20000, 
                                           step = 1,
@@ -339,15 +342,37 @@ fluidPage (
     # tabpanel for plitting the growth curve
     tabPanel ('Plot board',
              {
+               
+               # sidebar panel
+               sidebarPanel (
+                 
+                 # input panel for method of detrending
+                 selectInput (inputId = 'detrendingMethod',
+                              label = 'Detrending method',
+                              choices = c ('spline'),
+                              selected = 'spline')
+                 
+               )
+               
+               # create main panel
                mainPanel (
+                 
+                 # horizontal breake
+                 br (),
+                 
+                 # plot the absolute radial growth over time
+                 plotlyOutput (outputId = 'growth_plot', 
+                               height = "500px", 
+                               width = "100%"),
                  
                  # horizontal bar breaker
                  hr (),
                  
-                 # plot the growth table
-                 plotlyOutput (outputId = 'ring_plot', 
+                 # plot the detrended ring width index over time
+                 plotlyOutput (outputId = 'detrended_growth_plot', 
                                height = "500px", 
-                               width = "100%")
+                               width = "100%"),
+                 
                )
              }),
     
