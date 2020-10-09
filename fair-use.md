@@ -7,7 +7,7 @@ Software citation:
 
 Seyednasrollah et al. (in prep.) "TRIAD", URL https://github.com/bnasr/TRIAD.  
  
- 
+<br>
 Paper citation:
 
 Rademacher et al. (in prep.) "The Tree Ring Image and Analysis Dataset (TRIAD) v0.1.1.1: open-access visual analysis tools to advance the ecological data revolution"  
