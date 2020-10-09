@@ -69,7 +69,7 @@ fluidPage (
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                
                # bring the link closer to the metadata upload
-               div (style = "margin-top:-35px; color:#91b9a4"),
+               div (style = "margin-top:-25px; margin-bottom:20px; color:#91b9a4"),
                
                # download link to retrieve metadata template
                downloadLink (outputId = '&nbsp; downloadTemplate',
@@ -348,10 +348,14 @@ fluidPage (
               # sidebar panel
               sidebarPanel (
                  
-                # input panel for method of detrending
+                # input panel for method of detrending for which we use the dplR package
                 selectInput (inputId = 'detrendingMethod',
                              label = 'Detrending method',
-                             choices = c ('spline'),
+                             choices = c ('spline',
+                                          'modified negative exponential',
+                                          'mean','prewhitening',
+                                          'Friedman\'s',
+                                          'modified Hugershoff'),
                              selected = 'spline')),
                
                 # create main panel

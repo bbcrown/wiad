@@ -103,6 +103,9 @@ printLog <- function (msg = NULL, init = F, finit = F){
 #' @return A DT::datatable with escaping turned off that has the delete buttons in the first column and \code{df} in the other
 displayDataTable <- function (df, id1, id2, ...) {
   
+  # re-order df to start with the oldest value
+  df <- df [order (no, decreasing = TRUE)]
+  
   # function to create one delete button as string
   f <- function (i) {
     as.character (

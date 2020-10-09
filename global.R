@@ -61,9 +61,11 @@ ARCHIVE_DIR <- 'images/'
 # create a directory for uploaded images, this is probably needed only for development stages
 dir.create (ARCHIVE_DIR, showWarnings = FALSE)
 
-# colours for ploting markers
+# colours for ploting labels
 colours <- tibble (
   type   = c ('Normal','Linker','Pith','Misc','Missing'), 
   colour = c ('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
 )
 
+# set maximum image size in MB
+maxImageSize <- 170

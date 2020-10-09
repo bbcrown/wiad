@@ -8,8 +8,8 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
-# increase maximal size of images to 170 MB
-options (shiny.maxRequestSize = 170 * 1024^2)
+# increase maximal size of images to maxImageSize
+options (shiny.maxRequestSize = maxImageSize * 1024^2)
 
 shinyServer (function (input, output, session)
 {
