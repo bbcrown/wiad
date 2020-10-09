@@ -341,40 +341,37 @@ fluidPage (
     
     # tabpanel for plitting the growth curve
     tabPanel ('Plot board',
-             {
                
-               # sidebar panel
-               sidebarPanel (
+              # add some space
+              br (), 
+              
+              # sidebar panel
+              sidebarPanel (
                  
-                 # input panel for method of detrending
-                 selectInput (inputId = 'detrendingMethod',
-                              label = 'Detrending method',
-                              choices = c ('spline'),
-                              selected = 'spline')
+                # input panel for method of detrending
+                selectInput (inputId = 'detrendingMethod',
+                             label = 'Detrending method',
+                             choices = c ('spline'),
+                             selected = 'spline')),
+               
+                # create main panel
+                mainPanel (
+                 
+                  # plot the absolute radial growth over time
+                  plotlyOutput (outputId = 'growth_plot', 
+                                height = "500px", 
+                                width = "100%"),
+                  
+                  # horizontal bar breaker
+                  hr (),
+                 
+                  # plot the detrended ring width index over time
+                  plotlyOutput (outputId = 'detrended_growth_plot', 
+                                height = "500px", 
+                                width = "100%"),
                  
                )
-               
-               # create main panel
-               mainPanel (
-                 
-                 # horizontal breake
-                 br (),
-                 
-                 # plot the absolute radial growth over time
-                 plotlyOutput (outputId = 'growth_plot', 
-                               height = "500px", 
-                               width = "100%"),
-                 
-                 # horizontal bar breaker
-                 hr (),
-                 
-                 # plot the detrended ring width index over time
-                 plotlyOutput (outputId = 'detrended_growth_plot', 
-                               height = "500px", 
-                               width = "100%"),
-                 
-               )
-             }),
+             ),
     
     # tabpabel for the about page
     tabPanel ('About',

@@ -1543,53 +1543,77 @@ shinyServer (function (input, output, session)
     
     # check that markerTable exists
     tbl <- growthTable ()
-    print (tbl)
     
     # check whether there is at least one growth icrement
     #------------------------------------------------------------------------------------
-    if (nrow (tbl) == 0) 
-      return ()
+    if (nrow (tbl) == 0) return ()
     
+    # select font
+    #------------------------------------------------------------------------------------
     fontList <- list (
-      family = "Courier New, monospace",
+      family = "helvetica",
       size = 16,
       color = "#7f7f7f"
     )
     
-    xAxis <- list(
+    # specify x-axis
+    #------------------------------------------------------------------------------------
+    xAxis <- list (
       title = "Year",
       titlefont = fontList
     )
     
+    # specify y-axis
+    #------------------------------------------------------------------------------------
     yAxis <- list (
       title = ifelse (test = is.na (input$sampleDPI),
-                      no = "Radial growth increment (mm)",
+                      no = "Radial growth increment (micrometers)",
                       yes ="Radial growth increment (pixels)"), 
       titlefont = fontList
     )
     
+    # initiate margins
+    #------------------------------------------------------------------------------------
+    m <- list (
+      l = 100,
+      r = 50,
+      b = 100,
+      t = 50,
+      pad = 4
+    )
+    
+    # convert year to be a factor
+    #------------------------------------------------------------------------------------
     tbl [, year := as.factor (year)]
     
+    # filter out linker labels
+    #------------------------------------------------------------------------------------
     data <- tbl [type != 'Linker']
     
+    # check whether data is in pixels or microns
+    #------------------------------------------------------------------------------------
     if (is.na (input$sampleDPI)){
       data [, toplot := pixels]
     } else {
       data [, toplot := growth]
     }
     
+    # plot absolute growth data to object p
+    #------------------------------------------------------------------------------------
     p <- plot_ly (data = data, 
                   x = ~year, 
                   y = ~toplot,
                   type = 'scatter',
                   mode = 'lines',
-                  marker = list (color = '#e26828')
-    ) %>%
-      layout (xaxis = xAxis,
-              yaxis = yAxis)
+                  marker = list (color = '#e26828')) %>%
+      layout (xaxis  = xAxis,
+              yaxis  = yAxis,
+              margin = m)
     
     p$elementId <- NULL
     
+    # return the plot object
+    #------------------------------------------------------------------------------------
     return (p)
     
   })
@@ -1599,32 +1623,32 @@ shinyServer (function (input, output, session)
   output$detrended_growth_plot <- renderPlotly ({
     
     # write log
+    #------------------------------------------------------------------------------------
     printLog ('output$detranded_growth_plot renderPlotly')
     
     # check that markerTable exists
+    #------------------------------------------------------------------------------------
     tbl <- growthTable ()
-    print (tbl)
     
     # check whether there is at least one growth icrement
     #------------------------------------------------------------------------------------
-    if (nrow (tbl) == 0) 
-      return ()
+    if (nrow (tbl) == 0) return ()
     
     fontList <- list (
-      family = "Courier New, monospace",
+      family = "Helvetica",
       size = 16,
       color = "#7f7f7f"
     )
     
-    xAxis <- list(
+    xAxis <- list (
       title = "Year",
       titlefont = fontList
     )
     
     yAxis <- list (
       title = ifelse (test = is.na (input$sampleDPI),
-                      no = "Radial growth increment (mm)",
-                      yes ="Radial growth increment (pixels)"), 
+                      no   = "Radial growth increment (micrometers)",
+                      yes  = "Radial growth increment (pixels)"), 
       titlefont = fontList
     )
     
@@ -1632,6 +1656,7 @@ shinyServer (function (input, output, session)
     
     data <- tbl [type != 'Linker']
     
+    # check whether data is in pixels or microns
     if (is.na (input$sampleDPI)){
       data [, toplot := pixels]
     } else {
