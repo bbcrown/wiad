@@ -1387,27 +1387,31 @@ shinyServer (function (input, output, session)
     return (growth_table)
   })
 
-  # render the growth table
+  # render data table with label numbers, coordinates and calculated "growth" 
   #--------------------------------------------------------------------------------------
   output$growth_table <- DT::renderDataTable (
     {
       printLog ('output$growth_table renderDataTable')
       
-      # check that the marker table exists
+      # check that the label table exists
+      #----------------------------------------------------------------------------------
       req (rv$check_table)
       req (rv$markerTable)
       
-      # get growth data
-      rv$markerTable <- growthTable ()
+      # make local copy of label and growth data
+      #----------------------------------------------------------------------------------
+      labelTable <- growthTable ()
       
       # return if there is no data
-      if (nrow (rv$markerTable) == 0) return ()
+      #----------------------------------------------------------------------------------
+      if (nrow (labelTable) == 0) return ()
       
       # order table, aka starting with the most recent year
-      rv$markerTable <- rv$markerTable [order (no)]
+      #----------------------------------------------------------------------------------
+      labelTable <- labelTable [order (no)]
       
       # add a delete button and display the formatted datatable
-      displayDataTable (rv$markerTable, 
+      displayDataTable (labelTable, 
                         id1 = 'delete',
                         id2 = 'insert') 
       
