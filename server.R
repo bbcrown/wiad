@@ -956,8 +956,10 @@ shinyServer (function (input, output, session)
                    # else more than two normal labels have been set and 
                    # the type of the last indexed marker is switched
                  } else {
-                   rv$markerTable [no == rv$index, 
-                                   type := switch (type, 'Linker' = 'Normal', 'Normal' = 'Linker')]
+                   rv$markerTable [no == rv$index, # TR this seems to crash occassionally with the following warning: Warning: Error in [.data.table: When deleting columns, i should not be provided 
+                                   type := switch (type, 
+                                                   'Linker' = 'Normal', 
+                                                   'Normal' = 'Linker')]
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
@@ -988,7 +990,9 @@ shinyServer (function (input, output, session)
                  } else {
                    # change the marker type of the last indexed marker
                    rv$markerTable [no == rv$index, 
-                                   type := switch (type, 'Pith' = 'Normal', 'Normal' = 'Pith')]
+                                   type := switch (type, 
+                                                   'Pith' = 'Normal', 
+                                                   'Normal' = 'Pith')]
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
@@ -1392,11 +1396,6 @@ shinyServer (function (input, output, session)
   output$growth_table <- DT::renderDataTable (
     {
       printLog ('output$growth_table renderDataTable')
-      
-      # check that the label table exists
-      #----------------------------------------------------------------------------------
-      req (rv$check_table)
-      req (rv$markerTable)
       
       # make local copy of label and growth data
       #----------------------------------------------------------------------------------
