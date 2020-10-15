@@ -26,6 +26,7 @@ shinyServer (function (input, output, session)
     
     imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], # RGB matrix loaded based on the image
     notLoaded = TRUE, # whether the first image is loaded
+    demoMode = FALSE, # whether app is in demo mode 
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to make sure a marker table exists
     insert = 0, # an index for where to insert the next marker
@@ -159,6 +160,9 @@ shinyServer (function (input, output, session)
                  updateRadioButtons (session = session, 
                                      inputId = 'confirmMeta', 
                                      selected = 'Not Confirmed')
+                 
+                 # exit demo mode
+                 rv$demoMode <- FALSE
                  
                  # generate working directory id
                  rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
@@ -1466,9 +1470,10 @@ shinyServer (function (input, output, session)
         
       }
       
+      # calculate "growth"
       tbl <- growthTable ()
       
-      # if there are no labels yet
+      # check that there are some labels
       if (nrow (tbl) == 0) return ()
       
       # write csv file
@@ -1749,6 +1754,47 @@ shinyServer (function (input, output, session)
                         inputId = 'pith',
                         label = ifelse (input$pithInImage, 'Pith','Oldest ring'))
 
+    # return
+    #------------------------------------------------------------------------------------
+    return ()
+  })
+  
+  # update oldest ring/pith action button label depending on whether the pith is in the image or not
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$demoImage, {
+    
+    # write log
+    #------------------------------------------------------------------------------------
+    printLog ('input$demoImage load demo image')
+    
+    # get path to image
+    #------------------------------------------------------------------------------------
+    rv$imgPath <- 'demoImage.jpg'
+    
+    # get file extension
+    #------------------------------------------------------------------------------------
+    rv$imgExt <- file_ext (rv$imgPath)
+    
+    # read image
+    #------------------------------------------------------------------------------------
+    rv$imgMat <- readJPEG (rv$imgPath)
+    
+    # set demo mode
+    #------------------------------------------------------------------------------------
+    rv$demoMode <- TRUE
+    
+    
+    # show message to alert user for demo mode
+    #------------------------------------------------------------------------------------
+    showModal (strong (
+      modalDialog ("Warning: You are now in demo mode until you upload an image!",
+                   easyClose = T,
+                   fade = T,
+                   size = 's',
+                   style = 'background-color:#3b3a35; color:#f3bd48; ',
+                   footer = NULL)))
+    
+    
     # return
     #------------------------------------------------------------------------------------
     return ()

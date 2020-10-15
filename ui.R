@@ -175,25 +175,22 @@ fluidPage (
                          actionButton (inputId = 'selRGB', 
                                        label = 'True Color',
                                        width = '100%', 
-                                       icon = icon ('image'))
-                 ),
+                                       icon = icon ('image'))),
                  
                  # select monochoromic total brightness
                  column (4, 
                          actionButton (inputId = 'selTotBr', 
                                       label = 'Brightness',
                                       width = '100%', 
-                                      icon = icon ('sun')) 
-                 ),
+                                      icon = icon ('sun'))),
+                 
                  # to show only the blue channel
                  column (4, 
                          actionButton (inputId = 'selBlue', 
                                        label = 'Blue', 
                                        width = '100%', 
-                                       icon = icon ('tint'))
-                 )
+                                       icon = icon ('tint')))
                ),
-               
                
                # horizontal bar breaker
                hr (),
@@ -206,9 +203,7 @@ fluidPage (
                                           label = NULL,
                                           width = '100%',
                                           icon = icon ('sync'),
-                                          style = 'color: white; background-color: gray; border-color: black;'),
-                        
-                 ),
+                                          style = 'color: white; background-color: gray; border-color: black;')),
                  
                  # zoom level bar
                  column (10, sliderInput (inputId = 'zoomlevel',
@@ -229,8 +224,7 @@ fluidPage (
                            plotOutput (outputId = 'imageProc', 
                                        click    = 'normal_point',
                                        dblclick = 'misc_point',
-                                       inline   = TRUE)))
-               ),
+                                       inline   = TRUE)))),
                
                # Checkbox input in a single fluid row
                fluidRow (
@@ -264,7 +258,7 @@ fluidPage (
                  column (3,
                          checkboxInput (inputId = 'displayLabelIDs',
                                         label = 'Show label numbers',
-                                        value = FALSE)),
+                                        value = FALSE))
 
                ),
 
@@ -291,8 +285,7 @@ fluidPage (
                                        icon = icon ('undo'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
-                                       style = 'font-weight: bold;')
-                 ),
+                                       style = 'font-weight: bold;')),
                  
                  # On or off the linker status
                  column (2, 
@@ -303,14 +296,23 @@ fluidPage (
                                        width = '100%', 
                                        style = 'font-weight: bold;')), 
                  
-                 # Convert type to 'pith'
-                 column (2, 
+                 # Convert type to 'pith' or 'oldest ring'
+                 column (3, 
                          actionButton (inputId = 'pith', 
                                        label = 'Oldest ring',
                                        icon = icon ('bullseye'), 
                                        class = 'btn-primary', 
                                        width = '100%', 
                                        style = 'font-weight: bold;')),
+                 
+                 # Load demo image
+                 column (3, 
+                         actionButton (inputId = 'demoImage', 
+                                       label = 'Demo image',
+                                       icon = icon ('image'), 
+                                       class = 'btn-primary', 
+                                       width = '100%', 
+                                       style = 'font-weight: bold;'))
                  
                ),
                
@@ -372,7 +374,7 @@ fluidPage (
                   # plot the detrended ring width index over time
                   plotlyOutput (outputId = 'detrended_growth_plot', 
                                 height = "500px", 
-                                width = "100%"),
+                                width = "100%")
                  
                )
              ),
