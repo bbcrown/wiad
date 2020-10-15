@@ -24,7 +24,7 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   rv <- reactiveValues (
     
-    imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], #RGB matrix loaded based on the image
+    imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], # RGB matrix loaded based on the image
     notLoaded = TRUE, # whether the first image is loaded
     procband = 'RGB', # processed matrix from the raw RGB
     check_table = 0, # a flag to make sure a marker table exists
@@ -205,7 +205,7 @@ shinyServer (function (input, output, session)
                  # change notLoaded boolean now that image is loaded
                  rv$notLoaded <- FALSE
                  
-                 # get image directory
+                 # get image dimenions
                  imgDim <- dim (rv$imgMat)
                  
                  # write image to the temporary working directory
@@ -214,8 +214,8 @@ shinyServer (function (input, output, session)
                                               rv$wrkID,
                                               '.png'))
                  
-                 # get the image matrix
-                 if (imgDim [2] < imgDim [1]) {
+                 # rotate the image matrix, if image is higher than wide
+                 if (imgDim [2] < imgDim [1]) { 
                    rv$imgMat <- rotateRGB (rv$imgMat)
                  }
                  
@@ -540,8 +540,10 @@ shinyServer (function (input, output, session)
     {
       printLog ('output$imageProc renderPlot')
       
-      # check for image
+      # check for image and make local copy
       imgtmp <- imgProcessed ()
+      
+      # check that it actually exists
       if (is.null (imgtmp)) return ()
       
       # get images dimensions
@@ -560,13 +562,15 @@ shinyServer (function (input, output, session)
       window <- par()$usr
       
       # plot image
+      #----------------------------------------------------------------------------------
       rasterImage (imgtmp, 
-                   window [1], 
-                   window [3], 
-                   window [2], 
-                   window [4])
+                   xleft   = window [1], 
+                   ybottom = window [3], 
+                   xright  = window [2], 
+                   ytop    = window [4])
       
-      # make copy of marker table
+      # make local copy of marker table
+      #----------------------------------------------------------------------------------
       marker_tbl <- rv$markerTable [, .(x, y)]
       
       # check that there are labels to plot
@@ -809,11 +813,10 @@ shinyServer (function (input, output, session)
     {
       printLog ('totbrightness reactive')
       
-      tmp <- 
-        rv$imgMat [,,1] + 
-        rv$imgMat [,,2] + 
-        rv$imgMat [,,3]
+      # sum birghtness of all three colour channels
+      tmp <- rv$imgMat [,,1] + rv$imgMat [,,2] + rv$imgMat [,,3]
       
+      # average tog et total birghtness
       tmp / 3
     }
   )
@@ -822,8 +825,7 @@ shinyServer (function (input, output, session)
     {
       printLog ('brightness reactive')
       
-      if (is.null (rv$imgMat)) 
-        return ()
+      if (is.null (rv$imgMat)) return ()
       tmp <- getBrightness (rv$imgMat)
       tmp
     }
@@ -845,9 +847,8 @@ shinyServer (function (input, output, session)
     {
       printLog ('contrast reactive')
       
-      if (is.null (rv$imgMat)) 
-        return ()
-      tmp <- getContrast(rv$imgMat)
+      if (is.null (rv$imgMat)) return ()
+      tmp <- getContrast (rv$imgMat)
       tmp
     }
   )
@@ -857,11 +858,11 @@ shinyServer (function (input, output, session)
     {
       printLog ('imgProcessed reactive')
       
-      if (is.null (rv$imgMat)) 
-        return ()
+      # check that image exists
+      if (is.null (rv$imgMat)) return ()
       
-      if (length (dim (rv$imgMat)) == 2)
-      {
+      # check that the image has three colour bands
+      if (length (dim (rv$imgMat)) == 2) {
         showModal (strong (
           modalDialog ("Warning: The image is monochrome!",
                        easyClose = T,
@@ -872,15 +873,13 @@ shinyServer (function (input, output, session)
           )))
         return (rv$imgMat)
       }
-      
-      # clhsv <- clRGB2HSV(rv$imgMat)
-      
+     
+      # extract save rbg, blue channel only and total brightness version of the image 
       switch (rv$procband,
-             'RGB' = rv$imgMat,
-             'Blue' = rv$imgMat[,,3],
-             'Brightness' = totbrightness ()
-      )
-      
+              'RGB'  = rv$imgMat,
+              'Blue' = rv$imgMat [,,3],
+              'Brightness' = totbrightness ())
+
     }
   )
   
@@ -1191,23 +1190,29 @@ shinyServer (function (input, output, session)
   growthTable <- reactive ({
     
     # check for requirements
+    #------------------------------------------------------------------------------------
     req (rv$check_table)
     req (rv$markerTable)
     
     # copy rv$markerTable into growth_table
+    #------------------------------------------------------------------------------------
     growth_table <- rv$markerTable
     
     # get types of labels
+    #------------------------------------------------------------------------------------
     types <- growth_table [, type]
     n <- length (types)
     
     # initialise years vector
+    #------------------------------------------------------------------------------------
     years <- rep (NA, n)
     
     # check whether there is no pith marker (which marks oldest ring or pith) yet
+    #------------------------------------------------------------------------------------
     if (sum (types == 'Pith', na.rm = TRUE) == 0) {
 
       # check whether the measurement series starts at the bark
+      #----------------------------------------------------------------------------------
       if (input$barkFirst) {
 
         # loop over all points from bark towards the pith
@@ -1382,12 +1387,15 @@ shinyServer (function (input, output, session)
     }
 
     # add growth in pixels to the growth_table 
+    #------------------------------------------------------------------------------------
     growth_table$pixels <- pixels
     
     # convert growth from pixels (using dots per inch input resolution) to micrometers
+    #------------------------------------------------------------------------------------
     growth_table [, growth := pixels / as.numeric (input$sampleDPI) * 25.4 * 1000]
     
     # return growth_table
+    #------------------------------------------------------------------------------------
     return (growth_table)
   })
 
@@ -1410,6 +1418,7 @@ shinyServer (function (input, output, session)
       labelTable <- labelTable [order (no)]
       
       # add a delete button and display the formatted datatable
+      #----------------------------------------------------------------------------------
       displayDataTable (labelTable, 
                         id1 = 'delete',
                         id2 = 'insert') 

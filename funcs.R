@@ -67,7 +67,7 @@ rotateRGB <- function (imgMat) {
   b <- rotate (imgMat[,,3])
   
   rot <- abind (r, g, b, along = 3)
-  rot
+  return (rot)
 }
 
 
