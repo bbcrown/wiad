@@ -518,7 +518,7 @@ shinyServer (function (input, output, session)
       
       # check for demo mode
       #----------------------------------------------------------------------------------
-      if (demoMode) {
+      if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode!",
                        easyClose = T,
@@ -1498,7 +1498,7 @@ shinyServer (function (input, output, session)
       
       # check for demo mode
       #----------------------------------------------------------------------------------
-      if (demoMode) {
+      if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
                        easyClose = T,
@@ -1570,7 +1570,7 @@ shinyServer (function (input, output, session)
       
       # check for demo mode
       #----------------------------------------------------------------------------------
-      if (demoMode) {
+      if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
                        easyClose = T,
@@ -1806,7 +1806,7 @@ shinyServer (function (input, output, session)
       
       # check for demo mode
       #----------------------------------------------------------------------------------
-      if (demoMode) {
+      if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
                        easyClose = T,
