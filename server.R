@@ -50,9 +50,13 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (rv$imgMat,
                {
+                 # write log
                  printLog ('observeEvent rv$imgMat')
                  
+                 # get image dimensions
                  imgDim <- dim (rv$imgMat)
+                 
+                 # update image aspect
                  rv$imgAsp <- imgDim [2] / imgDim [1]  
                }
   )
@@ -61,6 +65,7 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$deleteRow,
                 {
+                  # write log
                   printLog ('observeEvent input$deleteRow')
 
                   # check that the markerTable and outTable exist
@@ -117,6 +122,7 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$missingRing,
                 {
+                  # write log
                   printLog ('observeEvent input$missingRing')
                   
                   # check that the markerTable and outTable exist
@@ -154,6 +160,7 @@ shinyServer (function (input, output, session)
   # whenever new image was uploaded
   observeEvent (input$image,
                {
+                 # write log
                  printLog ('observeEvent input$image')
                  
                  # reset radio button, so that metadata needs to be confirmed
@@ -385,8 +392,9 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$metadataUpload,
                {
+                 # write log
                  printLog ('observeEvent input$metadataUpload')
-
+                 
                  # get path to metadata
                  rv$metaPath <- input$metadataUpload$datapath
                  
@@ -504,8 +512,25 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   metaData <- reactive (
     {
+      # write log
+      #----------------------------------------------------------------------------------
       printLog ('metaData reactive')
       
+      # check for demo mode
+      #----------------------------------------------------------------------------------
+      if (demoMode) {
+        showModal (strong (
+          modalDialog ("Warning: You are still in demo mode!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+      }
+      
+      # compile and return metadata
+      #----------------------------------------------------------------------------------
       meta <- list (ownerName        = input$ownerName, 
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
@@ -542,6 +567,7 @@ shinyServer (function (input, output, session)
       floor (input$zoomlevel / rv$imgAsp)
     },
     {
+      # write log
       printLog ('output$imageProc renderPlot')
       
       # check for image and make local copy
@@ -553,7 +579,7 @@ shinyServer (function (input, output, session)
       # get images dimensions
       imgDim <- dim (imgtmp)
       
-      # set margins
+      # set margins and plot are
       par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
@@ -565,7 +591,7 @@ shinyServer (function (input, output, session)
       
       window <- par()$usr
       
-      # plot image
+      # plot actual image
       #----------------------------------------------------------------------------------
       rasterImage (imgtmp, 
                    xleft   = window [1], 
@@ -815,6 +841,7 @@ shinyServer (function (input, output, session)
   
   totbrightness <- reactive (
     {
+      # write log
       printLog ('totbrightness reactive')
       
       # sum birghtness of all three colour channels
@@ -827,8 +854,10 @@ shinyServer (function (input, output, session)
   
   brightness <- reactive (
     {
+      # write log
       printLog ('brightness reactive')
       
+      # check image exists
       if (is.null (rv$imgMat)) return ()
       tmp <- getBrightness (rv$imgMat)
       tmp
@@ -849,8 +878,10 @@ shinyServer (function (input, output, session)
   
   contrast <- reactive (
     {
+      # write log
       printLog ('contrast reactive')
       
+      # check that image exists
       if (is.null (rv$imgMat)) return ()
       tmp <- getContrast (rv$imgMat)
       tmp
@@ -860,6 +891,7 @@ shinyServer (function (input, output, session)
   
   imgProcessed <- reactive (
     {
+      # write log
       printLog ('imgProcessed reactive')
       
       # check that image exists
@@ -891,10 +923,11 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$clearCanvas, 
                {
+                 # write log
                  printLog ('observeEvent input$clearCanvas')
-                 
                  printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
                  
+                 # check that an image was loaded
                  if (rv$notLoaded == TRUE) return ()
                  
                  rv$slideShow <- 0 
@@ -973,7 +1006,8 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$pith, 
                {
-                 printLog ('observeEvent input$linkerPoint')
+                 # write log
+                 printLog ('observeEvent input$pith')
                  
                  if (rv$notLoaded == TRUE) return ()
                  
@@ -1051,6 +1085,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$normal_point,
                {
                  
+                 # write log
                  printLog ('observeEvent input$normal_point')
                  
                  # check that images is loaded
@@ -1119,6 +1154,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$misc_point,
                 {
                   
+                  # write log
                   printLog ('observeEvent input$misc')
                   
                   if (rv$notLoaded == TRUE) return ()
@@ -1455,9 +1491,26 @@ shinyServer (function (input, output, session)
       
     },
     content = function (file) {
-      
+
+      # write log
+      #----------------------------------------------------------------------------------
       printLog ('output$downloadCSV downloadHandler content')
       
+      # check for demo mode
+      #----------------------------------------------------------------------------------
+      if (demoMode) {
+        showModal (strong (
+          modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+      }
+      
+      # check that image is loaded
+      #----------------------------------------------------------------------------------
       if (!rv$notLoaded) {
         writePNG (imgProcessed (), 
                   target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
@@ -1512,15 +1565,34 @@ shinyServer (function (input, output, session)
     
     content = function (file) {
       
+      # write log
       printLog ('output$downloadJSON downloadHandler content')
       
-      if (!rv$notLoaded) {
+      # check for demo mode
+      #----------------------------------------------------------------------------------
+      if (demoMode) {
+        showModal (strong (
+          modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+      }
+      
+      # check that an image was loaded 
+      if (!rv$notLoaded ) {
+        
+        # save processed image
         writePNG (imgProcessed (), 
                   target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
         
+        # save raw the image
         writePNG (rv$imgMat, 
                   target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
-        
+
+        # write metadata json file
         write (toJSON (metaData ()), 
                paste0 (rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
@@ -1536,10 +1608,13 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$confirmMeta, {
     
+    # write log
     printLog ('observeEvent input$confirmMeta')
     
+    # check that metadata was confirmed
     if (input$confirmMeta == 'Not Confirmed') return ()
     
+    # check that the sample year and year of sample date match
     if (year (input$sampleDate) != input$sampleYear) {
       
       showModal (strong (
@@ -1552,6 +1627,7 @@ shinyServer (function (input, output, session)
                      footer    = NULL
         )))
       
+      # update radio button
       updateRadioButtons (session, 
                           inputId  = 'confirmMeta', 
                           selected = 'Not Confirmed')
@@ -1728,6 +1804,19 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       printLog ('output$downloadTemplate downloadHandler content')
       
+      # check for demo mode
+      #----------------------------------------------------------------------------------
+      if (demoMode) {
+        showModal (strong (
+          modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+      }
+      
       # download existing metadata template file
       #----------------------------------------------------------------------------------
       file.copy ('TRIAD-metadata-template-2020-09-14.xlsx', file)
@@ -1779,15 +1868,15 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     rv$imgMat <- readJPEG (rv$imgPath)
     
-    # set demo mode
+    # set demo mode and not loaded to TRUE
     #------------------------------------------------------------------------------------
-    rv$demoMode <- TRUE
-    
+    rv$demoMode  <- TRUE
+    rv$notLoaded <- TRUE
     
     # show message to alert user for demo mode
     #------------------------------------------------------------------------------------
     showModal (strong (
-      modalDialog ("Warning: You are now in demo mode until you upload an image!",
+      modalDialog ("Warning: You are now entering demo mode until you upload an image!",
                    easyClose = T,
                    fade = T,
                    size = 's',
