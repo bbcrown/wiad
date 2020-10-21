@@ -225,9 +225,9 @@ shinyServer (function (input, output, session)
                                               rv$wrkID,
                                               '.png'))
                  
-                 # rotate the image matrix, if image is higher than wide
+                 # rotate the image matrix by 270 degrees, if image is higher than wide
                  if (imgDim [2] < imgDim [1]) { 
-                   rv$imgMat <- rotateRGB (rv$imgMat)
+                   rv$imgMat <- rotateRGB (rotateRGB (rotateRGB (rv$imgMat)))
                  }
                  
                  # reset image resolution to make sure that it is checked by user
