@@ -28,9 +28,8 @@ shinyServer (function (input, output, session)
     notLoaded = TRUE, # whether the first image is loaded
     demoMode = FALSE, # whether app is in demo mode 
     procband = 'RGB', # processed matrix from the raw RGB
-    check_table = 0, # a flag to make sure a marker table exists
-    insert = 0, # an index for where to insert the next marker
-    index  = 0, # an index of the last modified marker
+    check_table = 0, # a flag to make sure a label table exists
+    index  = 0,      # index of the last modified label or the label that should be changed (e.g., insertion)
     
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (),   # no ID
@@ -101,7 +100,7 @@ shinyServer (function (input, output, session)
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
                   
                   # share the row number (e.g. marker number)  
-                  rv$insert <- rowNum
+                  rv$index <- rowNum
                   
                   # check whether user wants to insert a missing ring using input modal
                   showModal (strong (
@@ -129,27 +128,27 @@ shinyServer (function (input, output, session)
                   req (rv$markerTable)
 
                   # initialise missing ring
-                  missingRing <- data.table (no   = rv$insert+1,
-                                             x    = rv$markerTable$x    [rv$insert],
-                                             y    = rv$markerTable$y    [rv$insert],
-                                             relx = rv$markerTable$relx [rv$insert],
-                                             rely = rv$markerTable$rely [rv$insert],
+                  missingRing <- data.table (no   = rv$index+1,
+                                             x    = rv$markerTable$x    [rv$index],
+                                             y    = rv$markerTable$y    [rv$index],
+                                             relx = rv$markerTable$relx [rv$index],
+                                             rely = rv$markerTable$rely [rv$index],
                                              type = 'Missing')
                   
                   # save index of new point for "undo"
                   rv$index <- missingRing$no
 
                   # increase all marker numbers after the inserted marker
-                  rv$markerTable [no > rv$insert, no := no + 1]
+                  rv$markerTable [no > rv$index, no := no + 1]
 
                   # insert marker after identified row
-                  rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ],
+                  rv$markerTable <- rbind (rv$markerTable [1:rv$index, ],
                                            missingRing,
-                                           rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
+                                           rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                            fill = TRUE)
 
                   # reset insert index to 0
-                  rv$insert <- 0
+                  rv$index <- 0
                   
                   # close modal dialog
                   removeModal ()
@@ -941,7 +940,6 @@ shinyServer (function (input, output, session)
                                                type = character ())
                  
                  # reset indices for insertion and last set marker
-                 rv$insert <- 0
                  rv$index  <- 0
                  
                  # make sure to update table
@@ -1011,21 +1009,29 @@ shinyServer (function (input, output, session)
                  
                  if (rv$notLoaded == TRUE) return ()
                  
-                 # check whether no marker has been set yet
-                 if (nrow (rv$markerTable) == 0)
-                 {
+                 # check whether no label has been set yet
+                 if (nrow (rv$markerTable) == 0) {
                    showModal (strong (
                      modalDialog ("Error: No ring marker is identified yet!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL
-                     )))
+                                  footer = NULL)))
                    return ()
-                 # else at least one marker was set
+                 # check whether there is already a pith label
+                 } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
+                   showModal (strong (
+                     modalDialog ("Error: You can only set one pith!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
+                   return ()
+                 # else we have at least one label and no pith yet
                  } else {
-                   # change the marker type of the last indexed marker
+                   # change the label type of the last indexed label
                    rv$markerTable [no == rv$index, 
                                    type := switch (type, 
                                                    'Pith' = 'Normal', 
@@ -1108,7 +1114,7 @@ shinyServer (function (input, output, session)
                  no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
                  
                  # initialise new point
-                 newPoint <- data.table (no = ifelse (rv$insert == 0, no, rv$insert+1),
+                 newPoint <- data.table (no = ifelse (rv$index == 0, no, rv$index+1),
                                          x  = input$normal_point$x,
                                          y  = input$normal_point$y,
                                          relx = input$normal_point$x / input$normal_point$domain$right,
@@ -1127,21 +1133,21 @@ shinyServer (function (input, output, session)
                  # save index of new point
                  rv$index <- newPoint$no
                  
-                 # insert or append new point to the marker table
-                 if (rv$insert > 0) {
+                 # insert or append new point to the label table
+                 if (rv$index > 0) {
                    
-                   # increase all marker number with higher no than the inserted marker
-                   rv$markerTable [no > rv$insert, no := no + 1]
+                   # increase all label numbers with higher no than the inserted label
+                   rv$markerTable [no >= rv$index, no := no + 1]
                    
-                   # insert marker after identified row 
-                   rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ], 
+                   # insert label after identified row 
+                   rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
                                             newPoint,
-                                            rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
+                                            rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                             fill = TRUE)
                    
                    # reset insert index to 0
-                   rv$insert <- 0
-                 } else if (rv$insert == 0) {
+                   rv$index <- 0
+                 } else if (rv$index == 0) {
                    rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                  }
                  
@@ -1185,7 +1191,7 @@ shinyServer (function (input, output, session)
                   }
                   
                   # initialise new point
-                  newPoint <- data.table (no = ifelse (rv$insert == 0, no, rv$insert+1),
+                  newPoint <- data.table (no = ifelse (rv$index == 0, no, rv$index+1),
                                           x  = input$misc_point$x,
                                           y  = input$misc_point$y,
                                           relx = input$misc_point$x / input$misc_point$domain$right,
@@ -1202,22 +1208,22 @@ shinyServer (function (input, output, session)
                   rv$index <- newPoint$no
                   
                   # insert new point to the marker table
-                  if (rv$insert > 0) {
+                  if (rv$index > 0) {
                     
                     # increase all marker number with higher no than the inserted marker
-                    rv$markerTable [no > rv$insert, no := no + 1]
+                    rv$markerTable [no > rv$index, no := no + 1]
                     
                     # insert marker after identified row 
-                    rv$markerTable <- rbind (rv$markerTable [1:rv$insert, ], 
+                    rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
                                              newPoint,
-                                             rv$markerTable [(rv$insert+1):nrow (rv$markerTable), ],
+                                             rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                              fill = TRUE)
                     
                     # reset insert index to 0
-                    rv$insert <- 0
+                    rv$index <- 0
                     
                   # or append new point in the end
-                  } else if (rv$insert == 0) {
+                  } else if (rv$index == 0) {
                     rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                   }
                   
