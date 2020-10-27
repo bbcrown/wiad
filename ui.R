@@ -355,10 +355,36 @@ fluidPage (
                              label = 'Detrending method',
                              choices = c ('Spline',
                                           'Modified negative exponential',
-                                          'Mean','prewhitening',
+                                          'Mean',
+                                          'Prewhitening',
                                           'Friedman\'s',
                                           'Modified Hugershoff'),
-                             selected = 'Spline')),
+                             selected = NULL),
+                
+                # conditional panel for spline detrending
+                conditionalPanel (condition = "input.detrendingMethod == 'Spline'",
+                                  
+                                  # set frequency response for the spline
+                                  sliderInput (inputId = 'detrendingFrequencyResponse',
+                                               label = 'Frequency response',
+                                               min = 0, max = 1, step = 0.05,
+                                               value = 0.5,
+                                               ticks = FALSE),
+
+                                  # set the wavelength for the spline
+                                  sliderInput (inputId = 'detrendingWavelength',
+                                               label = 'Wavelength',
+                                               min = 0, max = 100, 
+                                               step = 1,
+                                               value = 50,
+                                               ticks = FALSE)
+                                  ),
+                
+                # download button for label table, metadata and RWI in JSON format
+                downloadButton (outputId = 'downloadRWI_JSON', 
+                                label    = 'Download RWI series') 
+                  
+                ),
                
                 # create main panel
                 mainPanel (
