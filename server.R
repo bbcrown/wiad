@@ -1472,7 +1472,7 @@ shinyServer (function (input, output, session)
     }
   )
   
-  # download a csv file with the marker locations and growth
+  # download a csv file with the label locations and growth
   #--------------------------------------------------------------------------------------
   output$downloadCSV <- downloadHandler (
     
@@ -1693,6 +1693,7 @@ shinyServer (function (input, output, session)
     # filter out linker labels
     #------------------------------------------------------------------------------------
     tbl <- tbl [type %in% c ('Normal','Pith')]
+    #print (head (tbl))
     
     # check wehether there is a pith label, hence two radial file measured
     #------------------------------------------------------------------------------------
@@ -1701,14 +1702,20 @@ shinyServer (function (input, output, session)
       # find pith label index
       index <- which (tbl [['type']] == 'Pith')
       
+      # is there only one profile 
+      if (index == nrow (tbl)) {
+        data1 <- tbl
+        onlyOne <- TRUE
+      
       # split radial files at the pith
-      data2 <- tbl [(index+1):nrow (tbl), ]
-      data1 <- tbl [1:index-1]
-      onlyOne <- FALSE
-    } else {
-      data1 <- tbl
-      onlyOne <- TRUE
+      } else {
+        data2 <- tbl [(index+1):nrow (tbl), ]
+        data1 <- tbl [1:index-1]
+        onlyOne <- FALSE
+      }
     }
+    #print(onlyOne)
+    #print(head (data1))
     
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
@@ -1719,25 +1726,45 @@ shinyServer (function (input, output, session)
       data1 [, toplot := growth]
       if (!onlyOne) data2 [, toplot := growth]
     }
+    
+    #print(head (data1))
   
     # remove the first label, which does not have any "growth"
     #------------------------------------------------------------------------------------
     data1 <- data1 [-1, ]
     
+    #print(head (data1))
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
-    foo <- full_join (x = data1 [, .(year, toplot)], 
-                       y = data2 [, .(year, toplot)], 
-                       by = 'year',
-                       suffix = c ('.1','.2'))
-    foo [['toplot']] <- rowMeans (foo [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
+    if (!onlyOne) {
+      foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
+                         by ='year', suffix = c ('.1','.2'))
+      foo [['toplot']] <- rowMeans (foo [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
+    } else {
+      foo <- data1 [, .(year, toplot)]
+    }
+    
+    # get detrending method
+    #------------------------------------------------------------------------------------
+    if (input$detrendingMethod %in% c ('Spline', 'Mean')) {
+      detrendingMethod <- input$detrendingMethod
+    } else if (input$detrendingMethod == 'Modified negative exponential') {
+      detrendingMethod <- 'ModNegExp'
+    } else if (input$detrendingMethod == 'Prewhitening') {
+      detrendingMethod <- 'Ar'
+    } else if (input$detrendingMethod == 'Friedman\'s') {
+      detrendingMethod <- 'Friedman'
+    } else if (input$detrendingMethod == 'Modified Hugershoff') {
+      detrendingMethod <- 'ModHugershoff'
+    }
     
     # extract detrending curve
     #------------------------------------------------------------------------------------
     detrended <- detrend.series (y      = foo [['toplot']], 
                                  y.name = 'toplot', 
-                                 method = input$detrendingMethod, 
-                                 #nyrs   = 50, 
+                                 method = detrendingMethod, 
+                                 nyrs   = input$detrendingWavelength,
+                                 f      = input$detrendingFrequencyResponse,
                                  make.plot = FALSE,
                                  return.info = TRUE)
     
@@ -1756,7 +1783,7 @@ shinyServer (function (input, output, session)
                   name = 'mean',
                   type = 'scatter',
                   mode = 'lines+markers',
-                  marker = list (color = colours [['colour']] [colours [['type']] == 'Normal'])) %>%
+                  marker = list (color = 'cornflowerblue', symbol = 'circle-dot')) %>%
       layout (xaxis  = xAxis,
               yaxis  = yAxis,
               margin = m)
@@ -1784,7 +1811,7 @@ shinyServer (function (input, output, session)
     p <- p %>% add_trace (y = ~detrendingCurve, 
                           name = as.character (detrendingMethod),
                           mode = 'lines+markers', 
-                          line = list (color = '#91b9a4'),
+                          line = list (color = '#901c3b'),
                           marker = list (color ='transparent'))
     
     p$elementId <- NULL
@@ -1801,7 +1828,7 @@ shinyServer (function (input, output, session)
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('output$detranded_growth_plot renderPlotly')
+    printLog ('output$detrended_growth_plot renderPlotly')
     
     # check that markerTable exists
     #------------------------------------------------------------------------------------
@@ -1839,15 +1866,18 @@ shinyServer (function (input, output, session)
       # find pith label index
       index <- which (tbl [['type']] == 'Pith')
       
-      # split radial files at the pith
-      data2 <- tbl [(index+1):nrow (tbl), ]
-      data1 <- tbl [1:index-1]
-      onlyOne <- FALSE
-    } else {
-      data1 <- tbl
-      onlyOne <- TRUE
-    }
-    
+      # is there only one profile 
+      if (index == nrow (tbl)) {
+        data1 <- tbl
+        onlyOne <- TRUE
+        
+        # split radial files at the pith
+      } else {
+        data2 <- tbl [(index+1):nrow (tbl), ]
+        data1 <- tbl [1:index-1]
+        onlyOne <- FALSE
+      }
+    }    
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
     if (is.na (sampleDPI)) {
@@ -1864,16 +1894,35 @@ shinyServer (function (input, output, session)
     
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
-    foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
-                       by ='year')
-    foo [['toplot']] <- rowMeans (foo [, c ('toplot.x', 'toplot.y')], na.rm = TRUE)
+    if (!onlyOne) {
+      foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
+                         by ='year', suffix = c ('.1','.2'))
+      foo [['toplot']] <- rowMeans (foo [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
+    } else {
+      foo <- data1 [, .(year, toplot)]
+    }
+    
+    # get detrending method
+    #------------------------------------------------------------------------------------
+    if (input$detrendingMethod %in% c ('Spline', 'Mean')) {
+      detrendingMethod <- input$detrendingMethod
+    } else if (input$detrendingMethod == 'Modified negative exponential') {
+      detrendingMethod <- 'ModNegExp'
+    } else if (input$detrendingMethod == 'Prewhitening') {
+      detrendingMethod <- 'Ar'
+    } else if (input$detrendingMethod == 'Friedman\'s') {
+      detrendingMethod <- 'Friedman'
+    } else if (input$detrendingMethod == 'Modified Hugershoff') {
+      detrendingMethod <- 'ModHugershoff'
+    }
     
     # extract detrending curve
     #------------------------------------------------------------------------------------
     detrended <- detrend.series (y      = foo [['toplot']], 
                                  y.name = 'toplot', 
-                                 method = input$detrendingMethod, 
-                                 #nyrs   = 50, 
+                                 method = detrendingMethod, 
+                                 nyrs   = input$detrendingWavelength,
+                                 f      = input$detrendingFrequencyResponse,
                                  make.plot = FALSE,
                                  return.info = TRUE)
     
@@ -1881,7 +1930,6 @@ shinyServer (function (input, output, session)
     # extract rwi indices, detrending curve, and years
     #------------------------------------------------------------------------------------
     rwi <- detrended$series
-    detrendingCurve <- detrended$curves
     years <- foo [['year']]
     
     # second plot with ring width indices
@@ -1891,7 +1939,8 @@ shinyServer (function (input, output, session)
                   name = 'mean',
                   type = 'scatter',
                   mode = 'lines+markers',
-                  marker = list (color = 'cornflowerblue', symbol = 'circle-dot')) %>%
+                  marker = list (color = '#af95a3', symbol = 'circle-dot'),
+                  line = list (color = '#af95a3')) %>%
       layout (xaxis  = xAxis,
               yaxis  = yAxisD,
               margin = m)
@@ -1969,6 +2018,26 @@ shinyServer (function (input, output, session)
     return ()
   })
   
+  # update max value of wavelength for spline
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$detrendingMethod, {
+
+    # write log
+    #------------------------------------------------------------------------------------
+    printLog ('input$detrendingMethod changed wavelength sliderInput')
+
+    # update the label on the pith/oldest ring action button
+    #------------------------------------------------------------------------------------
+    updateSliderInput (session = session,
+                       inputId = 'detrendingWavelength',
+                       max = ifelse (nrow (rv$markerTable) > 0, nrow (rv$markerTable), 50))
+
+    # return
+    #------------------------------------------------------------------------------------
+    return ()
+  })
+  
+
   # update oldest ring/pith action button label depending on whether the pith is in the image or not
   #--------------------------------------------------------------------------------------
   observeEvent (input$demoImage, {
@@ -2009,6 +2078,67 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     return ()
   })
+  # download a json file with the metadata and marker locations and growth
+  #--------------------------------------------------------------------------------------
+  output$downloadRWI_JSON <- downloadHandler (
+    
+    filename = function () {
+      
+      printLog ('output$downloadRWI_JSON downloadHandler filename')
+      
+      paste0 ('detrendeddata-', 
+              input$ownerName,
+              '_',
+              input$species,
+              '_',
+              input$siteLocID,
+              '_',
+              input$sampleDate, 
+              '_',
+              rv$wrkID, 
+              '_',
+              format (Sys.time(),
+                      format = '%Y-%m-%d-%H%M%S'),
+              ".json")
+      
+    },
+    
+    content = function (file) {
+      
+      # write log
+      printLog ('output$downloadRWI_JSON downloadHandler content')
+      
+      # check for demo mode
+      #----------------------------------------------------------------------------------
+      if (rv$demoMode) {
+        showModal (strong (
+          modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+        
+      # check that an image was loaded 
+      } else if (rv$notLoaded) { 
+        showModal (strong (
+          modalDialog ("Warning: You have to start by loading an image!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+      }
+      
+      # write metadata, label data and rwi series 
+      metaData () %>% 
+        toJSON () %>%
+        write_lines (file)
+    }
+  )
+  
   
   printLog (finit = TRUE)
 }
