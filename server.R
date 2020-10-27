@@ -25,19 +25,21 @@ shinyServer (function (input, output, session)
   rv <- reactiveValues (
     
     imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], # RGB matrix loaded based on the image
-    notLoaded = TRUE, # whether the first image is loaded
-    demoMode = FALSE, # whether app is in demo mode 
-    procband = 'RGB', # processed matrix from the raw RGB
-    check_table = 0, # a flag to make sure a label table exists
-    index  = 0,      # index of the last modified label or the label that should be changed (e.g., insertion)
-    
+    notLoaded = TRUE,  # whether the first image is loaded
+    demoMode = FALSE,  # whether app is in demo mode 
+    procband = 'RGB',  # processed matrix from the raw RGB
+    check_table   = 0, # a flag to make sure a label table exists
+    index         = 0, # index of the last modified label or the label that should be changed (e.g., insertion)
+    previousIndex = 0, # index of the previous label
+      
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (),   # no ID
       x    = numeric (),   # x
       y    = numeric (),   # y
       relx = numeric (),   # relative x
       rely = numeric (),   # relative y
-      type = character (), # type of marker ("Normal","Linker","Misc", or "Pith")
+      type = character (), # type of marker ('Normal','Linker','Misc','Density fluctuation',
+                           #                 'Frost ring','Fire scar' or 'Pith')
       pixels = numeric (),   # "growth" in pixels of the image
       growth = numeric (),   # "growth" in micrometers
       year   = numeric (),   # year of formation
@@ -135,8 +137,6 @@ shinyServer (function (input, output, session)
                                              rely = rv$markerTable$rely [rv$index],
                                              type = 'Missing')
                   
-                  # save index of new point for "undo"
-                  rv$index <- missingRing$no
 
                   # increase all marker numbers after the inserted marker
                   rv$markerTable [no > rv$index, no := no + 1]
@@ -147,8 +147,8 @@ shinyServer (function (input, output, session)
                                            rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                            fill = TRUE)
 
-                  # reset insert index to 0
-                  rv$index <- 0
+                  # reset insert index to the last label in the series
+                  rv$index <- nrow (rv$markerTable)
                   
                   # close modal dialog
                   removeModal ()
@@ -294,6 +294,10 @@ shinyServer (function (input, output, session)
                       rv$markerTable <- data.table::rbindlist (labels$markerData, 
                                                                fill = TRUE)
                       
+                      # set the index 
+                      rv$index <- nrow (rv$markerTable)
+                      rv$previousIndex <- nrow (rv$markerTable) 
+                        
                       # update metadata fields
                       updateTextInput (session = session,
                                        inputId = 'ownerName',
@@ -608,7 +612,10 @@ shinyServer (function (input, output, session)
       # identify normal, linker, misc and pith labels
       wNormal  <- which (rv$markerTable$type == 'Normal')
       wLinkers <- which (rv$markerTable$type == 'Linker')
-      wMisc    <- which (rv$markerTable$type == 'Misc')
+      wMisc    <- which (rv$markerTable$type %in% c ('Misc',
+                                                     'Density fluctuation',
+                                                     'Frost ring',
+                                                     'Fire scar'))
       wPith    <- which (rv$markerTable$type == 'Pith')
       wMissing <- which (rv$markerTable$type == 'Missing')
       
@@ -933,8 +940,8 @@ shinyServer (function (input, output, session)
                  
                  # reset the marker table
                  rv$markerTable <- data.table (no = integer (),
-                                               x = numeric (),
-                                               y = numeric (),
+                                               x  = numeric (),
+                                               y  = numeric (),
                                                relx = numeric (),
                                                rely = numeric (),
                                                type = character ())
@@ -990,7 +997,8 @@ shinyServer (function (input, output, session)
                    # else more than two normal labels have been set and 
                    # the type of the last indexed marker is switched
                  } else {
-                   rv$markerTable [no == rv$index, # TR this seems to crash occassionally with the following warning: Warning: Error in [.data.table: When deleting columns, i should not be provided 
+                   i <- ifelse (rv$previousIndex < rv$index - 1, rv$previousIndex, rv$index) 
+                   rv$markerTable [no == i, # TR this seems to crash occassionally with the following warning: Warning: Error in [.data.table: When deleting columns, i should not be provided 
                                    type := switch (type, 
                                                    'Linker' = 'Normal', 
                                                    'Normal' = 'Linker')]
@@ -1032,7 +1040,8 @@ shinyServer (function (input, output, session)
                  # else we have at least one label and no pith yet
                  } else {
                    # change the label type of the last indexed label
-                   rv$markerTable [no == rv$index, 
+                   i <- ifelse (rv$previousIndex < rv$index - 1, rv$previousIndex, rv$index)
+                   rv$markerTable [no == i, 
                                    type := switch (type, 
                                                    'Pith' = 'Normal', 
                                                    'Normal' = 'Pith')]
@@ -1054,22 +1063,16 @@ shinyServer (function (input, output, session)
                  # check there is more than one marker
                  if (nrow (rv$markerTable) > 1) {
                    
-                   # check whether the last indexed marker was not the last marker
-                   if (rv$index == 0) {
-                     rv$markerTable <- rv$markerTable [-nrow (rv$markerTable), ]
-
-                   # delete the last indexed marker and set the index to 0
+                   # delete the previously modified marker or the last marker
+                   rv$markerTable <- rv$markerTable [-rv$index, ]
                    # N.B. Currently there is only memory of one index and thereafter 
                    #      points will be deleted from the end of the markerTable  
-                   } else {
-                     rv$markerTable <- rv$markerTable [-rv$index, ]
+                   
+                   # reset index to index of last label
+                   rv$index <- nrow (rv$markerTable)
                      
-                     # reset index of last marker
-                     rv$index <- 0
-                     
-                     # make sure that the no are consecutive, after marker was deleted
-                     rv$markerTable$no <- 1:nrow (rv$markerTable)
-                   }
+                   # make sure that the no are consecutive, after marker was deleted
+                   rv$markerTable$no <- 1:nrow (rv$markerTable)
                    
                  # else no or one marker was set yet
                  } else {
@@ -1114,7 +1117,7 @@ shinyServer (function (input, output, session)
                  no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
                  
                  # initialise new point
-                 newPoint <- data.table (no = ifelse (rv$index == 0, no, rv$index+1),
+                 newPoint <- data.table (no = rv$index + 1,
                                          x  = input$normal_point$x,
                                          y  = input$normal_point$y,
                                          relx = input$normal_point$x / input$normal_point$domain$right,
@@ -1130,26 +1133,24 @@ shinyServer (function (input, output, session)
                    if (newPoint$x == last$x & newPoint$y == last$y) return ()
                  }
                  
-                 # save index of new point
-                 rv$index <- newPoint$no
-                 
                  # insert or append new point to the label table
-                 if (rv$index > 0) {
+                 if (rv$index < nrow (rv$markerTable)) {
                    
                    # increase all label numbers with higher no than the inserted label
-                   rv$markerTable [no >= rv$index, no := no + 1]
+                   rv$markerTable [no >= rv$index+1, no := no + 1]
                    
                    # insert label after identified row 
                    rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
                                             newPoint,
                                             rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                             fill = TRUE)
-                   
-                   # reset insert index to 0
-                   rv$index <- 0
-                 } else if (rv$index == 0) {
+                 } else {
                    rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                  }
+                 
+                 # save index and reset to index of last label
+                 rv$previousIndex <- rv$index
+                 rv$index <- nrow (rv$markerTable)
                  
                  # validate that a marker table exists
                  rv$check_table <- rv$check_table + 1
@@ -1190,13 +1191,32 @@ shinyServer (function (input, output, session)
                     return ()
                   }
                   
+                  # check what kind of special feature is labeled
+                  showModal (strong (
+                    modalDialog ("What kind of special feature are you labelling?",
+                                 easyClose = T,
+                                 fade = T,
+                                 size = 'm',
+                                 style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                 footer = tagList (
+                                   radioButtons (inputId = 'miscType',
+                                                 label   = '',
+                                                 choices = c ('Misc',
+                                                              'Density fluctuation',
+                                                              'Frost ring',
+                                                              'Fire scar'),
+                                                 selected = NULL))))
+                  )
+                  print (input$miscType)
+                  
                   # initialise new point
-                  newPoint <- data.table (no = ifelse (rv$index == 0, no, rv$index+1),
+                  newPoint <- data.table (no = rv$index + 1,
                                           x  = input$misc_point$x,
                                           y  = input$misc_point$y,
                                           relx = input$misc_point$x / input$misc_point$domain$right,
                                           rely = input$misc_point$y / input$misc_point$domain$top,
-                                          type = 'Misc')
+                                          #type = 'Misc')
+                                          type = input$miscType)
                   
                   # check that new point is different from old point
                   if (nrow (rv$markerTable) > 0) {
@@ -1204,11 +1224,8 @@ shinyServer (function (input, output, session)
                     if (newPoint$x == last$x & newPoint$y == last$y) return ()
                   }
                   
-                  # save index of new point
-                  rv$index <- newPoint$no
-                  
                   # insert new point to the marker table
-                  if (rv$index > 0) {
+                  if (rv$index < nrow (rv$markerTable)) {
                     
                     # increase all marker number with higher no than the inserted marker
                     rv$markerTable [no > rv$index, no := no + 1]
@@ -1219,13 +1236,14 @@ shinyServer (function (input, output, session)
                                              rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                              fill = TRUE)
                     
-                    # reset insert index to 0
-                    rv$index <- 0
-                    
                   # or append new point in the end
-                  } else if (rv$index == 0) {
+                  } else {
                     rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                   }
+                  
+                  # save index and set to index of last label
+                  rv$previousIndex <- rv$index
+                  rv$index <- nrow (rv$markerTable)
                   
                   # validate that marker table exists
                   rv$check_table <- rv$check_table + 1
@@ -1268,7 +1286,7 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 'Misc'),
+                               ifelse (types [i] %in% c ('Linker', 'Misc', ''),
                                        years [i-1],
                                        years [i-1] - 1)
           )
@@ -1282,7 +1300,11 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 'Misc'),
+                               ifelse (types [i] %in% c ('Linker', 
+                                                         'Misc',
+                                                         'Density fluctuation',
+                                                         'Frost ring',
+                                                         'Fire scar'),
                                        years [i+1],
                                        years [i+1] - 1))
       }
@@ -1302,7 +1324,11 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 'Misc'),
+                               ifelse (types [i] %in% c ('Linker', 
+                                                         'Misc',
+                                                         'Density fluctuation',
+                                                         'Frost ring',
+                                                         'Fire scar'),
                                        years [i-1],
                                        years [i-1] - 1))
         }
@@ -1316,7 +1342,11 @@ shinyServer (function (input, output, session)
                                            c ('only started', 'already ended'),
                                          input$sampleYear + 1,
                                          input$sampleYear),
-                                 ifelse (types [i] %in% c ('Linker', 'Misc'),
+                                 ifelse (types [i] %in% c ('Linker', 
+                                                           'Misc',
+                                                           'Density fluctuation',
+                                                           'Frost ring',
+                                                           'Fire scar'),
                                          ifelse (types [i-1] != 'Pith', 
                                                  years [i-1], 
                                                  years [i-1] - 1),
@@ -1333,7 +1363,11 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i]  %in% c ('Linker', 'Misc'),
+                               ifelse (types [i]  %in% c ('Linker', 
+                                                          'Misc', 
+                                                          'Density fluctuation',
+                                                          'Frost ring',
+                                                          'Fire scar'),
                                        years [i+1],
                                        years [i+1] - 1))
         }
@@ -1345,7 +1379,11 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 'Misc'),
+                               ifelse (types [i] %in% c ('Linker',
+                                                         'Misc',
+                                                         'Density fluctuation',
+                                                         'Frost ring',
+                                                         'Fire scar'),
                                        years [i+1],
                                        years [i+1] + 1))
         }
@@ -1397,7 +1435,8 @@ shinyServer (function (input, output, session)
       
       # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
       # exception: two previous reference labels are linker labels
-      if (growth_table$type [i] %in% c ('Normal','Misc')) {
+      if (growth_table$type [i] %in% c ('Normal','Misc','Density fluctuation',
+                                        'Frost ring','Fire scar')) {
         
         # last reference marker was a normal marker
         if (lastPoint > lastLinker) {
@@ -1693,7 +1732,6 @@ shinyServer (function (input, output, session)
     # filter out linker labels
     #------------------------------------------------------------------------------------
     tbl <- tbl [type %in% c ('Normal','Pith')]
-    #print (head (tbl))
     
     # check wehether there is a pith label, hence two radial file measured
     #------------------------------------------------------------------------------------
