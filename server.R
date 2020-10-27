@@ -1726,9 +1726,11 @@ shinyServer (function (input, output, session)
     
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
-    foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
-                       by ='year')
-    foo [['toplot']] <- rowMeans (foo [, c ('toplot.x', 'toplot.y')], na.rm = TRUE)
+    foo <- full_join (x = data1 [, .(year, toplot)], 
+                       y = data2 [, .(year, toplot)], 
+                       by = 'year',
+                       suffix = c ('.1','.2'))
+    foo [['toplot']] <- rowMeans (foo [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
     
     # extract detrending curve
     #------------------------------------------------------------------------------------
@@ -1763,14 +1765,14 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     if (!onlyOne) {
       p <- p %>% add_trace (data = foo,
-                            y = ~toplot.x,
+                            y = ~toplot.1,
                             name = 'series 1',
                             mode = 'lines+markers',
                             marker = list (color = 'grey', opacity = 0.6),
                             line = list (color = 'grey', opacity = 0.2, width = 0.7))
       
       p <- p %>% add_trace (data = foo,
-                            y = ~toplot.y,
+                            y = ~toplot.2,
                             name = 'series 2',
                             mode = 'lines+markers',
                             marker = list (color = 'grey', opacity = 0.6),
