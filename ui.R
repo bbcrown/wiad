@@ -353,13 +353,14 @@ fluidPage (
                 # input panel for method of detrending for which we use the dplR package
                 selectInput (inputId = 'detrendingMethod',
                              label = 'Detrending method',
-                             choices = c ('Spline',
+                             choices = c ('None',
+                                          'Spline',
                                           'Modified negative exponential',
                                           'Mean',
                                           'Prewhitening',
                                           'Friedman\'s',
                                           'Modified Hugershoff'),
-                             selected = NULL),
+                             selected = 'None'),
                 
                 # conditional panel for spline detrending
                 conditionalPanel (condition = "input.detrendingMethod == 'Spline'",

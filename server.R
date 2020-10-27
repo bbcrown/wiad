@@ -39,7 +39,8 @@ shinyServer (function (input, output, session)
       relx = numeric (),   # relative x
       rely = numeric (),   # relative y
       type = character (), # type of marker ('Normal','Linker','Misc','Density fluctuation',
-                           #                 'Frost ring','Fire scar' or 'Pith')
+                           #                 'Frost ring','Fire scar',
+                           #                 'Early-to-latewood transition' or 'Pith')
       pixels = numeric (),   # "growth" in pixels of the image
       growth = numeric (),   # "growth" in micrometers
       year   = numeric (),   # year of formation
@@ -615,7 +616,8 @@ shinyServer (function (input, output, session)
       wMisc    <- which (rv$markerTable$type %in% c ('Misc',
                                                      'Density fluctuation',
                                                      'Frost ring',
-                                                     'Fire scar'))
+                                                     'Fire scar',
+                                                     'Early-to-latewood transition'))
       wPith    <- which (rv$markerTable$type == 'Pith')
       wMissing <- which (rv$markerTable$type == 'Missing')
       
@@ -1156,7 +1158,22 @@ shinyServer (function (input, output, session)
                  rv$check_table <- rv$check_table + 1
                })
   
-  # add a "Misc" point by double click
+  # Change type of previously set "Misc" label
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$selectMiscType,
+                {
+                  # write log
+                  printLog ('observeEvent input$selectMiscType')
+                  
+                  # change type of the misc label that was just set
+                  rv$markerTable [no == rv$index, type := input$miscType]
+                  
+                  # close the modal
+                  removeModal ()
+                  
+                })
+  
+  # add a "Misc" label by double click
   #--------------------------------------------------------------------------------------
   observeEvent (input$misc_point,
                 {
@@ -1194,8 +1211,8 @@ shinyServer (function (input, output, session)
                   # check what kind of special feature is labeled
                   showModal (strong (
                     modalDialog ("What kind of special feature are you labelling?",
-                                 easyClose = T,
-                                 fade = T,
+                                 easyClose = TRUE,
+                                 fade = TRUE,
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
@@ -1204,10 +1221,15 @@ shinyServer (function (input, output, session)
                                                  choices = c ('Misc',
                                                               'Density fluctuation',
                                                               'Frost ring',
-                                                              'Fire scar'),
-                                                 selected = NULL))))
+                                                              'Fire scar',
+                                                              'Early-to-latewood transition'),
+                                                 selected = NULL,
+                                                 inline = TRUE)),
+                                 actionButton (inputId = 'selectMiscType',
+                                               label = 'Select'),
+                                 modalButton ('Close')
+                                 ))
                   )
-                  print (input$miscType)
                   
                   # initialise new point
                   newPoint <- data.table (no = rv$index + 1,
@@ -1215,9 +1237,8 @@ shinyServer (function (input, output, session)
                                           y  = input$misc_point$y,
                                           relx = input$misc_point$x / input$misc_point$domain$right,
                                           rely = input$misc_point$y / input$misc_point$domain$top,
-                                          #type = 'Misc')
-                                          type = input$miscType)
-                  
+                                          type = 'Misc')
+                                          
                   # check that new point is different from old point
                   if (nrow (rv$markerTable) > 0) {
                     last <- rv$markerTable [nrow (rv$markerTable)]
@@ -1304,7 +1325,8 @@ shinyServer (function (input, output, session)
                                                          'Misc',
                                                          'Density fluctuation',
                                                          'Frost ring',
-                                                         'Fire scar'),
+                                                         'Fire scar',
+                                                         'Early-to-latewood transition'),
                                        years [i+1],
                                        years [i+1] - 1))
       }
@@ -1328,7 +1350,8 @@ shinyServer (function (input, output, session)
                                                          'Misc',
                                                          'Density fluctuation',
                                                          'Frost ring',
-                                                         'Fire scar'),
+                                                         'Fire scar',
+                                                         'Early-to-latewood transition'),
                                        years [i-1],
                                        years [i-1] - 1))
         }
@@ -1346,7 +1369,8 @@ shinyServer (function (input, output, session)
                                                            'Misc',
                                                            'Density fluctuation',
                                                            'Frost ring',
-                                                           'Fire scar'),
+                                                           'Fire scar',
+                                                           'Early-to-latewood transition'),
                                          ifelse (types [i-1] != 'Pith', 
                                                  years [i-1], 
                                                  years [i-1] - 1),
@@ -1367,7 +1391,8 @@ shinyServer (function (input, output, session)
                                                           'Misc', 
                                                           'Density fluctuation',
                                                           'Frost ring',
-                                                          'Fire scar'),
+                                                          'Fire scar',
+                                                          'Early-to-latewood transition'),
                                        years [i+1],
                                        years [i+1] - 1))
         }
@@ -1383,7 +1408,8 @@ shinyServer (function (input, output, session)
                                                          'Misc',
                                                          'Density fluctuation',
                                                          'Frost ring',
-                                                         'Fire scar'),
+                                                         'Fire scar',
+                                                         'Early-to-latewood transition'),
                                        years [i+1],
                                        years [i+1] + 1))
         }
@@ -1436,7 +1462,7 @@ shinyServer (function (input, output, session)
       # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
       # exception: two previous reference labels are linker labels
       if (growth_table$type [i] %in% c ('Normal','Misc','Density fluctuation',
-                                        'Frost ring','Fire scar')) {
+                                        'Frost ring','Fire scar','Early-to-latewood transition')) {
         
         # last reference marker was a normal marker
         if (lastPoint > lastLinker) {
