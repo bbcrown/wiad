@@ -1690,33 +1690,100 @@ shinyServer (function (input, output, session)
       pad = 4
     )
     
-    # convert year to be a factor
-    #------------------------------------------------------------------------------------
-    tbl [, year := as.factor (year)]
-    
     # filter out linker labels
     #------------------------------------------------------------------------------------
-    data <- tbl [type %in% c ('Normal','Pith')]
+    tbl <- tbl [type %in% c ('Normal','Pith')]
+    
+    # check wehether there is a pith label, hence two radial file measured
+    #------------------------------------------------------------------------------------
+    if ('Pith' %in% tbl [['type']]) {
+      
+      # find pith label index
+      index <- which (tbl [['type']] == 'Pith')
+      
+      # split radial files at the pith
+      data2 <- tbl [(index+1):nrow (tbl), ]
+      data1 <- tbl [1:index-1]
+      onlyOne <- FALSE
+    } else {
+      data1 <- tbl
+      onlyOne <- TRUE
+    }
     
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
-    if (is.na (input$sampleDPI)){
-      data [, toplot := pixels]
+    if (is.na (sampleDPI)){
+      data1 [, toplot := pixels]
+      if (!onlyOne) data2 [, toplot := pixels]
     } else {
-      data [, toplot := growth]
+      data1 [, toplot := growth]
+      if (!onlyOne) data2 [, toplot := growth]
     }
+  
+    # remove the first label, which does not have any "growth"
+    #------------------------------------------------------------------------------------
+    data1 <- data1 [-1, ]
+    
+    # convert table to dlpR format, which reads rwl files
+    #------------------------------------------------------------------------------------
+    foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
+                       by ='year')
+    foo [['toplot']] <- rowMeans (foo [, c ('toplot.x', 'toplot.y')], na.rm = TRUE)
+    
+    # extract detrending curve
+    #------------------------------------------------------------------------------------
+    detrended <- detrend.series (y      = foo [['toplot']], 
+                                 y.name = 'toplot', 
+                                 method = input$detrendingMethod, 
+                                 #nyrs   = 50, 
+                                 make.plot = FALSE,
+                                 return.info = TRUE)
+    
+    
+    # extract rwi indices, detrending curve, and years
+    #------------------------------------------------------------------------------------
+    rwi <- detrended$series
+    detrendingCurve <- detrended$curves
+    years <- foo [['year']]
     
     # plot absolute growth data to object p
     #------------------------------------------------------------------------------------
-    p <- plot_ly (data = data, 
+    p <- plot_ly (data = foo, 
                   x = ~year, 
                   y = ~toplot,
+                  name = 'mean',
                   type = 'scatter',
                   mode = 'lines+markers',
                   marker = list (color = colours [['colour']] [colours [['type']] == 'Normal'])) %>%
       layout (xaxis  = xAxis,
               yaxis  = yAxis,
               margin = m)
+    
+    # add the two potential series
+    #------------------------------------------------------------------------------------
+    if (!onlyOne) {
+      p <- p %>% add_trace (data = foo,
+                            y = ~toplot.x,
+                            name = 'series 1',
+                            mode = 'lines+markers',
+                            marker = list (color = 'grey', opacity = 0.6),
+                            line = list (color = 'grey', opacity = 0.2, width = 0.7))
+      
+      p <- p %>% add_trace (data = foo,
+                            y = ~toplot.y,
+                            name = 'series 2',
+                            mode = 'lines+markers',
+                            marker = list (color = 'grey', opacity = 0.6),
+                            line = list (color = 'grey', opacity = 0.2, width = 0.7))
+    }
+    
+    # add detrending curve to plot
+    #------------------------------------------------------------------------------------
+    p <- p %>% add_trace (y = ~detrendingCurve, 
+                          name = as.character (detrendingMethod),
+                          mode = 'lines+markers', 
+                          line = list (color = '#91b9a4'),
+                          marker = list (color ='transparent'))
     
     p$elementId <- NULL
     
@@ -1753,37 +1820,83 @@ shinyServer (function (input, output, session)
       titlefont = fontList
     )
     
-    yAxis <- list (
-      title = ifelse (test = is.na (input$sampleDPI),
-                      no   = "Radial growth increment (micrometers)",
-                      yes  = "Radial growth increment (pixels)"), 
+    yAxisD <- list (
+      title = 'Ring width index', 
       titlefont = fontList
     )
     
-    tbl [, year := as.factor (year)]
     
-    data <- tbl [type != 'Linker']
+    # filter out linker labels
+    #------------------------------------------------------------------------------------
+    tbl <- tbl [type %in% c ('Normal','Pith')]
     
-    # check whether data is in pixels or microns
-    if (is.na (input$sampleDPI)){
-      data [, toplot := pixels]
+    # check wehether there is a pith label, hence two radial file measured
+    #------------------------------------------------------------------------------------
+    if ('Pith' %in% tbl [['type']]) {
+      
+      # find pith label index
+      index <- which (tbl [['type']] == 'Pith')
+      
+      # split radial files at the pith
+      data2 <- tbl [(index+1):nrow (tbl), ]
+      data1 <- tbl [1:index-1]
+      onlyOne <- FALSE
     } else {
-      data [, toplot := growth]
+      data1 <- tbl
+      onlyOne <- TRUE
     }
     
-    p <- plot_ly (data = data, 
-                  x = ~year, 
-                  y = ~toplot,
+    # check whether data is in pixels or microns
+    #------------------------------------------------------------------------------------
+    if (is.na (sampleDPI)) {
+      data1 [, toplot := pixels]
+      if (!onlyOne) data2 [, toplot := pixels]
+    } else {
+      data1 [, toplot := growth]
+      if (!onlyOne) data2 [, toplot := growth]
+    }
+    
+    # remove the first label, which does not have any "growth"
+    #------------------------------------------------------------------------------------
+    data1 <- data1 [-1, ]
+    
+    # convert table to dlpR format, which reads rwl files
+    #------------------------------------------------------------------------------------
+    foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
+                       by ='year')
+    foo [['toplot']] <- rowMeans (foo [, c ('toplot.x', 'toplot.y')], na.rm = TRUE)
+    
+    # extract detrending curve
+    #------------------------------------------------------------------------------------
+    detrended <- detrend.series (y      = foo [['toplot']], 
+                                 y.name = 'toplot', 
+                                 method = input$detrendingMethod, 
+                                 #nyrs   = 50, 
+                                 make.plot = FALSE,
+                                 return.info = TRUE)
+    
+    
+    # extract rwi indices, detrending curve, and years
+    #------------------------------------------------------------------------------------
+    rwi <- detrended$series
+    detrendingCurve <- detrended$curves
+    years <- foo [['year']]
+    
+    # second plot with ring width indices
+    #------------------------------------------------------------------------------------
+    d <- plot_ly (x = ~years, 
+                  y = ~rwi,
+                  name = 'mean',
                   type = 'scatter',
                   mode = 'lines+markers',
-                  marker = list (color = '#e26828')
-    ) %>%
-      layout (xaxis = xAxis,
-              yaxis = yAxis)
+                  marker = list (color = 'cornflowerblue', symbol = 'circle-dot')) %>%
+      layout (xaxis  = xAxis,
+              yaxis  = yAxisD,
+              margin = m)
     
-    p$elementId <- NULL
+    d$elementId <- NULL
     
-    return (p)
+    return (d)
     
   })
   
