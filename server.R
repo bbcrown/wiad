@@ -555,6 +555,53 @@ shinyServer (function (input, output, session)
                     contributor      = input$contributor,
                     markerData       = growthTable (),
                     status           = input$confirmMeta)
+      
+      # return metadata
+      #----------------------------------------------------------------------------------
+      return (meta)
+    }
+  )
+  
+  # create detrendedData object that is pulled when detrendedData is saved
+  #--------------------------------------------------------------------------------------
+  detrendedData <- reactive (
+    {
+      # write log
+      #----------------------------------------------------------------------------------
+      printLog ('detrendedData reactive')
+      
+      # check for demo mode
+      #----------------------------------------------------------------------------------
+      if (rv$demoMode) {
+        showModal (strong (
+          modalDialog ("Warning: You are still in demo mode!",
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        return ()
+      }
+      
+      # compile and return metadata
+      #----------------------------------------------------------------------------------
+      meta <- metaData ()
+      print (meta)
+      
+      # get detrended data
+      #----------------------------------------------------------------------------------
+      detrended <- detrendGrowth () 
+      detrended [['nSeries']] <- NULL
+      detrended [['data']] <- NULL
+      print (detrended)
+      
+      # add detrended and metadata
+      detrended <- c (meta, detrended)
+      
+      # return detrended data
+      #----------------------------------------------------------------------------------
+      return (detrended)
+      
     }
   )
   
@@ -1274,6 +1321,10 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   growthTable <- reactive ({
     
+    # write log
+    #----------------------------------------------------------------------------------
+    printLog ('reactive$growthTable')
+    
     # check for requirements
     #------------------------------------------------------------------------------------
     req (rv$check_table)
@@ -1509,11 +1560,161 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     return (growth_table)
   })
-
+  
+  # compute detrended growth using the dplR functions
+  #--------------------------------------------------------------------------------------
+  detrendGrowth <- reactive ({
+    
+    # write log
+    #------------------------------------------------------------------------------------
+    printLog ('reactive$detrendGrowth ')
+    
+    # get growth table 
+    #------------------------------------------------------------------------------------
+    tbl <- growthTable ()
+    
+    # deselect Linker and Misc labels
+    #------------------------------------------------------------------------------------
+    tbl <- tbl [type %in% c ('Normal','Pith')]
+    
+    # check whether there are two radial series
+    #------------------------------------------------------------------------------------
+    if ('Pith' %in% tbl [['type']]) {
+      
+      # find pith label's index
+      wPith <- which (tbl [['type']] == 'Pith')
+      
+      # is there only one profile 
+      if (wPith == nrow (tbl)) {
+        data1 <- tbl
+        nSeries <- 1
+        
+      # if there are two series split them at the pith
+      } else {
+        data2 <- tbl [(index+1):nrow (tbl), ]
+        data1 <- tbl [1:index-1]
+        nSeries <- 2
+      }
+    }
+    
+    # check whether data is in pixels or microns
+    #------------------------------------------------------------------------------------
+    if (is.na (sampleDPI)){
+      data1 [, toplot := pixels]
+      if (nSeries == 2) data2 [, toplot := pixels]
+    } else {
+      data1 [, toplot := growth]
+      if (nSeries == 2) data2 [, toplot := growth]
+    }
+    
+    # remove the first label, which does not have any "growth"
+    #------------------------------------------------------------------------------------
+    data1 <- data1 [-1, ]
+    
+    # convert table to dlpR format, which reads rwl files
+    #------------------------------------------------------------------------------------
+    if (nSeries == 2) {
+      data <- right_join (x = data1 [, .(year, toplot)], 
+                          y = data2 [, .(year, toplot)], 
+                          by = 'year', 
+                          suffix = c ('.1','.2'))
+      
+      # compute the mean of the two series
+      #------------------------------------------------------------------------------------
+      data [['toplot']] <- rowMeans (data [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
+    } else {
+      data <- data1 [, .(year, toplot)]
+    }
+    
+    # determine whether residuals are obtained by division (as ratio) or substraction
+    #------------------------------------------------------------------------------------
+    detrendingDifference <- ifelse (input$detrendingDifference == 'Division', TRUE, FALSE) 
+    
+    # use mean ring width for detrending
+    #------------------------------------------------------------------------------------
+    if (input$detrendingMethod == 'Mean') {
+      detrended <- detrend.series (y      = data [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Mean', 
+                                   difference  = detrendingDifference,
+                                   make.plot   = FALSE,
+                                   return.info = TRUE)
+    # use spline for detrending
+    #------------------------------------------------------------------------------------
+    } else if (input$detrendingMethod == 'Spline') {
+      detrended <- detrend.series (y      = data [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Spline', 
+                                   nyrs   = input$detrendingWavelength,
+                                   f      = input$detrendingFrequencyResponse,
+                                   difference  = detrendingDifference,
+                                   make.plot   = FALSE,
+                                   return.info = TRUE)
+      
+    # use modified negative exponential for detrending
+    #------------------------------------------------------------------------------------
+    } else if (input$detrendingMethod == 'Modified negative exponential') {
+      detrended <- detrend.series (y      = data [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'ModNegExp', 
+                                   pos.slope = input$detrendingPosSlope,
+                                   constrain.nls = input$dedetrendingConstrainNLS,
+                                   difference  = detrendingDifference,
+                                   make.plot   = FALSE,
+                                   return.info = TRUE)
+      
+    # use Ar model for detrending
+    #------------------------------------------------------------------------------------
+    } else if (input$detrendingMethod == 'Prewhitening') {
+      detrended <- detrend.series (y      = data [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Ar', 
+                                   difference  = detrendingDifference,
+                                   make.plot   = FALSE,
+                                   return.info = TRUE)
+      
+    # use Friedman's Super Smoother for detrending
+    #------------------------------------------------------------------------------------
+    } else if (input$detrendingMethod == 'Friedman') {
+      detrended <- detrend.series (y      = data [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Friedman', 
+                                   #wt = input$detrendingWeights, # TR Notta bene: We only allow defaults for now.
+                                   #span = input$detrendingSpan, # TR Nota bene: We only allow defaults for now.
+                                   bass = input$detrendingBASS,
+                                   difference  = detrendingDifference,
+                                   make.plot   = FALSE,
+                                   return.info = TRUE)
+      
+    # use a modified Hugershoff for detrending
+    #------------------------------------------------------------------------------------
+    } else if (input$detrendingMethod == 'Modified Hugershoff') {
+      detrended <- detrend.series (y      = data [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'ModHugershoff', 
+                                   pos.slope = input$detrendingPosSlope,
+                                   constrain.nls = input$dedetrendingConstrainNLS,
+                                   difference  = detrendingDifference,
+                                   make.plot   = FALSE,
+                                   return.info = TRUE) 
+    }
+    
+    # add data and number of series
+    #------------------------------------------------------------------------------------
+    detrended [['data']]    <- data
+    detrended [['nSeries']] <- nSeries
+    
+    # return the detrended data 
+    #------------------------------------------------------------------------------------
+    return (detrended)
+  })
+  
   # render data table with label numbers, coordinates and calculated "growth" 
   #--------------------------------------------------------------------------------------
-  output$growth_table <- DT::renderDataTable (
-    {
+  output$growth_table <- DT::renderDataTable ({
+    
+      # write log
+      #----------------------------------------------------------------------------------
       printLog ('output$growth_table renderDataTable')
       
       # make local copy of label and growth data
@@ -1633,7 +1834,6 @@ shinyServer (function (input, output, session)
               ".json")
       
     },
-    
     content = function (file) {
       
       # write log
@@ -1713,14 +1913,6 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     printLog ('output$growth_plot renderPlotly')
     
-    # check that markerTable exists
-    #------------------------------------------------------------------------------------
-    tbl <- growthTable ()
-    
-    # check whether there is at least one growth icrement
-    #------------------------------------------------------------------------------------
-    if (nrow (tbl) == 0) return ()
-    
     # select font
     #------------------------------------------------------------------------------------
     fontList <- list (
@@ -1755,110 +1947,16 @@ shinyServer (function (input, output, session)
       pad = 4
     )
     
-    # filter out linker labels
+    # get detrended series
     #------------------------------------------------------------------------------------
-    tbl <- tbl [type %in% c ('Normal','Pith')]
-    
-    # check wehether there is a pith label, hence two radial file measured
-    #------------------------------------------------------------------------------------
-    if ('Pith' %in% tbl [['type']]) {
-      
-      # find pith label index
-      index <- which (tbl [['type']] == 'Pith')
-      
-      # is there only one profile 
-      if (index == nrow (tbl)) {
-        data1 <- tbl
-        onlyOne <- TRUE
-      
-      # split radial files at the pith
-      } else {
-        data2 <- tbl [(index+1):nrow (tbl), ]
-        data1 <- tbl [1:index-1]
-        onlyOne <- FALSE
-      }
-    }
-    
-    # check whether data is in pixels or microns
-    #------------------------------------------------------------------------------------
-    if (is.na (sampleDPI)){
-      data1 [, toplot := pixels]
-      if (!onlyOne) data2 [, toplot := pixels]
-    } else {
-      data1 [, toplot := growth]
-      if (!onlyOne) data2 [, toplot := growth]
-    }
-  
-    # remove the first label, which does not have any "growth"
-    #------------------------------------------------------------------------------------
-    data1 <- data1 [-1, ]
-    
-    # convert table to dlpR format, which reads rwl files
-    #------------------------------------------------------------------------------------
-    if (!onlyOne) {
-      foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
-                         by ='year', suffix = c ('.1','.2'))
-      foo [['toplot']] <- rowMeans (foo [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
-    } else {
-      foo <- data1 [, .(year, toplot)]
-    }
-    
-    # get detrended data 
-    #------------------------------------------------------------------------------------
-    if (input$detrendingMethod == 'Mean') {
-
-      # use mean ring width for detrending
-      #------------------------------------------------------------------------------------
-      detrended <- detrend.series (y      = foo [['toplot']], 
-                                   y.name = 'toplot', 
-                                   method = 'Mean', 
-                                   difference = input$detrendingResiduals,
-                                   make.plot = FALSE,
-                                   return.info = TRUE)
-    } else if (input$detrendingMethod == 'Spline') {
-        
-      # use spline for detrending
-      #------------------------------------------------------------------------------------
-      detrended <- detrend.series (y      = foo [['toplot']], 
-                                   y.name = 'toplot', 
-                                   method = 'Spline', 
-                                   nyrs   = input$detrendingWavelength,
-                                   f      = input$detrendingFrequencyResponse,
-                                   difference = input$detrendingResiduals,
-                                   make.plot = FALSE,
-                                   return.info = TRUE)
-    } else if (input$detrendingMethod == 'Modified negative exponential') {
-      
-      # use modified negative exponential for detrending
-      #------------------------------------------------------------------------------------
-      detrended <- detrend.series (y      = foo [['toplot']], 
-                                   y.name = 'toplot', 
-                                   method = 'ModNegExp', 
-                                   pos.slope = input$detrendingPosSlope,
-                                   constrain.nls = input$dedetrendingConstrainNLS,
-                                   difference = input$detrendingResiduals,
-                                   make.plot = FALSE,
-                                   return.info = TRUE)
-    } else if (input$detrendingMethod == 'Prewhitening') {
-      detrendingMethod <- 'Ar'
-    } else if (input$detrendingMethod == 'Friedman\'s') {
-      detrendingMethod <- 'Friedman'
-    } else if (input$detrendingMethod == 'Modified Hugershoff') {
-      detrendingMethod <- 'ModHugershoff'
-    }
-    
-    # extract rwi indices, detrending curve, and years
-    #------------------------------------------------------------------------------------
-    rwi <- detrended$series
-    detrendingCurve <- detrended$curves
-    years <- foo [['year']]
+    detrended <- detrendGrowth ()
     
     # plot absolute growth data to object p
     #------------------------------------------------------------------------------------
-    p <- plot_ly (data = foo, 
+    p <- plot_ly (data = detrended [['data']], 
                   x = ~year, 
                   y = ~toplot,
-                  name = 'mean',
+                  name = ifelse (detrended [['nSeries']] [[1]] == 2, 'Mean series', 'Series'),
                   type = 'scatter',
                   mode = 'lines+markers',
                   marker = list (color = 'cornflowerblue', symbol = 'circle-dot')) %>%
@@ -1868,26 +1966,28 @@ shinyServer (function (input, output, session)
     
     # add the two potential series
     #------------------------------------------------------------------------------------
-    if (!onlyOne) {
-      p <- p %>% add_trace (data = foo,
+    if (detrended [['nSeries']] == 2) {
+      p <- p %>% add_trace (data = detrended [['data']],
+                            x = ~year, 
                             y = ~toplot.1,
-                            name = 'series 1',
+                            name = 'Series A',
                             mode = 'lines+markers',
                             marker = list (color = 'grey', opacity = 0.6),
-                            line = list (color = 'grey', opacity = 0.2, width = 0.7))
+                            line   = list (color = 'grey', opacity = 0.2, width = 0.7))
       
-      p <- p %>% add_trace (data = foo,
+      p <- p %>% add_trace (data = detrended [['data']],
+                            x = ~year, 
                             y = ~toplot.2,
-                            name = 'series 2',
+                            name = 'Series B',
                             mode = 'lines+markers',
                             marker = list (color = 'grey', opacity = 0.6),
-                            line = list (color = 'grey', opacity = 0.2, width = 0.7))
+                            line   = list (color = 'grey', opacity = 0.2, width = 0.7))
     }
     
     # add detrending curve to plot
     #------------------------------------------------------------------------------------
-    p <- p %>% add_trace (y = ~detrendingCurve, 
-                          name = as.character (detrendingMethod),
+    p <- p %>% add_trace (y = ~detrended [['curves']], 
+                          name = input$detrendingMethod,
                           mode = 'lines+markers', 
                           line = list (color = '#901c3b'),
                           marker = list (color ='transparent'))
@@ -1907,10 +2007,6 @@ shinyServer (function (input, output, session)
     # write log
     #------------------------------------------------------------------------------------
     printLog ('output$detrended_growth_plot renderPlotly')
-    
-    # check that markerTable exists
-    #------------------------------------------------------------------------------------
-    tbl <- growthTable ()
     
     # check whether there is at least one growth icrement
     #------------------------------------------------------------------------------------
@@ -1932,122 +2028,20 @@ shinyServer (function (input, output, session)
       titlefont = fontList
     )
     
-    
-    # filter out linker labels
+    # get detrended series
     #------------------------------------------------------------------------------------
-    tbl <- tbl [type %in% c ('Normal','Pith')]
-    
-    # check wehether there is a pith label, hence two radial file measured
-    #------------------------------------------------------------------------------------
-    if ('Pith' %in% tbl [['type']]) {
-      
-      # find pith label index
-      index <- which (tbl [['type']] == 'Pith')
-      
-      # is there only one profile 
-      if (index == nrow (tbl)) {
-        data1 <- tbl
-        onlyOne <- TRUE
-        
-        # split radial files at the pith
-      } else {
-        data2 <- tbl [(index+1):nrow (tbl), ]
-        data1 <- tbl [1:index-1]
-        onlyOne <- FALSE
-      }
-    }    
-    # check whether data is in pixels or microns
-    #------------------------------------------------------------------------------------
-    if (is.na (sampleDPI)) {
-      data1 [, toplot := pixels]
-      if (!onlyOne) data2 [, toplot := pixels]
-    } else {
-      data1 [, toplot := growth]
-      if (!onlyOne) data2 [, toplot := growth]
-    }
-    
-    # remove the first label, which does not have any "growth"
-    #------------------------------------------------------------------------------------
-    data1 <- data1 [-1, ]
-    
-    # convert table to dlpR format, which reads rwl files
-    #------------------------------------------------------------------------------------
-    if (!onlyOne) {
-      foo <- right_join (x = data1 [, .(year, toplot)], y = data2 [, .(year, toplot)], 
-                         by ='year', suffix = c ('.1','.2'))
-      foo [['toplot']] <- rowMeans (foo [, c ('toplot.1', 'toplot.2')], na.rm = TRUE)
-    } else {
-      foo <- data1 [, .(year, toplot)]
-    }
-    
-    # get detrended data 
-    #------------------------------------------------------------------------------------
-    if (input$detrendingMethod == 'Mean') {
-      
-      # use mean ring width for detrending
-      #------------------------------------------------------------------------------------
-      detrended <- detrend.series (y      = foo [['toplot']], 
-                                   y.name = 'toplot', 
-                                   method = 'Mean', 
-                                   difference = input$detrendingResiduals,
-                                   make.plot = FALSE,
-                                   return.info = TRUE)
-    } else if (input$detrendingMethod == 'Spline') {
-      
-      # use spline for detrending
-      #------------------------------------------------------------------------------------
-      detrended <- detrend.series (y      = foo [['toplot']], 
-                                   y.name = 'toplot', 
-                                   method = 'Spline', 
-                                   nyrs   = input$detrendingWavelength,
-                                   f      = input$detrendingFrequencyResponse,
-                                   difference = input$detrendingResiduals,
-                                   make.plot = FALSE,
-                                   return.info = TRUE)
-    } else if (input$detrendingMethod == 'Modified negative exponential') {
-      
-      # use modified negative exponential for detrending
-      #------------------------------------------------------------------------------------
-      detrended <- detrend.series (y      = foo [['toplot']], 
-                                   y.name = 'toplot', 
-                                   method = 'ModNegExp', 
-                                   pos.slope = input$detrendingPosSlope,
-                                   constrain.nls = input$dedetrendingConstrainNLS,
-                                   difference = input$detrendingResiduals,
-                                   make.plot = FALSE,
-                                   return.info = TRUE)
-    } else if (input$detrendingMethod == 'Prewhitening') {
-      detrendingMethod <- 'Ar'
-    } else if (input$detrendingMethod == 'Friedman\'s') {
-      detrendingMethod <- 'Friedman'
-    } else if (input$detrendingMethod == 'Modified Hugershoff') {
-      detrendingMethod <- 'ModHugershoff'
-    }
-    
-    # extract detrending curve
-    #------------------------------------------------------------------------------------
-    detrended <- detrend.series (y      = foo [['toplot']], 
-                                 y.name = 'toplot', 
-                                 method = detrendingMethod, 
-                                 nyrs   = input$detrendingWavelength,
-                                 f      = input$detrendingFrequencyResponse,
-                                 pos.slope = input$detrendingPosSlope,
-                                 constrain.nls = input$dedetrendingConstrainNLS,
-                                 difference = input$detrendingResiduals,
-                                 make.plot = FALSE,
-                                 return.info = TRUE)
-    
+    detrended <- detrendGrowth ()
     
     # extract rwi indices, detrending curve, and years
     #------------------------------------------------------------------------------------
-    rwi <- detrended$series
-    years <- foo [['year']]
+    rwi   <- detrended$series
+    years <- detrended$data [['year']]
     
     # second plot with ring width indices
     #------------------------------------------------------------------------------------
     d <- plot_ly (x = ~years, 
                   y = ~rwi,
-                  name = 'mean',
+                  name = 'RWI of mean series',
                   type = 'scatter',
                   mode = 'lines+markers',
                   marker = list (color = '#af95a3', symbol = 'circle-dot'),
@@ -2058,6 +2052,8 @@ shinyServer (function (input, output, session)
     
     d$elementId <- NULL
     
+    # return plot
+    #------------------------------------------------------------------------------------
     return (d)
     
   })
@@ -2137,11 +2133,16 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     printLog ('input$detrendingMethod changed wavelength sliderInput')
 
+    # get number of normal and pith labels
+    #------------------------------------------------------------------------------------
+    n <- nrow (rv$markerTable [type %in% c ('Normal','Pith')])
+    
     # update the label on the pith/oldest ring action button
     #------------------------------------------------------------------------------------
     updateSliderInput (session = session,
                        inputId = 'detrendingWavelength',
-                       max = ifelse (nrow (rv$markerTable) > 0, nrow (rv$markerTable), 50))
+                       max = n,
+                       value = 0.67 * n)
 
     # return
     #------------------------------------------------------------------------------------
@@ -2293,9 +2294,9 @@ shinyServer (function (input, output, session)
       }
       
       # write metadata, label data and rwi series 
-      # metaData () %>% # TR Need to create a new function that creates all data, metadata and rwi.
-      #   toJSON () %>%
-      #   write_lines (file)
+      detrendedData () %>%
+        toJSON () %>%
+        write_lines (file)
     }
   )
   

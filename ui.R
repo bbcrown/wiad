@@ -349,7 +349,7 @@ fluidPage (
                                           'Modified negative exponential',
                                           'Mean',
                                           'Prewhitening',
-                                          'Friedman\'s',
+                                          'Friedman',
                                           'Modified Hugershoff'),
                              selected = 'Mean'),
                 
@@ -366,8 +366,9 @@ fluidPage (
                                   # set the wavelength for the spline
                                   sliderInput (inputId = 'detrendingWavelength',
                                                label = 'Wavelength',
-                                               min = 0, max = 100, 
-                                               step = 1,
+                                               min   = 0, 
+                                               max   = 100, 
+                                               step  = 1,
                                                value = 50,
                                                ticks = FALSE)
                                   ),
@@ -375,12 +376,42 @@ fluidPage (
                 # conditional panel for modified negative exponential detrending
                 conditionalPanel (condition = "input.detrendingMethod == 'Modified negative exponential'",
                                   
-                                  # check whether positive slopes are allowed for modified negatiev exponential
+                                  # check whether positive slopes are allowed for modified negative exponential
                                   checkboxInput (inputId = 'detrendingPosSlope',
                                                  label = 'Positive slopes allowed',
                                                  value = FALSE),
                                   
-                                  # set constraints for NLS for modified negatiev exponential
+                                  # set constraints for NLS for modified negative exponential
+                                  selectInput (inputId = 'detrendingConstrainNLS',
+                                               label = 'Constrain NLS',
+                                               choices = c ('Never',' When it fails','Always'),
+                                               selected = 'Never')
+                ),
+                
+                # conditional panel for prewhitening detrending using Ar model
+                # conditionalPanel (condition = "input.detrendingMethod == 'Prewhitening'"),
+                
+                # conditional panel for Friedman's Super Smoother detrending
+                conditionalPanel (condition = "input.detrendingMethod == 'Friedman'",
+                
+                                  # set smoothness
+                                  sliderInput (inputId = 'detrendingBASS',
+                                               label = 'Smoothness',
+                                               min   = 0, 
+                                               max   = 10,
+                                               value = 0)
+                                  
+                ),
+                
+                # conditional panel for modified Hugershoff detrending
+                conditionalPanel (condition = "input.detrendingMethod == 'Modified Hugershoff'",
+                                  
+                                  # check whether positive slopes are allowed for modified Hugershoff
+                                  checkboxInput (inputId = 'detrendingPosSlope',
+                                                 label = 'Positive slopes allowed',
+                                                 value = FALSE),
+                                  
+                                  # set constraints for NLS for modified Hugershoff
                                   selectInput (inputId = 'detrendingConstrainNLS',
                                                label = 'Constrain NLS',
                                                choices = c ('Never',' When it fails','Always'),
@@ -388,8 +419,8 @@ fluidPage (
                 ),
                 
                 # choose betwee residuals being computed by substraction or divison
-                selectInput (inputId  = 'detrendingResiduals',
-                             label    = 'Residuals',
+                selectInput (inputId  = 'detrendingDifference',
+                             label    = 'Compute residuals by',
                              choices  = c ('Division','Substraction'),
                              selected = 'Division'),
                 
