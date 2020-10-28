@@ -1815,18 +1815,18 @@ shinyServer (function (input, output, session)
                                    difference = input$detrendingResiduals,
                                    make.plot = FALSE,
                                    return.info = TRUE)
-      } else if (input$detrendingMethod == 'Spline') {
+    } else if (input$detrendingMethod == 'Spline') {
         
-        # use spline for detrending
-        #------------------------------------------------------------------------------------
-        detrended <- detrend.series (y      = foo [['toplot']], 
-                                     y.name = 'toplot', 
-                                     method = 'Spline', 
-                                     nyrs   = input$detrendingWavelength,
-                                     f      = input$detrendingFrequencyResponse,
-                                     difference = input$detrendingResiduals,
-                                     make.plot = FALSE,
-                                     return.info = TRUE)
+      # use spline for detrending
+      #------------------------------------------------------------------------------------
+      detrended <- detrend.series (y      = foo [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Spline', 
+                                   nyrs   = input$detrendingWavelength,
+                                   f      = input$detrendingFrequencyResponse,
+                                   difference = input$detrendingResiduals,
+                                   make.plot = FALSE,
+                                   return.info = TRUE)
     } else if (input$detrendingMethod == 'Modified negative exponential') {
       
       # use modified negative exponential for detrending
