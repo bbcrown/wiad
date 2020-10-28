@@ -586,14 +586,12 @@ shinyServer (function (input, output, session)
       # compile and return metadata
       #----------------------------------------------------------------------------------
       meta <- metaData ()
-      print (meta)
       
       # get detrended data
       #----------------------------------------------------------------------------------
       detrended <- detrendGrowth () 
       detrended [['nSeries']] <- NULL
       detrended [['data']] <- NULL
-      print (detrended)
       
       # add detrended and metadata
       detrended <- c (meta, detrended)
