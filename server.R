@@ -1778,8 +1778,6 @@ shinyServer (function (input, output, session)
         onlyOne <- FALSE
       }
     }
-    #print(onlyOne)
-    #print(head (data1))
     
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
@@ -1790,14 +1788,11 @@ shinyServer (function (input, output, session)
       data1 [, toplot := growth]
       if (!onlyOne) data2 [, toplot := growth]
     }
-    
-    #print(head (data1))
   
     # remove the first label, which does not have any "growth"
     #------------------------------------------------------------------------------------
     data1 <- data1 [-1, ]
     
-    #print(head (data1))
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
     if (!onlyOne) {
@@ -1808,12 +1803,42 @@ shinyServer (function (input, output, session)
       foo <- data1 [, .(year, toplot)]
     }
     
-    # get detrending method
+    # get detrended data 
     #------------------------------------------------------------------------------------
-    if (input$detrendingMethod %in% c ('Spline', 'Mean')) {
-      detrendingMethod <- input$detrendingMethod
+    if (input$detrendingMethod == 'Mean') {
+
+      # use mean ring width for detrending
+      #------------------------------------------------------------------------------------
+      detrended <- detrend.series (y      = foo [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Mean', 
+                                   difference = input$detrendingResiduals,
+                                   make.plot = FALSE,
+                                   return.info = TRUE)
+      } else if (input$detrendingMethod == 'Spline') {
+        
+        # use spline for detrending
+        #------------------------------------------------------------------------------------
+        detrended <- detrend.series (y      = foo [['toplot']], 
+                                     y.name = 'toplot', 
+                                     method = 'Spline', 
+                                     nyrs   = input$detrendingWavelength,
+                                     f      = input$detrendingFrequencyResponse,
+                                     difference = input$detrendingResiduals,
+                                     make.plot = FALSE,
+                                     return.info = TRUE)
     } else if (input$detrendingMethod == 'Modified negative exponential') {
-      detrendingMethod <- 'ModNegExp'
+      
+      # use modified negative exponential for detrending
+      #------------------------------------------------------------------------------------
+      detrended <- detrend.series (y      = foo [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'ModNegExp', 
+                                   pos.slope = input$detrendingPosSlope,
+                                   constrain.nls = input$dedetrendingConstrainNLS,
+                                   difference = input$detrendingResiduals,
+                                   make.plot = FALSE,
+                                   return.info = TRUE)
     } else if (input$detrendingMethod == 'Prewhitening') {
       detrendingMethod <- 'Ar'
     } else if (input$detrendingMethod == 'Friedman\'s') {
@@ -1821,17 +1846,6 @@ shinyServer (function (input, output, session)
     } else if (input$detrendingMethod == 'Modified Hugershoff') {
       detrendingMethod <- 'ModHugershoff'
     }
-    
-    # extract detrending curve
-    #------------------------------------------------------------------------------------
-    detrended <- detrend.series (y      = foo [['toplot']], 
-                                 y.name = 'toplot', 
-                                 method = detrendingMethod, 
-                                 nyrs   = input$detrendingWavelength,
-                                 f      = input$detrendingFrequencyResponse,
-                                 make.plot = FALSE,
-                                 return.info = TRUE)
-    
     
     # extract rwi indices, detrending curve, and years
     #------------------------------------------------------------------------------------
@@ -1966,12 +1980,42 @@ shinyServer (function (input, output, session)
       foo <- data1 [, .(year, toplot)]
     }
     
-    # get detrending method
+    # get detrended data 
     #------------------------------------------------------------------------------------
-    if (input$detrendingMethod %in% c ('Spline', 'Mean')) {
-      detrendingMethod <- input$detrendingMethod
+    if (input$detrendingMethod == 'Mean') {
+      
+      # use mean ring width for detrending
+      #------------------------------------------------------------------------------------
+      detrended <- detrend.series (y      = foo [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Mean', 
+                                   difference = input$detrendingResiduals,
+                                   make.plot = FALSE,
+                                   return.info = TRUE)
+    } else if (input$detrendingMethod == 'Spline') {
+      
+      # use spline for detrending
+      #------------------------------------------------------------------------------------
+      detrended <- detrend.series (y      = foo [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'Spline', 
+                                   nyrs   = input$detrendingWavelength,
+                                   f      = input$detrendingFrequencyResponse,
+                                   difference = input$detrendingResiduals,
+                                   make.plot = FALSE,
+                                   return.info = TRUE)
     } else if (input$detrendingMethod == 'Modified negative exponential') {
-      detrendingMethod <- 'ModNegExp'
+      
+      # use modified negative exponential for detrending
+      #------------------------------------------------------------------------------------
+      detrended <- detrend.series (y      = foo [['toplot']], 
+                                   y.name = 'toplot', 
+                                   method = 'ModNegExp', 
+                                   pos.slope = input$detrendingPosSlope,
+                                   constrain.nls = input$dedetrendingConstrainNLS,
+                                   difference = input$detrendingResiduals,
+                                   make.plot = FALSE,
+                                   return.info = TRUE)
     } else if (input$detrendingMethod == 'Prewhitening') {
       detrendingMethod <- 'Ar'
     } else if (input$detrendingMethod == 'Friedman\'s') {
@@ -1987,6 +2031,9 @@ shinyServer (function (input, output, session)
                                  method = detrendingMethod, 
                                  nyrs   = input$detrendingWavelength,
                                  f      = input$detrendingFrequencyResponse,
+                                 pos.slope = input$detrendingPosSlope,
+                                 constrain.nls = input$dedetrendingConstrainNLS,
+                                 difference = input$detrendingResiduals,
                                  make.plot = FALSE,
                                  return.info = TRUE)
     
@@ -2135,7 +2182,8 @@ shinyServer (function (input, output, session)
       # show message to alert user for demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
-        modalDialog ("Warning: You are now entering demo mode!",
+        modalDialog (HTML ("Warning: <br>
+                           You are now entering demo mode!"),
                      easyClose = T,
                      fade = T,
                      size = 's',
@@ -2151,18 +2199,13 @@ shinyServer (function (input, output, session)
       # show message to alert user for end of demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
-        modalDialog ("Warning: You are now leaving demo mode!",
+        modalDialog (HTML ("Warning: <br>
+                           You are now leaving demo mode!"),
                      easyClose = T,
                      fade = T,
-                     size = 's',
                      style = 'background-color:#3b3a35; color:#f3bd48; ',
                      footer = NULL)))
     }    
-    # update demo mode action button
-    #------------------------------------------------------------------------------------
-    # updateActionButton (session = session, 
-    #                     inputId = 'demoMode',
-    #                     label = )
     
     # return
     #------------------------------------------------------------------------------------
@@ -2173,17 +2216,20 @@ shinyServer (function (input, output, session)
   #------------------------------------------------------------------------------------
   output$demoButton <- renderUI (
     {
+      # demo mode was switched ON and we are now leaving
       if (rv$demoMode) {
         actionButton (inputId = 'demoMode', 
-                      label = 'Demo mode on',
+                      label = 'Demo ON',
                       icon = icon ('image'), 
                       class = 'btn-primary', 
                       width = '100%', 
                       style = 'font-weight: bold;
                       color: #91b9a4;')
+        
+      # demo mode was switched OFF and we are now entering
       } else if (!rv$demoMode) {
         actionButton (inputId = 'demoMode', 
-                      label = 'Demo mode off',
+                      label = 'Demo OFF',
                       icon = icon ('image'), 
                       class = 'btn-primary', 
                       width = '100%', 

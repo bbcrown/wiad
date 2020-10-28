@@ -345,25 +345,24 @@ fluidPage (
                 # input panel for method of detrending for which we use the dplR package
                 selectInput (inputId = 'detrendingMethod',
                              label = 'Detrending method',
-                             choices = c ('None',
-                                          'Spline',
+                             choices = c ('Spline',
                                           'Modified negative exponential',
                                           'Mean',
                                           'Prewhitening',
                                           'Friedman\'s',
                                           'Modified Hugershoff'),
-                             selected = 'None'),
+                             selected = 'Mean'),
                 
                 # conditional panel for spline detrending
                 conditionalPanel (condition = "input.detrendingMethod == 'Spline'",
-                                  
+
                                   # set frequency response for the spline
                                   sliderInput (inputId = 'detrendingFrequencyResponse',
                                                label = 'Frequency response',
                                                min = 0, max = 1, step = 0.05,
                                                value = 0.5,
                                                ticks = FALSE),
-
+                                  
                                   # set the wavelength for the spline
                                   sliderInput (inputId = 'detrendingWavelength',
                                                label = 'Wavelength',
@@ -372,6 +371,27 @@ fluidPage (
                                                value = 50,
                                                ticks = FALSE)
                                   ),
+                
+                # conditional panel for modified negative exponential detrending
+                conditionalPanel (condition = "input.detrendingMethod == 'Modified negative exponential'",
+                                  
+                                  # check whether positive slopes are allowed for modified negatiev exponential
+                                  checkboxInput (inputId = 'detrendingPosSlope',
+                                                 label = 'Positive slopes allowed',
+                                                 value = FALSE),
+                                  
+                                  # set constraints for NLS for modified negatiev exponential
+                                  selectInput (inputId = 'detrendingConstrainNLS',
+                                               label = 'Constrain NLS',
+                                               choices = c ('Never',' When it fails','Always'),
+                                               selected = 'Never')
+                ),
+                
+                # choose betwee residuals being computed by substraction or divison
+                selectInput (inputId  = 'detrendingResiduals',
+                             label    = 'Residuals',
+                             choices  = c ('Division','Substraction'),
+                             selected = 'Division'),
                 
                 # download button for label table, metadata and RWI in JSON format
                 downloadButton (outputId = 'downloadRWI_JSON', 
