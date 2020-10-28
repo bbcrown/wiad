@@ -2104,44 +2104,94 @@ shinyServer (function (input, output, session)
 
   # update oldest ring/pith action button label depending on whether the pith is in the image or not
   #--------------------------------------------------------------------------------------
-  observeEvent (input$demoImage, {
+  observeEvent (input$demoMode, {
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('input$demoImage load demo image')
+    printLog ('input$demoImage switch demo mode on/off')
     
-    # get path to image
+    # check whether demoMode was off
     #------------------------------------------------------------------------------------
-    rv$imgPath <- 'demoImage.jpg'
+    if (!rv$demoMode) {
     
-    # get file extension
+      rv$demoMode <- TRUE
+      
+      # get path to image
+      #----------------------------------------------------------------------------------
+      rv$imgPath <- 'demoImage.jpg'
+      
+      # get file extension
+      #----------------------------------------------------------------------------------
+      rv$imgExt <- file_ext (rv$imgPath)
+      
+      # read image
+      #----------------------------------------------------------------------------------
+      rv$imgMat <- readJPEG (rv$imgPath)
+      
+      # set demo mode and not loaded to TRUE
+      #----------------------------------------------------------------------------------
+      rv$demoMode  <- TRUE
+      
+      # show message to alert user for demo mode
+      #----------------------------------------------------------------------------------
+      showModal (strong (
+        modalDialog ("Warning: You are now entering demo mode!",
+                     easyClose = T,
+                     fade = T,
+                     size = 's',
+                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     footer = NULL)))
+      
+    # else we are leaving demo mode
+    } else if (rv$demoMode) {
+      
+      # turn demo mode off
+      rv$demoMode <- FALSE
+      
+      # show message to alert user for end of demo mode
+      #----------------------------------------------------------------------------------
+      showModal (strong (
+        modalDialog ("Warning: You are now leaving demo mode!",
+                     easyClose = T,
+                     fade = T,
+                     size = 's',
+                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     footer = NULL)))
+    }    
+    # update demo mode action button
     #------------------------------------------------------------------------------------
-    rv$imgExt <- file_ext (rv$imgPath)
-    
-    # read image
-    #------------------------------------------------------------------------------------
-    rv$imgMat <- readJPEG (rv$imgPath)
-    
-    # set demo mode and not loaded to TRUE
-    #------------------------------------------------------------------------------------
-    rv$demoMode  <- TRUE
-    rv$notLoaded <- TRUE
-    
-    # show message to alert user for demo mode
-    #------------------------------------------------------------------------------------
-    showModal (strong (
-      modalDialog ("Warning: You are now entering demo mode until you upload an image!",
-                   easyClose = T,
-                   fade = T,
-                   size = 's',
-                   style = 'background-color:#3b3a35; color:#f3bd48; ',
-                   footer = NULL)))
-    
+    # updateActionButton (session = session, 
+    #                     inputId = 'demoMode',
+    #                     label = )
     
     # return
     #------------------------------------------------------------------------------------
     return ()
   })
+  
+  # create a demo button that changes colour
+  #------------------------------------------------------------------------------------
+  output$demoButton <- renderUI (
+    {
+      if (rv$demoMode) {
+        actionButton (inputId = 'demoMode', 
+                      label = 'Demo mode on',
+                      icon = icon ('image'), 
+                      class = 'btn-primary', 
+                      width = '100%', 
+                      style = 'font-weight: bold;
+                      color: #91b9a4;')
+      } else if (!rv$demoMode) {
+        actionButton (inputId = 'demoMode', 
+                      label = 'Demo mode off',
+                      icon = icon ('image'), 
+                      class = 'btn-primary', 
+                      width = '100%', 
+                      style = 'font-weight: bold;
+                      color: #eb99a9;')
+      }
+    })
+  
   # download a json file with the metadata and marker locations and growth
   #--------------------------------------------------------------------------------------
   output$downloadRWI_JSON <- downloadHandler (

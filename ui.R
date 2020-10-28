@@ -27,8 +27,7 @@ fluidPage (
     tags$style ('
     .link {color: #91b9a4;} 
     .link {float: right;} 
-    .link:hover {color: #a41034;}') # TR change these colours to something more pleasant
-  ),
+    .link:hover {color: #a41034;}')),
   
   # title of the page
   titlePanel ('TRIAD: Tree Ring Image Analysis and Dataset'),
@@ -69,7 +68,7 @@ fluidPage (
                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                
                # bring the link closer to the metadata upload
-               div (style = "margin-top:-15px; margin-bottom:25px; color:#91b9a4"),
+               div (style = "margin-top:-15px; margin-bottom:25px"),
                
                # download link to retrieve metadata template
                downloadLink (outputId = '&nbsp; downloadTemplate',
@@ -305,15 +304,8 @@ fluidPage (
                                        width = '100%', 
                                        style = 'font-weight: bold;')),
                  
-                 # Load demo image
-                 column (3, 
-                         actionButton (inputId = 'demoImage', 
-                                       label = 'Demo image',
-                                       icon = icon ('image'), 
-                                       class = 'btn-primary', 
-                                       width = '100%', 
-                                       style = 'font-weight: bold;'))
-                 
+                 # Button to switch to demo mode and load a demo image
+                 column (3, uiOutput (outputId = 'demoButton'))
                ),
                
                # section breaker
