@@ -2197,9 +2197,9 @@ shinyServer (function (input, output, session)
       }
       
       # write metadata, label data and rwi series 
-      metaData () %>% 
-        toJSON () %>%
-        write_lines (file)
+      # metaData () %>% # TR Need to create a new function that creates all data, metadata and rwi.
+      #   toJSON () %>%
+      #   write_lines (file)
     }
   )
   
