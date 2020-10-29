@@ -57,40 +57,106 @@ gettmpdir <- function() {
 }
 
 # rotate a matrix 
-rotate <- function(x) t(apply(x, 2, rev))
+rotate <- function (x) t (apply (x, 2, rev))
 
 # rotate an RGB array (or any 3D array)
-rotateRGB <- function(imgMat){
-  if(dim(imgMat)[3]!=3) stop('matrix must have 3 layers in the 3rd dimension!')
-  r <- rotate(imgMat[,,1])
-  g <- rotate(imgMat[,,2])
-  b <- rotate(imgMat[,,3])
+rotateRGB <- function (imgMat) {
+  if (dim (imgMat) [3] != 3) stop ('matrix must have 3 layers in the 3rd dimension!')
+  r <- rotate (imgMat[,,1])
+  g <- rotate (imgMat[,,2])
+  b <- rotate (imgMat[,,3])
   
-  rot <- abind(r, g, b, along = 3)
-  rot
+  rot <- abind (r, g, b, along = 3)
+  return (rot)
 }
 
 
 # print a message into konsole given the message string for logging purposes
-printLog <- function(msg=NULL, init=F, finit=F){
-  if(!PRINT_LOGS) return()
+printLog <- function (msg = NULL, init = F, finit = F){
+  if (!PRINT_LOGS) return ()
   systime <- Sys.time()
   
-  if(init){
-    message(paste('\n--------------------------------------------------------------------\n', 
-                  as.character(systime),'New session just started!',
-                  '\n--------------------------------------------------------------------\n'))
+  if (init){
+    message (paste ('\n--------------------------------------------------------------------\n', 
+                    as.character(systime),'New session just started!',
+                    '\n--------------------------------------------------------------------\n'))
     return()
   }
   
-  if(finit){
-    message(paste('\n--------------------------------------------------------------------\n', 
-                  as.character(systime),'Initial setup was completed!',
-                  '\n--------------------------------------------------------------------\n'))
+  if (finit) {
+    message (paste ('\n--------------------------------------------------------------------\n', 
+                    as.character(systime),'Initial setup was completed!',
+                    '\n--------------------------------------------------------------------\n'))
     return()
   }
   
-  message(paste(as.character(systime), 
-                signif(as.numeric(systime)-floor(as.numeric(systime)),3),
-                msg, '\t'))
+  message (paste (as.character (systime), 
+                  signif (as.numeric (systime)-floor (as.numeric (systime)),3),
+                  msg, '\t'))
+}
+
+# function to add delete button to the datatable
+#' A column of delete buttons for each row in the data frame for the first column
+#'
+#' @param df data frame
+#' @param id id prefix to add to each actionButton. The buttons will be id'd as id_INDEX.
+#' @return A DT::datatable with escaping turned off that has the delete buttons in the first column and \code{df} in the other
+displayDataTable <- function (df, id1, id2, ...) {
+  
+  # re-order df to start with the oldest value
+  df <- df [order (no, decreasing = TRUE)]
+  
+  # function to create one delete button as string
+  f <- function (i) {
+    as.character (
+      actionButton (
+        # The id prefix with index
+        inputId = paste (id1, i, sep="_"),
+        label   = NULL,
+        icon    = icon ('trash-alt'),
+        onclick = 'Shiny.setInputValue(\"deleteRow\", this.id, {priority: "event"})'))
+  }
+  
+  # function to create one insert button as string
+  g <- function (i) {
+    as.character (
+      actionButton (
+        # The id prefix with index
+        inputId = paste (id2, i, sep="_"),
+        label   = NULL,
+        icon    = icon ('plus-circle'),
+        onclick = 'Shiny.setInputValue(\"insertRow\", this.id, {priority: "event"})'))
+  }
+  
+  # create vector of actions buttons
+  insertCol <- unlist (lapply (seq_len (nrow (df)), g))
+  deleteCol <- unlist (lapply (seq_len (nrow (df)), f))
+  
+  # return output data table
+  DT::datatable (cbind (df, delete = deleteCol, insert = insertCol),
+                 
+                 # Need to disable escaping for html as string to work
+                 escape = FALSE, rownames = FALSE,
+                 options = list (
+                   
+                   # Disable sorting for the delete column
+                   columnDefs = list (
+                     list (targets = c (9, 10), sortable = FALSE)),
+                   initComplete = JS (
+                     "function(settings, json) {",
+                     "$(this.api().table().header()).css({'background-color': '#484e55', 'color': '#fff'});",
+                     "$('.dataTables_info').css({'color':'#888'});",
+                     "$('.dataTables_filter').css({'color':'#888'});",
+                     "$('.dataTables_length').css({'color':'#888'}, );",
+                     "}") 
+                ))  %>% DT::formatRound (columns = c ('x','y','pixels','growth'), digits = 0) %>% 
+                        DT::formatRound (columns = c ('relx','rely'),             digits = 3)
+}
+
+#' Extracts the row id number from the id string to delete individual rows
+#' @param idstr the id string formated as id_INDEX
+#' @return INDEX from the id string id_INDEX
+parseRowNumber <- function (idstr) {
+  res <- as.integer (sub (".*_([0-9]+)", "\\1", idstr))
+  if (! is.na (res)) res
 }
