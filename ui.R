@@ -444,7 +444,10 @@ fluidPage (
                   # plot the detrended ring width index over time
                   plotlyOutput (outputId = 'detrended_growth_plot', 
                                 height = "500px", 
-                                width = "100%")
+                                width = "100%"),
+                  
+                  # add a little gray space
+                  br ()
                  
                )
              ),
