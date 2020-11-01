@@ -1272,7 +1272,7 @@ shinyServer (function (input, output, session)
                                                  inline = TRUE)),
                                  actionButton (inputId = 'selectMiscType',
                                                label = 'Select'),
-                                 modalButton ('Close')
+                                 modalButton ('Cancel')
                                  ))
                   )
                   
