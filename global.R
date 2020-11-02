@@ -8,6 +8,9 @@
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
+# This is the version of the Tree Ring Image Analysis and Database 
+TRIADversion <- 'Generated with the Tree Ring Image Analysis and Database (TRIAD) v0.1.1.1.'
+
 # loading auxiliary functions that are called in server.R and ui.R
 source ('funcs.R')
 

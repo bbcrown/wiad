@@ -244,6 +244,9 @@ shinyServer (function (input, output, session)
                    rely = numeric (),   # relative y
                    type = character ()  # type
                  )
+                 
+                 # reset the index marker
+                 rv$index <- 0
                }
   )
   
@@ -535,7 +538,8 @@ shinyServer (function (input, output, session)
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- list (ownerName        = input$ownerName, 
+      meta <- list (version          = TRIADversion,
+                    ownerName        = input$ownerName, 
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
                     sampleDate       = input$sampleDate,
@@ -1356,7 +1360,12 @@ shinyServer (function (input, output, session)
                                          c ('only started', 'already ended'),
                                        input$sampleYear + 1,
                                        input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 'Misc', ''),
+                               ifelse (types [i] %in% c ('Linker', 
+                                                         'Misc', 
+                                                         'Densit fluctuation',
+                                                         'Frost ring',
+                                                         'Fire scar',
+                                                         'Early-to-latewood transition'),
                                        years [i-1],
                                        years [i-1] - 1)
           )
