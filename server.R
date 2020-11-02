@@ -1362,7 +1362,7 @@ shinyServer (function (input, output, session)
                                        input$sampleYear),
                                ifelse (types [i] %in% c ('Linker', 
                                                          'Misc', 
-                                                         'Densit fluctuation',
+                                                         'Density fluctuation',
                                                          'Frost ring',
                                                          'Fire scar',
                                                          'Early-to-latewood transition'),
