@@ -1332,153 +1332,123 @@ shinyServer (function (input, output, session)
     req (rv$check_table)
     req (rv$markerTable)
     
-    # copy rv$markerTable into growth_table
+    # copy rv$markerTable into growth_table, if it has at least one row
     #------------------------------------------------------------------------------------
-    growth_table <- rv$markerTable
+    if (nrow (rv$markerTable) > 0) {
+      growth_table <- rv$markerTable
+    } else {
+      return ()
+    }
     
     # get types of labels
     #------------------------------------------------------------------------------------
     types <- growth_table [, type]
     n <- length (types)
     
-    # initialise years vector
+    # initialise years vector, which associates the starting boundary of the growth ring 
+    # with the year of the growing season  
     #------------------------------------------------------------------------------------
     years <- rep (NA, n)
-    
-    # check whether there is no pith marker (which marks oldest ring or pith) yet
+   
+    # measurement series starts at the bark
     #------------------------------------------------------------------------------------
-    if (sum (types == 'Pith', na.rm = TRUE) == 0) {
-
-      # check whether the measurement series starts at the bark
-      #----------------------------------------------------------------------------------
-      if (input$barkFirst) {
-
-        # loop over all points from bark towards the pith
-        for (i in 1:n)
-          years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 
-                                                         'Misc', 
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i-1],
-                                       years [i-1] - 1)
-          )
-      # else the measurement series starts at the inner most ring
-      } else if (!input$barkFirst) {
-        
-        # loop over all points from inner most ring towards the bark in reverse order
-        for (i in n:1)
-          years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 
-                                                         'Misc',
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i+1],
-                                       years [i+1] - 1))
-      }
-    # else there is a pith marker already
-    } else if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+    if (input$barkFirst) {
       
-      # find the index of pith marker
-      p <- which (types == 'Pith')
-
-      # check whether the measurement series starts at the bark
-      if (input$barkFirst){
-        
-        # loop over all points from bark to pith
-        for (i in 1:p) {
-          years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 
-                                                         'Misc',
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i-1],
-                                       years [i-1] - 1))
-        }
-        
-        # only if the last point was not the oldest ring (i.e., pith marker) 
-        if (n > p) {
-          # loop over all point from pith towards the bark in potential second profile
-          for (i in (p + 1):n) {
-            years [i] <- ifelse (i == 1,
-                                 ifelse (input$sampleYearGrowingSeason %in% 
-                                           c ('only started', 'already ended'),
-                                         input$sampleYear + 1,
-                                         input$sampleYear),
-                                 ifelse (types [i] %in% c ('Linker', 
-                                                           'Misc',
-                                                           'Density fluctuation',
-                                                           'Frost ring',
-                                                           'Fire scar',
-                                                           'Early-to-latewood transition'),
-                                         ifelse (types [i-1] != 'Pith', 
-                                                 years [i-1], 
-                                                 years [i-1] - 1),
-                                         years [i-1] + 1))
+      # is there a pith or oldest ring label? If so, find its index p
+      #------------------------------------------------------------------------------------
+      if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+        p <- which (types == 'Pith') 
+      } else {
+        p <- n
+      }
+      
+      # loop over all points from bark to pith
+      for (i in 1:p) {
+        if (i == 1 & input$sampleYearGrowingSeason %in% c ('only started', 
+                                                           'already ended')) {
+          years [i] <- input$sampleYear + 1
+        } else if (i == 1 & input$sampleYearGrowingSeason == 'not started') {
+          years [i] <- input$sampleYear
+        } else {
+          
+          # find the last normal label index j
+          j <- max (which (types [1:(i-1)] == 'Normal'))
+          
+          # for normal or misc label, substract one year
+          if (types [i] %in% c ('Normal', 'Misc', 'Density fluctuation', 'Frost ring',
+                                'Fire scar', 'Early-to-latewood transition')) {
+            years [i] <- years [j] - 1
           }
         }
-      # else the measurement series starts at the pith
-      } else if (!input$barkFirst) {
+      }
+      
+      # and beyond the pith/oldest ring if there are additional labels
+      if (n > p) {
         
-        # loop over points from potential second profile to the pith
-        for (i in n:p) {
-          years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i]  %in% c ('Linker', 
-                                                          'Misc', 
-                                                          'Density fluctuation',
-                                                          'Frost ring',
-                                                          'Fire scar',
-                                                          'Early-to-latewood transition'),
-                                       years [i+1],
-                                       years [i+1] - 1))
-        }
-
-        # loop over points from pith to bark
-        for (i in (p-1):1) {
-          years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker',
-                                                         'Misc',
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i+1],
-                                       years [i+1] + 1))
+        # loop over all point from pith towards the bark in potential second profile
+        for (i in (p + 1):n) {
+          
+          # find the last normal label index j
+          j <- max (which (types [1:(i-1)] == 'Normal'))
+          
+          # for normal or misc label, add one year
+          if (types [i] %in% c ('Normal')) {
+            years [i] <- years [j] + 1
+            # for misc labels use the same year
+          } else if (types [i] %in% c ('Misc', 'Density fluctuation', 'Frost ring',
+                                       'Fire scar', 'Early-to-latewood transition')) {
+            years [i] <- years [j]
+          }
         }
       }
-    }
+      
+    # else the measurement series starts at the oldest ring or pith
+    } else if (!input$barkFirst) {
     
+      # is there a pith or oldest ring label? If so, find its index p
+      #------------------------------------------------------------------------------------
+      if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+        p <- which (types == 'Pith') 
+        
+        # check that the first label is the oldest ring or pith
+        if (p != 1) {
+          showModal (strong (
+            modalDialog ("Error: You start your measurement at the pith, but your first label is not the pith. Something is not correct!",
+                         easyClose = T,
+                         fade = T,
+                         size = 's',
+                         style = 'background-color:#3b3a35; color:#f3bd48; ',
+                         footer = NULL)))
+          return ()
+        }
+    
+        # loop over all points from inner most ring towards the bark in reverse order
+        for (i in n:1) {
+          if (i == n & input$sampleYearGrowingSeason %in% c ('only started', 
+                                                             'already ended')) {
+            years [i] <- input$sampleYear + 1
+          } else if (i == n & input$sampleYearGrowingSeason == 'not started') {
+            years [i] <- input$sampleYear
+          } else {
+            
+            # find the last normal label index j
+            j <- min (which (types [(i+1):n] == 'Normal'))
+            
+            # for normal or misc label, substract one year
+            if (types [i] %in% c ('Normal', 'Misc', 'Density fluctuation', 'Frost ring',
+                                  'Fire scar', 'Early-to-latewood transition')) {
+              years [i] <- years [j] - 1
+            }
+          }
+        }
+      }
+    } # Nota bene: "Linker" labels are not associated with any particular year
+  
     # add years to growth table
     growth_table$year <- years
     
-    # check whether at least two labels have been set
-    if (nrow (growth_table) <= 1)  return (growth_table)
+    # with only one label, no meaningful growth can be calculated 
+    if (nrow (growth_table) == 1)  return (growth_table)
     
     # intialise growth in pixels
     pixels <- rep (NA, n)
@@ -1724,13 +1694,13 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       printLog ('output$growth_table renderDataTable')
       
-      # make local copy of label and growth data
+      # make local copy of label and growth data, unless there is no data
       #----------------------------------------------------------------------------------
-      labelTable <- growthTable ()
-      
-      # return if there is no data
-      #----------------------------------------------------------------------------------
-      if (nrow (labelTable) == 0) return ()
+      if (nrow (rv$markerTable) > 0) {
+        labelTable <- growthTable ()
+      } else {
+        return ()
+      }
       
       # order table, aka starting with the most recent year
       #----------------------------------------------------------------------------------
