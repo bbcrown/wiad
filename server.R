@@ -1375,9 +1375,11 @@ shinyServer (function (input, output, session)
           j <- max (which (types [1:(i-1)] == 'Normal'))
           
           # for normal or misc label, substract one year
-          if (types [i] %in% c ('Normal', 'Misc', 'Density fluctuation', 'Frost ring',
-                                'Fire scar', 'Early-to-latewood transition')) {
+          if (types [i] %in% c ('Normal','Missing','Misc','Density fluctuation',
+                                'Frost ring','Fire scar','Early-to-latewood transition')) {
             years [i] <- years [j] - 1
+          } else if (types [i] == "Linker") {
+            years [i] <- years [j]
           }
         }
       }
@@ -1392,11 +1394,11 @@ shinyServer (function (input, output, session)
           j <- max (which (types [1:(i-1)] == 'Normal'))
           
           # for normal or misc label, add one year
-          if (types [i] %in% c ('Normal')) {
+          if (types [i] %in% c ('Normal','Missing')) {
             years [i] <- years [j] + 1
             # for misc labels use the same year
-          } else if (types [i] %in% c ('Misc', 'Density fluctuation', 'Frost ring',
-                                       'Fire scar', 'Early-to-latewood transition')) {
+          } else if (types [i] %in% c ('Linker','Misc','Density fluctuation','Frost ring',
+                                       'Fire scar','Early-to-latewood transition')) {
             years [i] <- years [j]
           }
         }
@@ -1435,9 +1437,11 @@ shinyServer (function (input, output, session)
             j <- min (which (types [(i+1):n] == 'Normal'))
             
             # for normal or misc label, substract one year
-            if (types [i] %in% c ('Normal', 'Misc', 'Density fluctuation', 'Frost ring',
-                                  'Fire scar', 'Early-to-latewood transition')) {
+            if (types [i] %in% c ('Normal','Missing','Misc','Density fluctuation',
+                                  'Frost ring','Fire scar','Early-to-latewood transition')) {
               years [i] <- years [j] - 1
+            } else if (types [i] == 'Linker') {
+              years [i] <- years [i]
             }
           }
         }
@@ -1453,75 +1457,63 @@ shinyServer (function (input, output, session)
     # intialise growth in pixels
     pixels <- rep (NA, n)
     
-    # calculate "growth" for the various labels and combination 
-    # first marker has to be normal and "growth" will be set to 0 for the first marker
-    # loop over remaining labels to figure out their "growth"
-    for (i in n:2) { 
+    # identify reference label to which "growth" will be calculated
+    # first label has to be normal and "growth" will be set to NA, loop over rest
+    for (i in 2:n) { 
       
-      # jump to next iteration for "Missing" ring labels 
-      if (growth_table$type [i] == 'Missing') next
+      # jump to next iteration for "Missing" and "Linker" labels 
+      if (growth_table$type [i] %in% c ('Missing', 'Linker')) next
       
-      # identify the index for the last and penultimate linker marker, if they exists
-      if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 1) {
-        
-        # check whether there is still a previously set linker
-        if (min (which (growth_table$type == 'Linker')) < i) {
-          lastLinker <- max (which (growth_table [no < i, type] == 'Linker')) 
-        } else {
-          lastLinker <- 0
-        }
-        
-        # check whether at least two smaller linkers were set
-        if (sum (growth_table [no < i, type] == 'Linker', na.rm = TRUE) >= 2) {
-          penultimateLinker <- head (tail (sort (which (growth_table [no < i, type] == 'Linker')), 
-                                           n = 2), 
-                                     n = 1)
-        } else {
-          penultimateLinker <- 0
-        }
-      } else {
-        lastLinker <- 0
-        penultimateLinker <- 0
+      # identify growth year of the label
+      iYr <- growth_table$year [i]
+      
+      # identify reference label's years, which is next year for "Normal" labls
+      if (growth_table$type [i] == 'Normal') {
+          refYr <- iYr + 1
+      # and the same year for "Misc" labels 
+      } else if (growth_table$type [i] %in% c ('Misc','Density fluctuation',
+                                               'Frost ring','Fire scar',
+                                               'Early-to-latewood transition')) {
+        refYr <- iYr
       }
       
-      # identify the index for the last normal marker
-      lastPoint  <- max (which (growth_table [no < i, type] == 'Normal'))
+      # identify the reference label index
+      iRef <- which (growth_table$year == refYr & growth_table$type == 'Normal')
+      if (length (iRef) == 0) next
       
-      # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
-      # exception: two previous reference labels are linker labels
-      if (growth_table$type [i] %in% c ('Normal','Misc','Density fluctuation',
-                                        'Frost ring','Fire scar','Early-to-latewood transition')) {
+      # identify the number of Linker labels between label and reference label
+      nLinkers <- sum (growth_table$year == refYr & 
+                       growth_table$type == 'Linker' & 
+                       growth_table$no < i, na.rm = TRUE)
+       
+      # calculate distance if there is no Linker label in between
+      if (nLinkers == 0) {
+        pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iRef])^2 + 
+                            (growth_table$y [i] - growth_table$y [iRef])^2)
+        #print (c (i, iRef, iYr, refYr, nLinkers))
+      } else if (nLinkers == 1) {
+        # identify Linker label's index
+        iLinker <- which (growth_table$year == refYr & 
+                          growth_table$type == 'Linker' & 
+                          growth_table$no < i)
         
-        # last reference marker was a normal marker
-        if (lastPoint > lastLinker) {
-          pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastPoint])^2 + 
-                              (growth_table$y [i] - growth_table$y [lastPoint])^2)
-          
-        # last reference point was a linker marker
-        } else if (lastPoint < lastLinker) {
-
-          # check whether the penultimate reference marker was a normal marker
-          if (lastPoint > penultimateLinker) { # TR There is an issue here when we have only one linker marker
-            pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
-                                (growth_table$y [i] - growth_table$y [lastLinker])^2)
-            
-          # or a linker, hence there were two consecutive linker labels
-          # in this case we measure from last normal marker to penultimate linker and 
-          # add the distance from last linker to the current marker 
-          # (i.e., jumping the gap between two linker labels)
-          } else if (lastPoint < penultimateLinker) {
-            pixels [i] <- (sqrt ((growth_table$x [lastPoint] - 
-                                  growth_table$x [penultimateLinker])^2 + 
-                                 (growth_table$y [lastPoint] - 
-                                  growth_table$y [penultimateLinker])^2)) +
-                          (sqrt ((growth_table$x [lastLinker] - growth_table$x [i])^2 + 
-                                 (growth_table$y [lastLinker] - growth_table$y [i])^2))
-          }
-
-        # marker is a linker (i.e. no "growth" is calculated)
-        } else if (growth_table$type [i] == 'Linker') {
-          pixels [i] <- NA
-        }
+        pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iLinker])^2 + 
+                            (growth_table$y [i] - growth_table$y [iLinker])^2)
+        #print (c (i, iRef, iYr, refYr, nLinkers, iLinker))
+      } else if (nLinkers == 2) {
+        # identify Linker label's index
+        iLinker1 <- min (which (growth_table$year == refYr & 
+                                growth_table$type == 'Linker' & 
+                                growth_table$no < i))
+        iLinker2 <- max (which (growth_table$year == refYr & 
+                                growth_table$type == 'Linker' & 
+                                growth_table$no < i))
+        
+        pixels [i] <- (sqrt ((growth_table$x [iRef] - growth_table$x [iLinker1])^2 + 
+                             (growth_table$y [iRef] - growth_table$y [iLinker1])^2)) +
+          (sqrt ((growth_table$x [iLinker2] - growth_table$x [i])^2 + 
+                 (growth_table$y [iLinker2] - growth_table$y [i])^2))
+        #print (c (i, iRef, iYr, refYr, nLinkers, iLinker1, iLinker2))
       }
     }
 
