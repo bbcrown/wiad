@@ -82,8 +82,11 @@ shinyServer (function (input, output, session)
                   # delete the row
                   rv$markerTable <- rv$markerTable [-rowNum, ]
                   
-                  # reduce all marker numbers that were higher than the deleted marker
+                  # reduce all label numbers that were higher than the deleted label
                   rv$markerTable [no > rowNum, no := no - 1]
+                  
+                  # reset the label index to last label index
+                  rv$index <- nrow (rv$markerTable)
                 }
   )
   
@@ -1164,9 +1167,6 @@ shinyServer (function (input, output, session)
                    return ()
                  }
                  
-                 # set point index to 1 for first marker or increase the last marker index by one
-                 no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
-                 
                  # initialise new point
                  newPoint <- data.table (no = rv$index + 1,
                                          x  = input$normal_point$x,
@@ -1219,6 +1219,8 @@ shinyServer (function (input, output, session)
                   
                   # close the modal
                   removeModal ()
+                  
+                  # TR Ought to update the displayed datatable
                   
                 })
   
@@ -2118,7 +2120,6 @@ shinyServer (function (input, output, session)
     return ()
   })
   
-
   # update oldest ring/pith action button label depending on whether the pith is in the image or not
   #--------------------------------------------------------------------------------------
   observeEvent (input$demoMode, {
