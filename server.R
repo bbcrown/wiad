@@ -1371,8 +1371,8 @@ shinyServer (function (input, output, session)
           years [i] <- input$sampleYear
         } else {
           
-          # find the last normal label index j
-          j <- max (which (types [1:(i-1)] == 'Normal'))
+          # find the last 'Normal' or 'Missing' label index j
+          j <- max (which (types [1:(i-1)] %in% c ('Normal','Missing')))
           
           # for normal or misc label, substract one year
           if (types [i] %in% c ('Normal','Missing','Misc','Density fluctuation',
