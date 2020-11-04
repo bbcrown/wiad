@@ -1480,7 +1480,7 @@ shinyServer (function (input, output, session)
       }
       
       # identify the reference label index
-      iRef <- which (growth_table$year == refYr & growth_table$type == 'Normal')
+      iRef <- which (growth_table$year == refYr & growth_table$type %in% c ('Normal','Missing'))
       if (length (iRef) == 0) next
       
       # identify the number of Linker labels between label and reference label
