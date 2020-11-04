@@ -95,7 +95,7 @@ fluidPage (
                
                # the date on which the sample was collected
                dateInput (inputId = 'sampleDate', 
-                          label = 'Sample Date'),
+                          label = 'Sample date'),
                
                # this might look redundant to the "date" entry, however this is used to double check user's input
                numericInput (inputId = 'sampleYear', 
