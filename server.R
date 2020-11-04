@@ -328,9 +328,9 @@ shinyServer (function (input, output, session)
                                                              ifelse (labels$sampleYearGrowth == 'some', 
                                                                      'only started', 
                                                                      'already ended')))
-                      updateTextInput (session = session,
-                                       inputId = 'sampleDPI',
-                                       value = labels$sampleDPI)
+                      updateNumericInput (session = session,
+                                          inputId = 'sampleDPI',
+                                          value = labels$sampleDPI)
                       updateCheckboxInput (session = session,
                                            inputId = 'pithInImage',
                                            value = unlist (labels$pithInImage))
@@ -347,11 +347,19 @@ shinyServer (function (input, output, session)
                                        inputId = 'plotID',
                                        value = labels$plotID)
                       updateTextInput (session = session,
-                                       inputId = 'sampleNote',
-                                       value = labels$sampleNote)
-                      updateTextInput (session = session,
                                        inputId = 'sampleID',
                                        value = labels$sampleID)
+                      updateNumericInput (session = session,
+                                          inputId = 'sampleHeight',
+                                          value = ifelse (is.null (labels$sampleHeight), NA,
+                                                          labels$sampleHeight))
+                      updateNumericInput (session = session,
+                                          inputId = 'sampleAzimuth',
+                                          value = ifelse (is.null (labels$sampleAzimuth), NA,
+                                                          labels$sampleAzimuth))
+                      updateTextInput (session = session,
+                                       inputId = 'sampleNote',
+                                       value = labels$sampleNote)
                       updateTextInput (session = session,
                                        inputId = 'collection',
                                        value = labels$collection)
@@ -418,12 +426,13 @@ shinyServer (function (input, output, session)
                                                           'sampleDate','sampleYear',
                                                           'sampleYearGrowth','sampleDPI',
                                                           'pithInImage','barkFirst','siteLoc',
-                                                          'siteLocID','plotID','sampleID',
-                                                          'sampleNote','collection','contributor'),
+                                                          'siteLocID','plotID','sampleID','sampleHeight',
+                                                          'sampleAzimuth','sampleNote','collection',
+                                                          'contributor'),
                                            col_types = c ('text','text','text','date','numeric',
                                                           'text','numeric','logical','logical',
-                                                          'text','text','text','text','text',
-                                                          'text','text'), 
+                                                          'text','text','text','text','numeric',
+                                                          'numeric','text','text','text'), 
                                            skip = 1)
                  } else if (rv$metaExt %in% c ('csv', 'CSV')) {
                    metadata <- read_csv (file = rv$metaPath, 
@@ -432,8 +441,9 @@ shinyServer (function (input, output, session)
                                                         'sampleYearGrowth','sampleDPI',
                                                         'pithInImage','barkFirst','siteLoc',
                                                         'siteLocID','plotID','sampleID',
+                                                        'sampleHeight','sampleAzimuth',
                                                         'sampleNote','collection','contributor'),
-                                         col_types = 'cccDicillccccccc', skip = 1)
+                                         col_types = 'cccDicillccccdiccc', skip = 1)
                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
                    metadata <- read_json (rv$metaPath)
                  } else {
@@ -471,9 +481,9 @@ shinyServer (function (input, output, session)
                                                         ifelse (metadata$sampleYearGrowth == 'some', 
                                                                 'only started', 
                                                                 'already ended')))
-                 updateTextInput (session = session,
-                                  inputId = 'sampleDPI',
-                                  value = metadata$sampleDPI)
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleDPI',
+                                     value = metadata$sampleDPI)
                  updateCheckboxInput (session = session,
                                       inputId = 'pithInImage',
                                       value = unlist (metadata$pithInImage))
@@ -490,11 +500,19 @@ shinyServer (function (input, output, session)
                                   inputId = 'plotID',
                                   value = metadata$plotID)
                  updateTextInput (session = session,
-                                  inputId = 'sampleNote',
-                                  value = metadata$sampleNote)
-                 updateTextInput (session = session,
                                   inputId = 'sampleID',
                                   value = metadata$sampleID)
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleHeight',
+                                     value = ifelse (is.null (metadata$sampleHeight), NA,
+                                                     metadata$sampleHeight))
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleAzimuth',
+                                     value = ifelse (is.null (metadata$sampleAzimuth), NA,
+                                                     metadata$sampleAzimuth))
+                 updateTextInput (session = session,
+                                  inputId = 'sampleNote',
+                                  value = metadata$sampleNote)
                  updateTextInput (session = session,
                                   inputId = 'collection',
                                   value = metadata$collection)
@@ -558,6 +576,8 @@ shinyServer (function (input, output, session)
                     plotID           = input$plotID,
                     sampleNote       = input$sampleNote,
                     sampleID         = input$sampleID,
+                    sampleHeight     = input$sampleHeight,
+                    sampleAzimuth    = input$sampleAzimuth,
                     collection       = input$collection,
                     contributor      = input$contributor,
                     markerData       = growthTable (),

@@ -131,10 +131,20 @@ fluidPage (
                           label = 'Plot ID', 
                           placeholder = 'Internal plot identifier.'),
                
-               # name of the collection
+               # identifier for the sample
                textInput (inputId = 'sampleID', 
                           label = 'Sample ID',
                           placeholder = 'Internal sample identifier.'),
+               
+               # height above-ground at which the sample was taken
+               numericInput (inputId = 'sampleHeight', 
+                             label = 'Sample height (m)',
+                             value = 1.5),
+               
+               # azimuth angle at which the sample was taken
+               numericInput (inputId = 'sampleAzimuth', 
+                             label = 'Sample azimuth (\u00B0)', # \u00B0 is HTML for degree symbol
+                             value = NA),
                
                # any additional input metadata that the user might want to record
                textInput (inputId = 'sampleNote', 
