@@ -71,7 +71,7 @@ fluidPage (
                div (style = "margin-top:-15px; margin-bottom:25px"),
                
                # download link to retrieve metadata template
-               downloadLink (outputId = '&nbsp; downloadTemplate',
+               downloadLink (outputId = 'downloadTemplate',
                              label = 'Download metadata template', 
                              class = 'link'),
                
