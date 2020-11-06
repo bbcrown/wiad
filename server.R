@@ -1532,7 +1532,15 @@ shinyServer (function (input, output, session)
         }
         
         # identify the reference label index. If there is more than one, use the smaller one
-        iRef <- min (which (growth_table$year == refYr & growth_table$type %in% c ('Normal','Missing','Pith')))
+        iRef <- which (growth_table$year == refYr & growth_table$type %in% c ('Normal','Missing','Pith'))
+        
+        # for labels before the "Pith" label choose the smaller reference label, else the larger (i.e., second profile)
+        if (sum (types == 'Pith') == 1) {
+          iRef <- ifelse (i <= which (types == 'Pith'), min (iRef), max (iRef))
+          
+          # however skip calculation, if there is a pith and this is the last label
+          if (i == n & i > which (types  == 'Pith')) next
+        }
         
         # jump to next iteration, if not reference label was identified
         # i.e., a miscellaneous label is the last label of the series and there is no reference label for it
@@ -1618,8 +1626,8 @@ shinyServer (function (input, output, session)
         
       # if there are two series split them at the pith
       } else {
-        data2 <- tbl [(index+1):nrow (tbl), ]
-        data1 <- tbl [1:index-1]
+        data2 <- tbl [(wPith+1):nrow (tbl), ]
+        data1 <- tbl [1:(wPith-1)]
         nSeries <- 2
       }
       # there is no pith/oldest ring label
