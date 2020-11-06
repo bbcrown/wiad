@@ -1089,6 +1089,19 @@ shinyServer (function (input, output, session)
                  
                  if (rv$notLoaded == TRUE) return ()
                  
+                 # check that metadata was confirmed
+                 if (input$confirmMeta == 'Not Confirmed') {
+                   showModal (strong (
+                     modalDialog ("First review and confirm the metadata!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
+                   return ()
+                   # check whether there is already a pith label
+                 }
+                 
                  # check whether no label has been set yet
                  if (nrow (rv$markerTable) == 0) {
                    showModal (strong (
@@ -1394,8 +1407,8 @@ shinyServer (function (input, output, session)
           # find the last 'Normal' or 'Missing' label index j
           j <- max (which (types [1:(i-1)] %in% c ('Normal','Missing')))
           
-          # for normal or misc label, substract one year
-          if (types [i] %in% c ('Normal','Missing','Misc','Density fluctuation',
+          # for "Normal", "Pith", or miscellaneous label, substract one year
+          if (types [i] %in% c ('Normal','Missing','Pith','Misc','Density fluctuation',
                                 'Frost ring','Fire scar','Early-to-latewood transition')) {
             years [i] <- years [j] - 1
           } else if (types [i] == "Linker") {
@@ -1410,12 +1423,18 @@ shinyServer (function (input, output, session)
         # loop over all point from pith towards the bark in potential second profile
         for (i in (p + 1):n) {
           
-          # find the last normal label index j
-          j <- max (which (types [1:(i-1)] == 'Normal'))
+          # find the last "Normal", "Missing" or "Pith" label index j
+          j <- max (which (types [1:(i-1)] %in% c ('Normal','Missing','Pith')))
           
-          # for normal or misc label, add one year
+          # for "Normal" or miscellaneous labels, add one year
           if (types [i] %in% c ('Normal','Missing')) {
-            years [i] <- years [j] + 1
+            
+            # unless the last label was a "Pith" label 
+            if (types [j] != 'Pith') {
+              years [i] <- years [j] + 1
+            } else {
+              years [i] <- years [j]
+            }
             # for misc labels use the same year
           } else if (types [i] %in% c ('Linker','Misc','Density fluctuation','Frost ring',
                                        'Fire scar','Early-to-latewood transition')) {
@@ -1453,11 +1472,11 @@ shinyServer (function (input, output, session)
             years [i] <- year (input$sampleDate) - input$SchulmanShift
           } else {
             
-            # find the last normal label index j
-            j <- min (which (types [(i+1):n] == 'Normal'))
+            # find the last "Normal","Missing" or "Pith" label index j
+            j <- min (which (types [(i+1):n] %in% c ('Normal','Missing','Pith')))
             
-            # for normal or misc label, substract one year
-            if (types [i] %in% c ('Normal','Missing','Misc','Density fluctuation',
+            # for "Normal", missing, "Pith" or miscellaneous label, substract one year
+            if (types [i] %in% c ('Normal','Missing','Pith','Misc','Density fluctuation',
                                   'Frost ring','Fire scar','Early-to-latewood transition')) {
               years [i] <- years [j] - 1
             } else if (types [i] == 'Linker') {
@@ -1475,68 +1494,87 @@ shinyServer (function (input, output, session)
     if (nrow (growth_table) == 1)  return (growth_table)
     
     # intialise growth in pixels
+    # Nota bene: first label has to be normal and "growth" will be set to NA, loop over rest
     pixels <- rep (NA, n)
     
-    # identify reference label to which "growth" will be calculated
-    # first label has to be normal and "growth" will be set to NA, loop over rest
+    # calculate growth as distance between pixels 
+    # here we identify a reference label to which "growth" will be calculated and 
+    # calculate distance between label location and reference label
     for (i in 2:n) { 
       
-      # jump to next iteration for "Missing" and "Linker" labels 
-      if (growth_table$type [i] %in% c ('Missing', 'Linker')) next
+      # jump to next iteration for "Linker" labels 
+      if (growth_table$type [i] == 'Linker') next
       
-      # identify growth year of the label
-      iYr <- growth_table$year [i]
-      
-      # identify reference label's years, which is next year for "Normal" labls
-      if (growth_table$type [i] == 'Normal') {
-          refYr <- iYr + 1
-      # and the same year for "Misc" labels 
-      } else if (growth_table$type [i] %in% c ('Misc','Density fluctuation',
-                                               'Frost ring','Fire scar',
-                                               'Early-to-latewood transition')) {
-        refYr <- iYr
-      }
-      
-      # identify the reference label index
-      iRef <- which (growth_table$year == refYr & growth_table$type %in% c ('Normal','Missing'))
-      if (length (iRef) == 0) next
-      
-      # identify the number of Linker labels between label and reference label
-      nLinkers <- sum (growth_table$year == refYr & 
-                       growth_table$type == 'Linker' & 
-                       growth_table$no < i, na.rm = TRUE)
-       
-      # calculate distance if there is no Linker label in between
-      if (nLinkers == 0) {
-        pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iRef])^2 + 
-                            (growth_table$y [i] - growth_table$y [iRef])^2)
-        #print (c (i, iRef, iYr, refYr, nLinkers))
-      } else if (nLinkers == 1) {
-        # identify Linker label's index
-        iLinker <- which (growth_table$year == refYr & 
-                          growth_table$type == 'Linker' & 
-                          growth_table$no < i)
+      # set growth to 0 for "Missing" labels 
+      if (growth_table$type [i] == 'Missing') {
+        pixels [i] <- 0.0
         
-        pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iLinker])^2 + 
-                            (growth_table$y [i] - growth_table$y [iLinker])^2)
-        #print (c (i, iRef, iYr, refYr, nLinkers, iLinker))
-      } else if (nLinkers == 2) {
-        # identify Linker label's index
-        iLinker1 <- min (which (growth_table$year == refYr & 
-                                growth_table$type == 'Linker' & 
-                                growth_table$no < i))
-        iLinker2 <- max (which (growth_table$year == refYr & 
-                                growth_table$type == 'Linker' & 
-                                growth_table$no < i))
+      # calculate growth for "Normal", "Pith" and all miscellaneous labels  
+      } else {
         
-        pixels [i] <- (sqrt ((growth_table$x [iRef] - growth_table$x [iLinker1])^2 + 
-                             (growth_table$y [iRef] - growth_table$y [iLinker1])^2)) +
-          (sqrt ((growth_table$x [iLinker2] - growth_table$x [i])^2 + 
-                 (growth_table$y [iLinker2] - growth_table$y [i])^2))
-        #print (c (i, iRef, iYr, refYr, nLinkers, iLinker1, iLinker2))
+        # identify growth year of the label
+        iYr <- growth_table$year [i]
+        
+        # identify reference label's year, which is next year for "Normal" and "Pith" labels
+        if (growth_table$type [i] %in% c ('Normal', 'Pith')) {
+          
+          # check whether the previous reference label was a "Pith" label
+          if (types [max (which (types [1:(i-1)] %in% c ('Normal','Missing','Pith')))] == 'Pith') {
+            refYr <- iYr
+          } else {
+            refYr <- iYr + 1
+          }
+        # and the same year for "Misc" labels 
+        } else if (growth_table$type [i] %in% c ('Misc','Density fluctuation',
+                                                 'Frost ring','Fire scar',
+                                                 'Early-to-latewood transition')) {
+          refYr <- iYr
+        }
+        
+        # identify the reference label index. If there is more than one, use the smaller one
+        iRef <- min (which (growth_table$year == refYr & growth_table$type %in% c ('Normal','Missing','Pith')))
+        
+        # jump to next iteration, if not reference label was identified
+        # i.e., a miscellaneous label is the last label of the series and there is no reference label for it
+        if (length (iRef) == 0) next
+        
+        # identify the number of Linker labels between label and reference label
+        nLinkers <- sum (growth_table$year == refYr & 
+                         growth_table$type == 'Linker' & 
+                         growth_table$no < i, na.rm = TRUE)
+         
+        # calculate distance if there is no Linker label in between
+        if (nLinkers == 0) {
+          pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iRef])^2 + 
+                              (growth_table$y [i] - growth_table$y [iRef])^2)
+          print (c (i, iRef, iYr, refYr, nLinkers))
+        } else if (nLinkers == 1) {
+          # identify Linker label's index
+          iLinker <- which (growth_table$year == refYr & 
+                            growth_table$type == 'Linker' & 
+                            growth_table$no < i)
+          
+          pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iLinker])^2 + 
+                              (growth_table$y [i] - growth_table$y [iLinker])^2)
+          print (c (i, iRef, iYr, refYr, nLinkers, iLinker))
+        } else if (nLinkers == 2) {
+          # identify Linker label's index
+          iLinker1 <- min (which (growth_table$year == refYr & 
+                                  growth_table$type == 'Linker' & 
+                                  growth_table$no < i))
+          iLinker2 <- max (which (growth_table$year == refYr & 
+                                  growth_table$type == 'Linker' & 
+                                  growth_table$no < i))
+          
+          pixels [i] <- (sqrt ((growth_table$x [iRef] - growth_table$x [iLinker1])^2 + 
+                               (growth_table$y [iRef] - growth_table$y [iLinker1])^2)) +
+            (sqrt ((growth_table$x [iLinker2] - growth_table$x [i])^2 + 
+                   (growth_table$y [iLinker2] - growth_table$y [i])^2))
+          print (c (i, iRef, iYr, refYr, nLinkers, iLinker1, iLinker2))
+        }
       }
     }
-
+    
     # add growth in pixels to the growth_table 
     #------------------------------------------------------------------------------------
     growth_table$pixels <- pixels
@@ -1880,7 +1918,7 @@ shinyServer (function (input, output, session)
     # update radio button
     updateRadioButtons (session, 
                         inputId  = 'confirmMeta', 
-                        selected = 'Not Confirmed')
+                        selected = 'Confirmed')
   })
   
   # draw plot of absolute growth
