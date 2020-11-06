@@ -327,7 +327,8 @@ shinyServer (function (input, output, session)
                                                                      'already ended')))
                       updateCheckboxInput (session = session,
                                            inputId = 'SchulmanShift',
-                                           value = unlist (labels$SchulmanShift))
+                                           value = ifelse (is.null (labels$SchulmanShift), NA,
+                                                           unlist (labels$SchulmanShift)))
                       updateNumericInput (session = session,
                                           inputId = 'sampleDPI',
                                           value = labels$sampleDPI)
@@ -1385,9 +1386,9 @@ shinyServer (function (input, output, session)
       for (i in 1:p) {
         if (i == 1 & input$sampleYearGrowingSeason %in% c ('only started', 
                                                            'already ended')) {
-          years [i] <- input$sampleYear + 1 - input$SchulmanShift
+          years [i] <- year (input$sampleDate) + 1 - input$SchulmanShift
         } else if (i == 1 & input$sampleYearGrowingSeason == 'not started') {
-          years [i] <- input$sampleYear - input$SchulmanShift
+          years [i] <- year (input$sampleDate) - input$SchulmanShift
         } else {
           
           # find the last 'Normal' or 'Missing' label index j
@@ -1447,9 +1448,9 @@ shinyServer (function (input, output, session)
         for (i in n:1) {
           if (i == n & input$sampleYearGrowingSeason %in% c ('only started', 
                                                              'already ended')) {
-            years [i] <- input$sampleYear + 1 - input$SchulmanShift
+            years [i] <- year (input$sampleDate) + 1 - input$SchulmanShift
           } else if (i == n & input$sampleYearGrowingSeason == 'not started') {
-            years [i] <- input$sampleYear - input$SchulmanShift
+            years [i] <- year (input$sampleDate) - input$SchulmanShift
           } else {
             
             # find the last normal label index j
