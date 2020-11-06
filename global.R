@@ -19,6 +19,7 @@ list.of.packages <- c (
   'abind',
   'data.table',
   'dplR',
+  'dplyr',
   'DT',
   'imager',
   'jsonlite',
