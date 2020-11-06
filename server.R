@@ -318,9 +318,6 @@ shinyServer (function (input, output, session)
                       updateTextInput (session = session,
                                        inputId = 'sampleDate',
                                        value = labels$sampleDate)
-                      updateTextInput (session = session,
-                                       inputId = 'sampleYear',
-                                       value = labels$sampleYear)
                       updateRadioButtons (session = session,
                                           inputId = 'sampleYearGrowingSeason',
                                           selected = ifelse (labels$sampleYearGrowth == 'none', 
@@ -328,6 +325,9 @@ shinyServer (function (input, output, session)
                                                              ifelse (labels$sampleYearGrowth == 'some', 
                                                                      'only started', 
                                                                      'already ended')))
+                      updateCheckboxInput (session = session,
+                                           inputId = 'SchulmanShift',
+                                           value = unlist (labels$SchulmanShift))
                       updateNumericInput (session = session,
                                           inputId = 'sampleDPI',
                                           value = labels$sampleDPI)
@@ -423,27 +423,24 @@ shinyServer (function (input, output, session)
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
                    metadata <- read_excel (path = rv$metaPath,
                                            col_names = c ('ownerName','ownerEmail','species',
-                                                          'sampleDate','sampleYear',
-                                                          'sampleYearGrowth','sampleDPI',
-                                                          'pithInImage','barkFirst','siteLoc',
+                                                          'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                          'sampleDPI','pithInImage','barkFirst','siteLoc',
                                                           'siteLocID','plotID','sampleID','sampleHeight',
                                                           'sampleAzimuth','sampleNote','collection',
                                                           'contributor'),
-                                           col_types = c ('text','text','text','date','numeric',
-                                                          'text','numeric','logical','logical',
-                                                          'text','text','text','text','numeric',
-                                                          'numeric','text','text','text'), 
+                                           col_types = c ('text','text','text','date','text','logical','numeric',
+                                                          'logical','logical','text','text','text',
+                                                          'text','numeric','numeric','text','text','text'), 
                                            skip = 1)
                  } else if (rv$metaExt %in% c ('csv', 'CSV')) {
                    metadata <- read_csv (file = rv$metaPath, 
                                          col_names = c ('ownerName','ownerEmail','species',
-                                                        'sampleDate','sampleYear',
-                                                        'sampleYearGrowth','sampleDPI',
-                                                        'pithInImage','barkFirst','siteLoc',
+                                                        'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                        'sampleDPI','pithInImage','barkFirst','siteLoc',
                                                         'siteLocID','plotID','sampleID',
                                                         'sampleHeight','sampleAzimuth',
                                                         'sampleNote','collection','contributor'),
-                                         col_types = 'cccDicillccccdiccc', skip = 1)
+                                         col_types = 'cccDclillccccdiccc', skip = 1)
                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
                    metadata <- read_json (rv$metaPath)
                  } else {
@@ -471,9 +468,6 @@ shinyServer (function (input, output, session)
                  updateTextInput (session = session,
                                   inputId = 'sampleDate',
                                   value = metadata$sampleDate)
-                 updateTextInput (session = session,
-                                  inputId = 'sampleYear',
-                                  value = metadata$sampleYear)
                  updateRadioButtons (session  = session,
                                      inputId  = 'sampleYearGrowingSeason',
                                      selected = ifelse (metadata$sampleYearGrowth == 'none', 
@@ -481,6 +475,9 @@ shinyServer (function (input, output, session)
                                                         ifelse (metadata$sampleYearGrowth == 'some', 
                                                                 'only started', 
                                                                 'already ended')))
+                 updateCheckboxInput (session = session,
+                                      inputId = 'SchulmanShift',
+                                      value = unlist (metadata$SchulmanShift))
                  updateNumericInput (session = session,
                                      inputId = 'sampleDPI',
                                      value = metadata$sampleDPI)
@@ -564,10 +561,10 @@ shinyServer (function (input, output, session)
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
                     sampleDate       = input$sampleDate,
-                    sampleYear       = input$sampleYear,
                     sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'not started', 'none',
                                                ifelse (input$sampleYearGrowingSeason == 'already ended', 
                                                        'all', 'some')),
+                    SchulmanShift    = input$SchulmanShift,
                     sampleDPI        = input$sampleDPI,
                     pithInImage      = input$pithInImage,
                     barkFirst        = input$barkFirst,
@@ -1104,7 +1101,7 @@ shinyServer (function (input, output, session)
                  # check whether there is already a pith label
                  } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
                    showModal (strong (
-                     modalDialog ("Error: You can only set one pith!",
+                     modalDialog ("Error: You can only set one pith and there is already one! Delete it first.",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
@@ -1388,9 +1385,9 @@ shinyServer (function (input, output, session)
       for (i in 1:p) {
         if (i == 1 & input$sampleYearGrowingSeason %in% c ('only started', 
                                                            'already ended')) {
-          years [i] <- input$sampleYear + 1
+          years [i] <- input$sampleYear + 1 - input$SchulmanShift
         } else if (i == 1 & input$sampleYearGrowingSeason == 'not started') {
-          years [i] <- input$sampleYear
+          years [i] <- input$sampleYear - input$SchulmanShift
         } else {
           
           # find the last 'Normal' or 'Missing' label index j
@@ -1450,9 +1447,9 @@ shinyServer (function (input, output, session)
         for (i in n:1) {
           if (i == n & input$sampleYearGrowingSeason %in% c ('only started', 
                                                              'already ended')) {
-            years [i] <- input$sampleYear + 1
+            years [i] <- input$sampleYear + 1 - input$SchulmanShift
           } else if (i == n & input$sampleYearGrowingSeason == 'not started') {
-            years [i] <- input$sampleYear
+            years [i] <- input$sampleYear - input$SchulmanShift
           } else {
             
             # find the last normal label index j
@@ -1586,6 +1583,9 @@ shinyServer (function (input, output, session)
         data1 <- tbl [1:index-1]
         nSeries <- 2
       }
+      # there is no pith/oldest ring label
+    } else {
+      nSeries <- 1
     }
     
     # check whether data is in pixels or microns
@@ -1876,24 +1876,10 @@ shinyServer (function (input, output, session)
     # check that metadata was confirmed
     if (input$confirmMeta == 'Not Confirmed') return ()
     
-    # check that the sample year and year of sample date match
-    if (year (input$sampleDate) != input$sampleYear) {
-      
-      showModal (strong (
-        
-        modalDialog ("Warning: Year does not match the sample's date!",
-                     easyClose = T,
-                     fade      = T,
-                     size      = 's',
-                     style     = 'background-color:#3b3a35; color:#f3bd48; ',
-                     footer    = NULL
-        )))
-      
-      # update radio button
-      updateRadioButtons (session, 
-                          inputId  = 'confirmMeta', 
-                          selected = 'Not Confirmed')
-    }
+    # update radio button
+    updateRadioButtons (session, 
+                        inputId  = 'confirmMeta', 
+                        selected = 'Not Confirmed')
   })
   
   # draw plot of absolute growth

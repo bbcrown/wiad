@@ -97,19 +97,17 @@ fluidPage (
                dateInput (inputId = 'sampleDate', 
                           label = 'Sample date'),
                
-               # this might look redundant to the "date" entry, however this is used to double check user's input
-               numericInput (inputId = 'sampleYear', 
-                             label = 'Sample year', 
-                             min = 1800, 
-                             max = year (Sys.Date ()),
-                             value = 2019),
-               
-               # checkbox to check whether growing season had started in sample year
+               # radio buttons to check whether growing season had started in sample year
                radioButtons (inputId = 'sampleYearGrowingSeason', 
                              label = 'Growing season had', 
                              choices = list ('not started','only started','already ended'),
                              selected = 'not started',
                              inline = TRUE),
+               
+               # check for Schulman Shift according to Edmund Schulman (1956) "Dendroclimatic changes in semiarid America"
+               checkboxInput (inputId = 'SchulmanShift', 
+                              label = 'Schulman Shift', 
+                              value = FALSE),
                
                # resolution of the sample
                numericInput (inputId = 'sampleDPI', 
