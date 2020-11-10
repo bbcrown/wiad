@@ -579,7 +579,7 @@ shinyServer (function (input, output, session)
                     sampleAzimuth    = input$sampleAzimuth,
                     collection       = input$collection,
                     contributor      = input$contributor,
-                    markerData       = growthTable (),
+                    markerData       = rv$markerTable,
                     status           = input$confirmMeta)
       
       # return metadata
@@ -673,23 +673,18 @@ shinyServer (function (input, output, session)
                    ybottom = window [3], 
                    xright  = window [2], 
                    ytop    = window [4])
-      
-      # make sure markerTable is up-to-date
-      #----------------------------------------------------------------------------------
-      if (nrow (rv$markerTable) > 0) {
-        rv$markerTable <- growthTable ()
-      } else {
-        return ()
-      }
+
        
+      # check that there are labels to plot
+      #----------------------------------------------------------------------------------
+      if (nrow (rv$markerTable) == 0) return ()
+      
       # make local copy of marker table
       #----------------------------------------------------------------------------------
       marker_tbl <- rv$markerTable [, .(x, y)]
       
-      # check that there are labels to plot
-      if (nrow (marker_tbl) == 0) return ()
-      
       # identify normal, linker, misc and pith labels
+      #----------------------------------------------------------------------------------
       wNormal  <- which (rv$markerTable$type == 'Normal')
       wLinkers <- which (rv$markerTable$type == 'Linker')
       wMisc    <- which (rv$markerTable$type %in% c ('Misc',
@@ -846,88 +841,77 @@ shinyServer (function (input, output, session)
                  printLog ('observeEvent input$selRed')
                  
                  rv$procband <- 'Red'
-               }
-  )
+               })
   
   observeEvent (input$selBlue,
                {
                  printLog ('observeEvent input$selBlue')
                  
                  rv$procband <- 'Blue'
-               }
-  )
+               })
   
   observeEvent (input$selGreen,
                {
                  printLog ('observeEvent input$selGreen')
                  
                  rv$procband <- 'Green'
-               }
-  )
+               })
   
   observeEvent (input$selHue,
                {
                  printLog ('observeEvent input$selHue')
                  
                  rv$procband <- 'Hue'
-               }
-  )
+               })
   
   observeEvent (input$selSat,
                {
                  printLog ('observeEvent input$selSat')
                  
                  rv$procband <- 'Saturation'
-               }
-  )
+               })
   
   observeEvent (input$selValue,
                {
                  printLog ('observeEvent input$selValue')
                  
                  rv$procband <- 'Value'
-               }
-  )
+               })
   
   observeEvent (input$selBright,
                {
                  printLog ('observeEvent input$selBright')
                  
                  rv$procband <- 'Brightness'
-               }
-  )
+               })
   
   observeEvent (input$selDark,
                {
                  printLog ('observeEvent input$selDark')
                  
                  rv$procband <- 'Darkness'
-               }
-  )
+               })
   
   observeEvent (input$selContrast,
                {
                  printLog ('observeEvent input$selContrast')
                  
                  rv$procband <- 'Contrast'
-               }
-  )
+               })
   
   observeEvent (input$selTotBr,
                {
                  printLog ('observeEvent input$selTotBr')
                  
                  rv$procband <- 'Brightness'
-               }
-  )
+               })
   
   observeEvent (input$selRGB,
                {
                  printLog ('observeEvent input$selRGB')
                  
                  rv$procband <- 'RGB'
-               }
-  )
+               })
   
   totbrightness <- reactive (
     {
@@ -939,8 +923,7 @@ shinyServer (function (input, output, session)
       
       # average tog et total birghtness
       tmp / 3
-    }
-  )
+    })
   
   brightness <- reactive (
     {
@@ -951,8 +934,7 @@ shinyServer (function (input, output, session)
       if (is.null (rv$imgMat)) return ()
       tmp <- getBrightness (rv$imgMat)
       tmp
-    }
-  )
+    })
   
   darkness <- reactive (
     {
@@ -962,9 +944,7 @@ shinyServer (function (input, output, session)
         return ()
       tmp <- getDarkness (rv$imgMat)
       tmp
-    }
-  )
-  
+    })
   
   contrast <- reactive (
     {
@@ -975,9 +955,7 @@ shinyServer (function (input, output, session)
       if (is.null (rv$imgMat)) return ()
       tmp <- getContrast (rv$imgMat)
       tmp
-    }
-  )
-  
+    })
   
   imgProcessed <- reactive (
     {
@@ -1006,8 +984,7 @@ shinyServer (function (input, output, session)
               'Blue' = rv$imgMat [,,3],
               'Brightness' = totbrightness ())
 
-    }
-  )
+    })
   
   # erase all previous labels
   #--------------------------------------------------------------------------------------
@@ -1385,6 +1362,9 @@ shinyServer (function (input, output, session)
                   rv$previousIndex <- rv$index + 1
                   rv$index <- nrow (rv$markerTable)
                   
+                  # update growth
+                  rv$markerTable <- growthTable ()
+                  
                   # validate that marker table exists
                   rv$check_table <- rv$check_table + 1
                 })
@@ -1660,13 +1640,9 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     printLog ('reactive$detrendGrowth ')
     
-    # get growth table 
-    #------------------------------------------------------------------------------------
-    tbl <- growthTable ()
-    
     # deselect Linker and Misc labels
     #------------------------------------------------------------------------------------
-    tbl <- tbl [type %in% c ('Normal','Pith','Missing')]
+    tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
@@ -1906,14 +1882,11 @@ shinyServer (function (input, output, session)
         
       }
       
-      # calculate "growth"
-      tbl <- growthTable ()
-      
       # check that there are some labels
-      if (nrow (tbl) == 0) return ()
+      if (nrow (rv$markerTable) == 0) return ()
       
       # write csv file
-      write.table (tbl, 
+      write.table (rv$markerTable, 
                    file, 
                    sep = ',',
                    row.names = F)
