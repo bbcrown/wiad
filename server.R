@@ -835,7 +835,6 @@ shinyServer (function (input, output, session)
       }
     })
   
-  
   observeEvent (input$selRed,
                {
                  printLog ('observeEvent input$selRed')
@@ -1265,7 +1264,8 @@ shinyServer (function (input, output, session)
                   # close the modal
                   removeModal ()
                   
-                  # TR Ought to update the displayed datatable
+                  # update growth
+                  rv$markerTable <- growthTable ()
                   
                 })
   
@@ -1361,9 +1361,6 @@ shinyServer (function (input, output, session)
                   # save index and set to index of last label
                   rv$previousIndex <- rv$index + 1
                   rv$index <- nrow (rv$markerTable)
-                  
-                  # update growth
-                  rv$markerTable <- growthTable ()
                   
                   # validate that marker table exists
                   rv$check_table <- rv$check_table + 1
