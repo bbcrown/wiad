@@ -1044,9 +1044,9 @@ shinyServer (function (input, output, session)
                      )))
                    return ()
                  # check whether this is the third linker marker in a row 
-                 } else if (sum (tail (rv$markerTable$type, n = 2) == 'Linker', na.rm = TRUE) == 2) {
+                 } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
                    showModal (strong (
-                     modalDialog ("Error: You can set a maximum of two consecutive linkers!",
+                     modalDialog ("Error: You can set a maximum of three consecutive linkers!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
