@@ -1061,9 +1061,9 @@ shinyServer (function (input, output, session)
                    # change the label type of the "Normal" label closest to the last indexed label
                    if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
                      rv$markerTable [no == rv$previousIndex, 
-                                   type := switch (type, 
-                                                   'Linker' = 'Normal', 
-                                                   'Normal' = 'Linker')]
+                                     type := switch (type, 
+                                                     'Linker' = 'Normal', 
+                                                     'Normal' = 'Linker')]
                    } else {
                      # find the last "Normal" label to change that one instead
                      j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
@@ -1073,6 +1073,9 @@ shinyServer (function (input, output, session)
                                                               'Normal' = 'Linker')]
                      
                    }
+                   
+                   # update "growth" 
+                   rv$markerTable <- growthTable ()
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
@@ -1138,7 +1141,11 @@ shinyServer (function (input, output, session)
                                                               'Pith' = 'Normal', 
                                                               'Normal' = 'Pith')]
                      
-                   }           
+                   }   
+                   
+                   # update "growth" 
+                   rv$markerTable <- growthTable ()
+                   
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
                    
