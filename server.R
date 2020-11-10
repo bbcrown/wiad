@@ -674,6 +674,14 @@ shinyServer (function (input, output, session)
                    xright  = window [2], 
                    ytop    = window [4])
       
+      # make sure markerTable is up-to-date
+      #----------------------------------------------------------------------------------
+      if (nrow (rv$markerTable) > 0) {
+        rv$markerTable <- growthTable ()
+      } else {
+        return ()
+      }
+       
       # make local copy of marker table
       #----------------------------------------------------------------------------------
       marker_tbl <- rv$markerTable [, .(x, y)]
@@ -719,10 +727,9 @@ shinyServer (function (input, output, session)
       
       # plot years between two labels to more easily identify the growth rings
       if (input$displayYears) {
-        years <- growthTable ()
         
         # find only normal and pith labels
-        years <- years [type %in% c ('Normal', 'Pith')]
+        years <- rv$markerTable [type %in% c ('Normal', 'Pith')]
         if (nrow (years) > 1) {
           xs <- rollmean (years$x, 2)
           ys <- rollmean (years$y, 2)
@@ -1074,10 +1081,22 @@ shinyServer (function (input, output, session)
                    # else more than two normal labels have been set and 
                    # the type of the last indexed label is switched
                  } else {
-                   rv$markerTable [no == rv$previousIndex, 
+                   
+                   # change the label type of the "Normal" label closest to the last indexed label
+                   if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+                     rv$markerTable [no == rv$previousIndex, 
                                    type := switch (type, 
                                                    'Linker' = 'Normal', 
                                                    'Normal' = 'Linker')]
+                   } else {
+                     # find the last "Normal" label to change that one instead
+                     j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                                           rv$markerTable$type == 'Normal')]) 
+                     rv$markerTable [no == j, type := switch (type, 
+                                                              'Linker' = 'Normal', 
+                                                              'Normal' = 'Linker')]
+                     
+                   }
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
@@ -1126,16 +1145,27 @@ shinyServer (function (input, output, session)
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
                    return ()
-                 # else we have at least one label and no pith yet
+                 # else we have at least one label and no pith yet, check that this is a "Normal" label
                  } else {
-                   # change the label type of the last indexed label
-                   rv$markerTable [no == rv$previousIndex, 
-                                   type := switch (type, 
-                                                   'Pith' = 'Normal', 
-                                                   'Normal' = 'Pith')]
                    
+                   # change the label type of the "Normal" label closest to the last indexed label
+                   if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+                     rv$markerTable [no == rv$previousIndex, 
+                                     type := switch (type, 
+                                                     'Pith' = 'Normal', 
+                                                     'Normal' = 'Pith')]
+                   } else {
+                     # find the last "Normal" label to change that one instead
+                     j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                                         rv$markerTable$type == 'Normal')]) 
+                     rv$markerTable [no == j, type := switch (type, 
+                                                              'Pith' = 'Normal', 
+                                                              'Normal' = 'Pith')]
+                     
+                   }           
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
+                   
                  }
                })
   
@@ -1237,6 +1267,9 @@ shinyServer (function (input, output, session)
                  # save index and reset to index of last label
                  rv$previousIndex <- rv$index + 1
                  rv$index <- nrow (rv$markerTable)
+                 
+                 # update growth
+                 rv$markerTable <- growthTable ()
                  
                  # validate that a marker table exists
                  rv$check_table <- rv$check_table + 1
@@ -1481,7 +1514,7 @@ shinyServer (function (input, output, session)
         }
       }
     } # Nota bene: "Linker" labels are not associated with any particular year
-  
+    
     # add years to growth table
     growth_table$year <- years
     
@@ -1520,7 +1553,7 @@ shinyServer (function (input, output, session)
       iRef <- which (years == refYr & types %in% c ('Normal','Missing','Pith'))
       
       # select smaller reference label before the pith and vice versa
-      iRef <- ifelse (i <= p, min (iRef), max (iRef))
+      iRef <- ifelse (length (iRef) >= 2, ifelse (i <= p, min (iRef), max (iRef)), iRef)
       
       # determine relevant linker year, which depends on which side of the pith we are
       linkYr <- ifelse (i <= p, years [i], refYr)

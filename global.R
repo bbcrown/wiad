@@ -73,4 +73,4 @@ colours <- tibble (
 )
 
 # set maximum image size in MB
-maxImageSize <- 170
+maxImageSize <- 200
