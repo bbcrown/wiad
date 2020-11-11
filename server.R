@@ -116,7 +116,7 @@ shinyServer (function (input, output, session)
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
-                                   actionButton (inputId = 'missingRing',
+                                   actionButton (inputId = 'missing_ring',
                                                  label   = 'Missing ring'),
                                    modalButton (label   = 'Other'))))
                   )
@@ -125,10 +125,10 @@ shinyServer (function (input, output, session)
   
   # insert a missing ring after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$missingRing,
+  observeEvent (input$missing_ring,
                 {
                   # write log
-                  printLog ('observeEvent input$missingRing')
+                  printLog ('observeEvent input$missing_ring')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
