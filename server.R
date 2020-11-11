@@ -65,16 +65,16 @@ shinyServer (function (input, output, session)
   
   # delete specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$deleteRow,
+  observeEvent (input$delete_row,
                 {
                   # write log
-                  printLog ('observeEvent input$deleteRow')
+                  printLog ('observeEvent input$delete_row')
 
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
 
                   # get the row number that should be deleted
-                  rowNum <- parseRowNumber (input$deleteRow)
+                  rowNum <- parseRowNumber (input$delete_row)
                   
                   # correct for the fact the the table is displayed from back to front 
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
@@ -1258,15 +1258,39 @@ shinyServer (function (input, output, session)
                  rv$check_table <- rv$check_table + 1
                })
   
-  # Change type of previously set "Misc" label
+  # select type of previously set "Misc" label
   #--------------------------------------------------------------------------------------
-  observeEvent (input$selectMiscType,
+  observeEvent (input$select_misc_type,
                 {
                   # write log
-                  printLog ('observeEvent input$selectMiscType')
+                  printLog ('observeEvent input$select_misc_type')
                   
                   # change type of the misc label that was just set
-                  rv$markerTable [no == rv$previousIndex, type := input$miscType]
+                  rv$markerTable [no == rv$previousIndex, type := input$misc_type]
+                  
+                  # close the modal
+                  removeModal ()
+                  
+                  # update growth
+                  rv$markerTable <- growthTable ()
+                  
+                })
+  
+  # cancel previously set "Misc" label
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$cancel_misc,
+                {
+                  # write log
+                  printLog ('observeEvent input$cancel_misc')
+                  
+                  # delete the row
+                  rv$markerTable <- rv$markerTable [no == rv$previousIndex, ]
+                  
+                  # reduce all label numbers that were higher than the deleted label
+                  rv$markerTable [no > rv$previousIndex, no := no - 1]
+                  
+                  # reset the label index to last label index
+                  rv$index <- nrow (rv$markerTable)
                   
                   # close the modal
                   removeModal ()
@@ -1319,7 +1343,7 @@ shinyServer (function (input, output, session)
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
-                                   radioButtons (inputId = 'miscType',
+                                   radioButtons (inputId = 'misc_type',
                                                  label   = '',
                                                  choices = c ('Misc',
                                                               'Density fluctuation',
@@ -1328,9 +1352,10 @@ shinyServer (function (input, output, session)
                                                               'Early-to-latewood transition'),
                                                  selected = NULL,
                                                  inline = TRUE)),
-                                 actionButton (inputId = 'selectMiscType',
+                                 actionButton (inputId = 'select_misc_type',
                                                label = 'Select'),
-                                 modalButton ('Cancel')
+                                 actionButton (inputId = 'cancel_misc',
+                                               label = 'Cancel')
                                  ))
                   )
                   
