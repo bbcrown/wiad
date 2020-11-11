@@ -114,7 +114,7 @@ displayDataTable <- function (df, id1, id2, ...) {
         inputId = paste (id1, i, sep="_"),
         label   = NULL,
         icon    = icon ('trash-alt'),
-        onclick = 'Shiny.setInputValue(\"deleteRow\", this.id, {priority: "event"})'))
+        onclick = 'Shiny.setInputValue(\"delete_row\", this.id, {priority: "event"})'))
   }
   
   # function to create one insert button as string
@@ -125,7 +125,7 @@ displayDataTable <- function (df, id1, id2, ...) {
         inputId = paste (id2, i, sep="_"),
         label   = NULL,
         icon    = icon ('plus-circle'),
-        onclick = 'Shiny.setInputValue(\"insertRow\", this.id, {priority: "event"})'))
+        onclick = 'Shiny.setInputValue(\"insert_row\", this.id, {priority: "event"})'))
   }
   
   # create vector of actions buttons

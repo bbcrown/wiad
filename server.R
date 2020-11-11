@@ -92,15 +92,15 @@ shinyServer (function (input, output, session)
   
   # insert row after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$insertRow,
+  observeEvent (input$insert_row,
                 {
-                  printLog ('observeEvent input$insertRow')
+                  printLog ('observeEvent input$insert_row')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
                   
                   # get the row number (e.g. label number) before which the new label is inserted
-                  rowNum <- parseRowNumber (input$insertRow) + 1
+                  rowNum <- parseRowNumber (input$insert_row) + 1
                   
                   # correct for the fact the table is displayed from back to front 
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
@@ -1284,13 +1284,13 @@ shinyServer (function (input, output, session)
                   printLog ('observeEvent input$cancel_misc')
                   
                   # delete the row
-                  rv$markerTable <- rv$markerTable [no == rv$previousIndex, ]
+                  rv$markerTable <- rv$markerTable [no != rv$index, ]
                   
                   # reduce all label numbers that were higher than the deleted label
-                  rv$markerTable [no > rv$previousIndex, no := no - 1]
+                  rv$markerTable [no > rv$index, no := no - 1]
                   
                   # reset the label index to last label index
-                  rv$index <- nrow (rv$markerTable)
+                  rv$index <- rv$previousIndex
                   
                   # close the modal
                   removeModal ()
