@@ -110,7 +110,7 @@ shinyServer (function (input, output, session)
                   
                   # check whether user wants to insert a missing ring using input modal
                   showModal (strong (
-                    modalDialog ("Do you want to insert a missing ring or other marker?",
+                    modalDialog ("Do you want to insert a missing ring or other label?",
                                  easyClose = T,
                                  fade = T,
                                  size = 'm',
@@ -1032,10 +1032,10 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # check whether only one or two labels have been set yet 
-                 } else if (nrow (rv$markerTable) <= 2) {
+                 # check whether this is the first label 
+                 } else if (nrow (rv$markerTable) == 1) {
                    showModal (strong (
-                     modalDialog ("Error: The first two points cannot be linkers! Maybe start on a ring?",
+                     modalDialog ("Error: The first label cannot be a linker! Maybe start on a ring?",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
@@ -1043,7 +1043,7 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # check whether this is the third linker marker in a row 
+                 # check whether this is the second label and  marker in a row 
                  } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
                    showModal (strong (
                      modalDialog ("Error: You can set a maximum of three consecutive linkers!",
@@ -1067,7 +1067,7 @@ shinyServer (function (input, output, session)
                    } else {
                      # find the last "Normal" label to change that one instead
                      j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
-                                                           rv$markerTable$type == 'Normal')]) 
+                                                         rv$markerTable$type == 'Normal')]) 
                      rv$markerTable [no == j, type := switch (type, 
                                                               'Linker' = 'Normal', 
                                                               'Normal' = 'Linker')]
