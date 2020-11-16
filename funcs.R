@@ -1,9 +1,9 @@
 #######################################################################
-# The auxiliary functions for the TRIAD shiny app. 
+# The auxiliary functions for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Tree Ring Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################

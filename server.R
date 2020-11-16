@@ -1,9 +1,9 @@
 #######################################################################
-# The server side for the TRIAD shiny app. 
+# The server side for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Wood Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
@@ -558,7 +558,7 @@ shinyServer (function (input, output, session)
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- list (version          = TRIADversion,
+      meta <- list (version          = WIADversion,
                     ownerName        = input$ownerName, 
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
@@ -1238,7 +1238,7 @@ shinyServer (function (input, output, session)
                    # increase all label numbers with higher no than the inserted label
                    rv$markerTable [no >= rv$index+1, no := no + 1]
                    
-                   # insert label after identified row 
+                   # insert label before identified row 
                    rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
                                             newPoint,
                                             rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
@@ -2169,7 +2169,7 @@ shinyServer (function (input, output, session)
       
       # paste file name together
       #----------------------------------------------------------------------------------
-      paste0 ('TRIAD_metadata_template',
+      paste0 ('WIAD_metadata_template',
               format (Sys.time (),
                       format = '%Y-%m-%d-%H%M%S'),
               '.xlsx')
@@ -2195,7 +2195,7 @@ shinyServer (function (input, output, session)
       
       # download existing metadata template file
       #----------------------------------------------------------------------------------
-      file.copy ('TRIAD-metadata-template-2020-09-14.xlsx', file)
+      file.copy ('WIAD-metadata-template-2020-09-14.xlsx', file)
     }
   )
   

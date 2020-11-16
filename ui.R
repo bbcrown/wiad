@@ -1,9 +1,9 @@
 #######################################################################
-# The UI side for the TRIAD shiny app. 
+# The UI side for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Tree Ring Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
@@ -30,7 +30,7 @@ fluidPage (
     .link:hover {color: #a41034;}')),
   
   # title of the page
-  titlePanel ('TRIAD: Tree Ring Image Analysis and Dataset'),
+  titlePanel ('WIAD: Wood Image Analysis and Dataset'),
   
   # the tabset containts four tab panels
   tabsetPanel (

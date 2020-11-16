@@ -1,15 +1,15 @@
 #######################################################################
-# The global setup for the TRIAD shiny app. 
+# The global setup for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Tree Ring Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
 
-# This is the version of the Tree Ring Image Analysis and Database 
-TRIADversion <- 'Generated with the Tree Ring Image Analysis and Database (TRIAD) v0.1.1.1.'
+# This is the version of the Wood Image Analysis and Database 
+WIADversion <- 'Generated with the Wood Image Analysis and Database (TRIAD) v0.1.1.1.'
 
 # loading auxiliary functions that are called in server.R and ui.R
 source ('funcs.R')
