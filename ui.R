@@ -3,7 +3,7 @@
 # 
 # The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# WIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Wood Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
