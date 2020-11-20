@@ -1185,6 +1185,10 @@ shinyServer (function (input, output, session)
                                                  relx = numeric (),
                                                  rely = numeric (),
                                                  type = character ())
+                   
+                   # reset index to index of last label, after saving it
+                   rv$index <- 1
+                   rv$previousIndex <- 0
                  }
                  
                  #  validate that a marker table exists
@@ -1534,11 +1538,9 @@ shinyServer (function (input, output, session)
     # Nota bene: first label has to be normal and "growth" will be set to NA, loop over rest
     pixels <- rep (NA, n)
     
-    # calculate growth as distance between pixels 
-    # here we identify a reference label to which "growth" will be calculated and 
     # calculate distance between label location and reference label
-    # each label marks the end of a growth increment
-    for (i in 1:n) { 
+    # each label marks the end of a growth increment, therefore the last label cannot have "growth"
+    for (i in 1:(n-1)) { 
       
       # jump to next iteration for "Linker" and 'Pith' labels 
       if (types [i] %in% c ('Linker','Pith')) next
