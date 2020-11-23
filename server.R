@@ -134,7 +134,7 @@ shinyServer (function (input, output, session)
                   req (rv$markerTable)
 
                   # initialise missing ring
-                  missingRing <- data.table (no   = rv$index+1,
+                  missingRing <- data.table (no   = ifelse (rv$index <= 1, 1, rv$index+1),
                                              x    = rv$markerTable$x    [rv$index],
                                              y    = rv$markerTable$y    [rv$index],
                                              relx = rv$markerTable$relx [rv$index],
@@ -1178,7 +1178,7 @@ shinyServer (function (input, output, session)
                    
                  # else no or one marker was set yet
                  } else {
-                   # create new marker table
+                   # create new label table
                    rv$markerTable <- data.table (no   = integer (),
                                                  x    = numeric (),
                                                  y    = numeric (),
@@ -1220,7 +1220,7 @@ shinyServer (function (input, output, session)
                  }
                  
                  # initialise new point
-                 newPoint <- data.table (no = rv$index + 1,
+                 newPoint <- data.table (no = ifelse (rv$index <= 1, 1, rv$index + 1),
                                          x  = input$normal_point$x,
                                          y  = input$normal_point$y,
                                          relx = input$normal_point$x / input$normal_point$domain$right,
@@ -1364,7 +1364,7 @@ shinyServer (function (input, output, session)
                   )
                   
                   # initialise new point
-                  newPoint <- data.table (no = rv$index + 1,
+                  newPoint <- data.table (no = ifelse (rv$index <= 1, 1, rv$index + 1),
                                           x  = input$misc_point$x,
                                           y  = input$misc_point$y,
                                           relx = input$misc_point$x / input$misc_point$domain$right,
@@ -1555,7 +1555,7 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       
       # get pith index, if it exists
-      p <- ifelse ('Pith' %in% types, which (types == 'Pith'), n)
+        p <- ifelse ('Pith' %in% types, which (types == 'Pith'), n)
       
       # identify reference label's year
       refYr <- years [i] - 1
