@@ -1192,7 +1192,6 @@ shinyServer (function (input, output, session)
                    rv$previousIndex <- 0
                  }
                  
-                 print (rv$index)
                  #  validate that a label table exists
                  rv$check_table <- rv$check_table + 1
                })
@@ -1253,12 +1252,10 @@ shinyServer (function (input, output, session)
                    rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                  }
                  
-                 print (rv$index)
                  # save index and reset to index of last label
                  rv$previousIndex <- rv$index + 1
                  rv$index <- nrow (rv$markerTable)
                  
-                 print (rv$index)
                  # update growth
                  rv$markerTable <- growthTable ()
                  
