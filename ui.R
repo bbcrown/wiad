@@ -463,6 +463,8 @@ fluidPage (
     # tabpabel for the about page
     tabPanel ('About',
              
+              br (), 
+              
              # load from the markdown document
              includeMarkdown ('about.md')
     ),
