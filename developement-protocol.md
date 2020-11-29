@@ -40,7 +40,7 @@ While there are many testing approaches, we adopt two most popular testing appro
 
 It is expected that all features of the application are "white-box" tested as soon as the development is completed. Ideally, a *test case* should be implemented for each test of all functions/methods/scripts.
 
-It is expected that several comprehensive *black-box* test case are designed and documented, in order to test the entire app for identifying potenital issues.
+It is expected that several comprehensive *black-box* test cases are designed and documented, in order to test the entire app for identifying potenital issues.
 
 
 ### Code Structure
@@ -53,7 +53,6 @@ At the moment, The code contains four major parts:
 
 It is expected that every function is responsible for a single task. While, we acknowledge *Shiny* apps are generally contain large chunks of code in server.R and ui.R as the debugging becomes a challenge for function calls from the *Shiny* shell, we still try to minimize the size of main code in server.R and ui.R.
 
-
 ### Comments
 - It is expected that comments are used troughout the code to explain which part does what
 - Comments in the code are reserved only to increase clarity of each parts.   
@@ -65,6 +64,6 @@ We adopt a simple versioning approach with three digits: **_X.Y.Z.B_**, starting
 - **_X_**: The first digit indicates major released version number, it should remain as **0** until the first complete fully tested version is released.
 - **_Y_**: The second digit indicate its status: 0 for alpha, 1 for beta, 2 for candidate for release and 3 for released. 
 - **_Z_**: The third digit indicates minor released, reserved for changes that add new minor functionalities or addressed serveral bugs
-- **_B_**: The last digit indicates the build number, starting from 1. Each build addresses failry minor features or bugs or small appearance issues. 
+- **_B_**: The last digit indicates the build number, starting from 1. Each build addresses faily minor features or bugs or small appearance issues. 
 
 
