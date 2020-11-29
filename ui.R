@@ -1,9 +1,9 @@
 #######################################################################
-# The UI side for the TRIAD shiny app. 
+# The UI side for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Wood Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
@@ -30,7 +30,7 @@ fluidPage (
     .link:hover {color: #a41034;}')),
   
   # title of the page
-  titlePanel ('TRIAD: Tree Ring Image Analysis and Dataset'),
+  titlePanel ('WIAD: Wood Image Analysis and Dataset'),
   
   # the tabset containts four tab panels
   tabsetPanel (
@@ -71,7 +71,7 @@ fluidPage (
                div (style = "margin-top:-15px; margin-bottom:25px"),
                
                # download link to retrieve metadata template
-               downloadLink (outputId = '&nbsp; downloadTemplate',
+               downloadLink (outputId = 'downloadTemplate',
                              label = 'Download metadata template', 
                              class = 'link'),
                
@@ -95,21 +95,19 @@ fluidPage (
                
                # the date on which the sample was collected
                dateInput (inputId = 'sampleDate', 
-                          label = 'Sample Date'),
+                          label = 'Sample date'),
                
-               # this might look redundant to the "date" entry, however this is used to double check user's input
-               numericInput (inputId = 'sampleYear', 
-                             label = 'Sample year', 
-                             min = 1800, 
-                             max = year (Sys.Date ()),
-                             value = 2019),
-               
-               # checkbox to check whether growing season had started in sample year
+               # radio buttons to check whether growing season had started in sample year
                radioButtons (inputId = 'sampleYearGrowingSeason', 
                              label = 'Growing season had', 
                              choices = list ('not started','only started','already ended'),
                              selected = 'not started',
                              inline = TRUE),
+               
+               # check for Schulman Shift according to Edmund Schulman (1956) "Dendroclimatic changes in semiarid America"
+               checkboxInput (inputId = 'SchulmanShift', 
+                              label = 'Schulman Shift', 
+                              value = FALSE),
                
                # resolution of the sample
                numericInput (inputId = 'sampleDPI', 
@@ -131,10 +129,20 @@ fluidPage (
                           label = 'Plot ID', 
                           placeholder = 'Internal plot identifier.'),
                
-               # name of the collection
+               # identifier for the sample
                textInput (inputId = 'sampleID', 
                           label = 'Sample ID',
                           placeholder = 'Internal sample identifier.'),
+               
+               # height above-ground at which the sample was taken
+               numericInput (inputId = 'sampleHeight', 
+                             label = 'Sample height (m)',
+                             value = 1.5),
+               
+               # azimuth angle at which the sample was taken
+               numericInput (inputId = 'sampleAzimuth', 
+                             label = 'Sample azimuth (\u00B0)', # \u00B0 is HTML for degree symbol
+                             value = NA),
                
                # any additional input metadata that the user might want to record
                textInput (inputId = 'sampleNote', 
@@ -444,7 +452,10 @@ fluidPage (
                   # plot the detrended ring width index over time
                   plotlyOutput (outputId = 'detrended_growth_plot', 
                                 height = "500px", 
-                                width = "100%")
+                                width = "100%"),
+                  
+                  # add a little gray space
+                  br ()
                  
                )
              ),
@@ -452,6 +463,8 @@ fluidPage (
     # tabpabel for the about page
     tabPanel ('About',
              
+              br (), 
+              
              # load from the markdown document
              includeMarkdown ('about.md')
     ),

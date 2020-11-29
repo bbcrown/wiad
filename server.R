@@ -1,9 +1,9 @@
 #######################################################################
-# The server side for the TRIAD shiny app. 
+# The server side for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Wood Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
@@ -65,16 +65,16 @@ shinyServer (function (input, output, session)
   
   # delete specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$deleteRow,
+  observeEvent (input$delete_row,
                 {
                   # write log
-                  printLog ('observeEvent input$deleteRow')
+                  printLog ('observeEvent input$delete_row')
 
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
 
                   # get the row number that should be deleted
-                  rowNum <- parseRowNumber (input$deleteRow)
+                  rowNum <- parseRowNumber (input$delete_row)
                   
                   # correct for the fact the the table is displayed from back to front 
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
@@ -82,38 +82,41 @@ shinyServer (function (input, output, session)
                   # delete the row
                   rv$markerTable <- rv$markerTable [-rowNum, ]
                   
-                  # reduce all marker numbers that were higher than the deleted marker
+                  # reduce all label numbers that were higher than the deleted label
                   rv$markerTable [no > rowNum, no := no - 1]
+                  
+                  # reset the label index to last label index
+                  rv$index <- nrow (rv$markerTable)
                 }
   )
   
   # insert row after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$insertRow,
+  observeEvent (input$insert_row,
                 {
-                  printLog ('observeEvent input$insertRow')
+                  printLog ('observeEvent input$insert_row')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
                   
-                  # get the row number (e.g. marker number) after which the new marker should be inserted
-                  rowNum <- parseRowNumber (input$insertRow)
+                  # get the row number (e.g. label number) before which the new label is inserted
+                  rowNum <- parseRowNumber (input$insert_row) + 1
                   
-                  # correct for the fact the the table is displayed from back to front 
+                  # correct for the fact the table is displayed from back to front 
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
                   
-                  # share the row number (e.g. marker number)  
+                  # share the row number (e.g. label number) as rv$index, after saving the old one
                   rv$index <- rowNum
                   
                   # check whether user wants to insert a missing ring using input modal
                   showModal (strong (
-                    modalDialog ("Do you want to insert a missing ring or other marker?",
+                    modalDialog ("Do you want to insert a missing ring or other label?",
                                  easyClose = T,
                                  fade = T,
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
-                                   actionButton (inputId = 'missingRing',
+                                   actionButton (inputId = 'missing_ring',
                                                  label   = 'Missing ring'),
                                    modalButton (label   = 'Other'))))
                   )
@@ -122,16 +125,16 @@ shinyServer (function (input, output, session)
   
   # insert a missing ring after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$missingRing,
+  observeEvent (input$missing_ring,
                 {
                   # write log
-                  printLog ('observeEvent input$missingRing')
+                  printLog ('observeEvent input$missing_ring')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
 
                   # initialise missing ring
-                  missingRing <- data.table (no   = rv$index+1,
+                  missingRing <- data.table (no   = rv$index + 1,
                                              x    = rv$markerTable$x    [rv$index],
                                              y    = rv$markerTable$y    [rv$index],
                                              relx = rv$markerTable$relx [rv$index],
@@ -148,7 +151,8 @@ shinyServer (function (input, output, session)
                                            rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                            fill = TRUE)
 
-                  # reset insert index to the last label in the series
+                  # reset insert index to the last label in the series, after saving the index
+                  rv$previousIndex <- rv$index + 1
                   rv$index <- nrow (rv$markerTable)
                   
                   # close modal dialog
@@ -244,6 +248,10 @@ shinyServer (function (input, output, session)
                    rely = numeric (),   # relative y
                    type = character ()  # type
                  )
+                 
+                 # reset the label and previous label indices 
+                 rv$index <- 0
+                 rv$previousIndex <- 0
                }
   )
   
@@ -312,9 +320,6 @@ shinyServer (function (input, output, session)
                       updateTextInput (session = session,
                                        inputId = 'sampleDate',
                                        value = labels$sampleDate)
-                      updateTextInput (session = session,
-                                       inputId = 'sampleYear',
-                                       value = labels$sampleYear)
                       updateRadioButtons (session = session,
                                           inputId = 'sampleYearGrowingSeason',
                                           selected = ifelse (labels$sampleYearGrowth == 'none', 
@@ -322,9 +327,13 @@ shinyServer (function (input, output, session)
                                                              ifelse (labels$sampleYearGrowth == 'some', 
                                                                      'only started', 
                                                                      'already ended')))
-                      updateTextInput (session = session,
-                                       inputId = 'sampleDPI',
-                                       value = labels$sampleDPI)
+                      updateCheckboxInput (session = session,
+                                           inputId = 'SchulmanShift',
+                                           value = ifelse (is.null (labels$SchulmanShift), NA,
+                                                           unlist (labels$SchulmanShift)))
+                      updateNumericInput (session = session,
+                                          inputId = 'sampleDPI',
+                                          value = labels$sampleDPI)
                       updateCheckboxInput (session = session,
                                            inputId = 'pithInImage',
                                            value = unlist (labels$pithInImage))
@@ -341,11 +350,19 @@ shinyServer (function (input, output, session)
                                        inputId = 'plotID',
                                        value = labels$plotID)
                       updateTextInput (session = session,
-                                       inputId = 'sampleNote',
-                                       value = labels$sampleNote)
-                      updateTextInput (session = session,
                                        inputId = 'sampleID',
                                        value = labels$sampleID)
+                      updateNumericInput (session = session,
+                                          inputId = 'sampleHeight',
+                                          value = ifelse (is.null (labels$sampleHeight), NA,
+                                                          labels$sampleHeight))
+                      updateNumericInput (session = session,
+                                          inputId = 'sampleAzimuth',
+                                          value = ifelse (is.null (labels$sampleAzimuth), NA,
+                                                          labels$sampleAzimuth))
+                      updateTextInput (session = session,
+                                       inputId = 'sampleNote',
+                                       value = labels$sampleNote)
                       updateTextInput (session = session,
                                        inputId = 'collection',
                                        value = labels$collection)
@@ -409,25 +426,24 @@ shinyServer (function (input, output, session)
                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
                    metadata <- read_excel (path = rv$metaPath,
                                            col_names = c ('ownerName','ownerEmail','species',
-                                                          'sampleDate','sampleYear',
-                                                          'sampleYearGrowth','sampleDPI',
-                                                          'pithInImage','barkFirst','siteLoc',
-                                                          'siteLocID','plotID','sampleID',
-                                                          'sampleNote','collection','contributor'),
-                                           col_types = c ('text','text','text','date','numeric',
-                                                          'text','numeric','logical','logical',
-                                                          'text','text','text','text','text',
-                                                          'text','text'), 
+                                                          'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                          'sampleDPI','pithInImage','barkFirst','siteLoc',
+                                                          'siteLocID','plotID','sampleID','sampleHeight',
+                                                          'sampleAzimuth','sampleNote','collection',
+                                                          'contributor'),
+                                           col_types = c ('text','text','text','date','text','logical','numeric',
+                                                          'logical','logical','text','text','text',
+                                                          'text','numeric','numeric','text','text','text'), 
                                            skip = 1)
                  } else if (rv$metaExt %in% c ('csv', 'CSV')) {
                    metadata <- read_csv (file = rv$metaPath, 
                                          col_names = c ('ownerName','ownerEmail','species',
-                                                        'sampleDate','sampleYear',
-                                                        'sampleYearGrowth','sampleDPI',
-                                                        'pithInImage','barkFirst','siteLoc',
+                                                        'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                        'sampleDPI','pithInImage','barkFirst','siteLoc',
                                                         'siteLocID','plotID','sampleID',
+                                                        'sampleHeight','sampleAzimuth',
                                                         'sampleNote','collection','contributor'),
-                                         col_types = 'cccDicillccccccc', skip = 1)
+                                         col_types = 'cccDclillccccdiccc', skip = 1)
                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
                    metadata <- read_json (rv$metaPath)
                  } else {
@@ -455,9 +471,6 @@ shinyServer (function (input, output, session)
                  updateTextInput (session = session,
                                   inputId = 'sampleDate',
                                   value = metadata$sampleDate)
-                 updateTextInput (session = session,
-                                  inputId = 'sampleYear',
-                                  value = metadata$sampleYear)
                  updateRadioButtons (session  = session,
                                      inputId  = 'sampleYearGrowingSeason',
                                      selected = ifelse (metadata$sampleYearGrowth == 'none', 
@@ -465,9 +478,12 @@ shinyServer (function (input, output, session)
                                                         ifelse (metadata$sampleYearGrowth == 'some', 
                                                                 'only started', 
                                                                 'already ended')))
-                 updateTextInput (session = session,
-                                  inputId = 'sampleDPI',
-                                  value = metadata$sampleDPI)
+                 updateCheckboxInput (session = session,
+                                      inputId = 'SchulmanShift',
+                                      value = unlist (metadata$SchulmanShift))
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleDPI',
+                                     value = metadata$sampleDPI)
                  updateCheckboxInput (session = session,
                                       inputId = 'pithInImage',
                                       value = unlist (metadata$pithInImage))
@@ -484,11 +500,19 @@ shinyServer (function (input, output, session)
                                   inputId = 'plotID',
                                   value = metadata$plotID)
                  updateTextInput (session = session,
-                                  inputId = 'sampleNote',
-                                  value = metadata$sampleNote)
-                 updateTextInput (session = session,
                                   inputId = 'sampleID',
                                   value = metadata$sampleID)
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleHeight',
+                                     value = ifelse (is.null (metadata$sampleHeight), NA,
+                                                     metadata$sampleHeight))
+                 updateNumericInput (session = session,
+                                     inputId = 'sampleAzimuth',
+                                     value = ifelse (is.null (metadata$sampleAzimuth), NA,
+                                                     metadata$sampleAzimuth))
+                 updateTextInput (session = session,
+                                  inputId = 'sampleNote',
+                                  value = metadata$sampleNote)
                  updateTextInput (session = session,
                                   inputId = 'collection',
                                   value = metadata$collection)
@@ -535,14 +559,15 @@ shinyServer (function (input, output, session)
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- list (ownerName        = input$ownerName, 
+      meta <- list (version          = WIADversion,
+                    ownerName        = input$ownerName, 
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
                     sampleDate       = input$sampleDate,
-                    sampleYear       = input$sampleYear,
                     sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'not started', 'none',
                                                ifelse (input$sampleYearGrowingSeason == 'already ended', 
                                                        'all', 'some')),
+                    SchulmanShift    = input$SchulmanShift,
                     sampleDPI        = input$sampleDPI,
                     pithInImage      = input$pithInImage,
                     barkFirst        = input$barkFirst,
@@ -551,9 +576,11 @@ shinyServer (function (input, output, session)
                     plotID           = input$plotID,
                     sampleNote       = input$sampleNote,
                     sampleID         = input$sampleID,
+                    sampleHeight     = input$sampleHeight,
+                    sampleAzimuth    = input$sampleAzimuth,
                     collection       = input$collection,
                     contributor      = input$contributor,
-                    markerData       = growthTable (),
+                    markerData       = rv$markerTable,
                     status           = input$confirmMeta)
       
       # return metadata
@@ -647,15 +674,18 @@ shinyServer (function (input, output, session)
                    ybottom = window [3], 
                    xright  = window [2], 
                    ytop    = window [4])
+
+       
+      # check that there are labels to plot
+      #----------------------------------------------------------------------------------
+      if (nrow (rv$markerTable) == 0) return ()
       
       # make local copy of marker table
       #----------------------------------------------------------------------------------
       marker_tbl <- rv$markerTable [, .(x, y)]
       
-      # check that there are labels to plot
-      if (nrow (marker_tbl) == 0) return ()
-      
       # identify normal, linker, misc and pith labels
+      #----------------------------------------------------------------------------------
       wNormal  <- which (rv$markerTable$type == 'Normal')
       wLinkers <- which (rv$markerTable$type == 'Linker')
       wMisc    <- which (rv$markerTable$type %in% c ('Misc',
@@ -693,14 +723,17 @@ shinyServer (function (input, output, session)
       
       # plot years between two labels to more easily identify the growth rings
       if (input$displayYears) {
-        years <- growthTable ()
         
         # find only normal and pith labels
-        years <- years [years$type %in% c ('Normal', 'Pith')]
+        years <- rv$markerTable [type %in% c ('Normal', 'Pith')]
         if (nrow (years) > 1) {
           xs <- rollmean (years$x, 2)
           ys <- rollmean (years$y, 2)
-          years <- years [2:nrow (years), year]
+          years <- years [1:(nrow (years) - 1), ]
+          if ('Pith' %in% years$type) {
+            years [no >= years [type == 'Pith', no], year := year + 1] 
+          }
+          years <- years$year
           text (x = xs,
                 y = ys,
                 labels = years,
@@ -803,94 +836,82 @@ shinyServer (function (input, output, session)
       }
     })
   
-  
   observeEvent (input$selRed,
                {
                  printLog ('observeEvent input$selRed')
                  
                  rv$procband <- 'Red'
-               }
-  )
+               })
   
   observeEvent (input$selBlue,
                {
                  printLog ('observeEvent input$selBlue')
                  
                  rv$procband <- 'Blue'
-               }
-  )
+               })
   
   observeEvent (input$selGreen,
                {
                  printLog ('observeEvent input$selGreen')
                  
                  rv$procband <- 'Green'
-               }
-  )
+               })
   
   observeEvent (input$selHue,
                {
                  printLog ('observeEvent input$selHue')
                  
                  rv$procband <- 'Hue'
-               }
-  )
+               })
   
   observeEvent (input$selSat,
                {
                  printLog ('observeEvent input$selSat')
                  
                  rv$procband <- 'Saturation'
-               }
-  )
+               })
   
   observeEvent (input$selValue,
                {
                  printLog ('observeEvent input$selValue')
                  
                  rv$procband <- 'Value'
-               }
-  )
+               })
   
   observeEvent (input$selBright,
                {
                  printLog ('observeEvent input$selBright')
                  
                  rv$procband <- 'Brightness'
-               }
-  )
+               })
   
   observeEvent (input$selDark,
                {
                  printLog ('observeEvent input$selDark')
                  
                  rv$procband <- 'Darkness'
-               }
-  )
+               })
   
   observeEvent (input$selContrast,
                {
                  printLog ('observeEvent input$selContrast')
                  
                  rv$procband <- 'Contrast'
-               }
-  )
+               })
   
   observeEvent (input$selTotBr,
                {
                  printLog ('observeEvent input$selTotBr')
                  
                  rv$procband <- 'Brightness'
-               }
-  )
+               })
   
   observeEvent (input$selRGB,
                {
                  printLog ('observeEvent input$selRGB')
                  
                  rv$procband <- 'RGB'
-               }
-  )
+               })
   
   totbrightness <- reactive (
     {
@@ -902,8 +923,7 @@ shinyServer (function (input, output, session)
       
       # average tog et total birghtness
       tmp / 3
-    }
-  )
+    })
   
   brightness <- reactive (
     {
@@ -914,8 +934,7 @@ shinyServer (function (input, output, session)
       if (is.null (rv$imgMat)) return ()
       tmp <- getBrightness (rv$imgMat)
       tmp
-    }
-  )
+    })
   
   darkness <- reactive (
     {
@@ -925,9 +944,7 @@ shinyServer (function (input, output, session)
         return ()
       tmp <- getDarkness (rv$imgMat)
       tmp
-    }
-  )
-  
+    })
   
   contrast <- reactive (
     {
@@ -938,9 +955,7 @@ shinyServer (function (input, output, session)
       if (is.null (rv$imgMat)) return ()
       tmp <- getContrast (rv$imgMat)
       tmp
-    }
-  )
-  
+    })
   
   imgProcessed <- reactive (
     {
@@ -969,8 +984,7 @@ shinyServer (function (input, output, session)
               'Blue' = rv$imgMat [,,3],
               'Brightness' = totbrightness ())
 
-    }
-  )
+    })
   
   # erase all previous labels
   #--------------------------------------------------------------------------------------
@@ -1019,10 +1033,10 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # check whether only one or two labels have been set yet 
-                 } else if (nrow (rv$markerTable) <= 2) {
+                 # check whether this is the first label 
+                 } else if (nrow (rv$markerTable) == 1) {
                    showModal (strong (
-                     modalDialog ("Error: The first two points cannot be linkers! Maybe start on a ring?",
+                     modalDialog ("Error: The first label cannot be a linker! Maybe start on a ring?",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
@@ -1030,10 +1044,10 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                 # check whether this is the third linker marker in a row 
-                 } else if (sum (tail (rv$markerTable$type, n = 2) == 'Linker', na.rm = TRUE) == 2) {
+                 # check whether this is the second linker label in a row 
+                 } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
                    showModal (strong (
-                     modalDialog ("Error: You can set a maximum of two consecutive linkers!",
+                     modalDialog ("Error: You can set a maximum of three consecutive linkers!",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
@@ -1041,14 +1055,28 @@ shinyServer (function (input, output, session)
                                   footer = NULL
                      )))
                    return ()
-                   # else more than two normal labels have been set and 
-                   # the type of the last indexed marker is switched
+                   # else two or more normal labels have been set and 
+                   # the type of the last indexed label is switched
                  } else {
-                   i <- ifelse (rv$previousIndex < rv$index - 1, rv$previousIndex, rv$index) 
-                   rv$markerTable [no == i, # TR this seems to crash occassionally with the following warning: Warning: Error in [.data.table: When deleting columns, i should not be provided 
-                                   type := switch (type, 
-                                                   'Linker' = 'Normal', 
-                                                   'Normal' = 'Linker')]
+                   
+                   # change the label type of the "Normal" label closest to the last indexed label
+                   if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+                     rv$markerTable [no == rv$previousIndex, 
+                                     type := switch (type, 
+                                                     'Linker' = 'Normal', 
+                                                     'Normal' = 'Linker')]
+                   } else {
+                     # find the last "Normal" label to change that one instead
+                     j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                                         rv$markerTable$type == 'Normal')]) 
+                     rv$markerTable [no == j, type := switch (type, 
+                                                              'Linker' = 'Normal', 
+                                                              'Normal' = 'Linker')]
+                     
+                   }
+                   
+                   # update "growth" 
+                   rv$markerTable <- growthTable ()
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
@@ -1064,6 +1092,19 @@ shinyServer (function (input, output, session)
                  
                  if (rv$notLoaded == TRUE) return ()
                  
+                 # check that metadata was confirmed
+                 if (input$confirmMeta == 'Not Confirmed') {
+                   showModal (strong (
+                     modalDialog ("First review and confirm the metadata!",
+                                  easyClose = T,
+                                  fade = T,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
+                   return ()
+                   # check whether there is already a pith label
+                 }
+                 
                  # check whether no label has been set yet
                  if (nrow (rv$markerTable) == 0) {
                    showModal (strong (
@@ -1077,24 +1118,38 @@ shinyServer (function (input, output, session)
                  # check whether there is already a pith label
                  } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
                    showModal (strong (
-                     modalDialog ("Error: You can only set one pith!",
+                     modalDialog ("Error: You can only set one pith and there is already one! Delete it first.",
                                   easyClose = T,
                                   fade = T,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
                    return ()
-                 # else we have at least one label and no pith yet
+                 # else we have at least one label and no pith yet, check that this is a "Normal" label
                  } else {
-                   # change the label type of the last indexed label
-                   i <- ifelse (rv$previousIndex < rv$index - 1, rv$previousIndex, rv$index)
-                   rv$markerTable [no == i, 
-                                   type := switch (type, 
-                                                   'Pith' = 'Normal', 
-                                                   'Normal' = 'Pith')]
+                   
+                   # change the label type of the "Normal" label closest to the last indexed label
+                   if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+                     rv$markerTable [no == rv$previousIndex, 
+                                     type := switch (type, 
+                                                     'Pith' = 'Normal', 
+                                                     'Normal' = 'Pith')]
+                   } else {
+                     # find the last "Normal" label to change that one instead
+                     j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                                         rv$markerTable$type == 'Normal')]) 
+                     rv$markerTable [no == j, type := switch (type, 
+                                                              'Pith' = 'Normal', 
+                                                              'Normal' = 'Pith')]
+                     
+                   }   
+                   
+                   # update "growth" 
+                   rv$markerTable <- growthTable ()
                    
                    # validate that a marker table exists
                    rv$check_table <- rv$check_table + 1
+                   
                  }
                })
   
@@ -1111,32 +1166,37 @@ shinyServer (function (input, output, session)
                  if (nrow (rv$markerTable) > 1) {
                    
                    # delete the previously modified marker or the last marker
-                   rv$markerTable <- rv$markerTable [-rv$index, ]
+                   rv$markerTable <- rv$markerTable [-rv$previousIndex, ]
                    # N.B. Currently there is only memory of one index and thereafter 
                    #      points will be deleted from the end of the markerTable  
                    
-                   # reset index to index of last label
+                   # reset index to index of last label, after saving it
                    rv$index <- nrow (rv$markerTable)
+                   rv$previousIndex <- nrow (rv$markerTable)
                      
                    # make sure that the no are consecutive, after marker was deleted
                    rv$markerTable$no <- 1:nrow (rv$markerTable)
                    
-                 # else no or one marker was set yet
+                 # else no or only one label was set yet
                  } else {
-                   # create new marker table
+                   # create new label table
                    rv$markerTable <- data.table (no   = integer (),
                                                  x    = numeric (),
                                                  y    = numeric (),
                                                  relx = numeric (),
                                                  rely = numeric (),
                                                  type = character ())
+                   
+                   # reset index to index of last label, after saving it
+                   rv$index <- 0
+                   rv$previousIndex <- 0
                  }
                  
-                 #  validate that a marker table exists
+                 #  validate that a label table exists
                  rv$check_table <- rv$check_table + 1
                })
   
-  # add a "Normal" marker by simple click
+  # add a "Normal" label by simple click
   #--------------------------------------------------------------------------------------
   observeEvent (input$normal_point,
                {
@@ -1160,9 +1220,6 @@ shinyServer (function (input, output, session)
                    return ()
                  }
                  
-                 # set point index to 1 for first marker or increase the last marker index by one
-                 no <- ifelse (is.null (rv$markerTable), 1, nrow (rv$markerTable) + 1)
-                 
                  # initialise new point
                  newPoint <- data.table (no = rv$index + 1,
                                          x  = input$normal_point$x,
@@ -1184,9 +1241,9 @@ shinyServer (function (input, output, session)
                  if (rv$index < nrow (rv$markerTable)) {
                    
                    # increase all label numbers with higher no than the inserted label
-                   rv$markerTable [no >= rv$index+1, no := no + 1]
+                   rv$markerTable [no >= rv$index + 1, no := no + 1]
                    
-                   # insert label after identified row 
+                   # insert label before identified row 
                    rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
                                             newPoint,
                                             rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
@@ -1196,25 +1253,55 @@ shinyServer (function (input, output, session)
                  }
                  
                  # save index and reset to index of last label
-                 rv$previousIndex <- rv$index
+                 rv$previousIndex <- rv$index + 1
                  rv$index <- nrow (rv$markerTable)
+                 
+                 # update growth
+                 rv$markerTable <- growthTable ()
                  
                  # validate that a marker table exists
                  rv$check_table <- rv$check_table + 1
                })
   
-  # Change type of previously set "Misc" label
+  # select type of previously set "Misc" label
   #--------------------------------------------------------------------------------------
-  observeEvent (input$selectMiscType,
+  observeEvent (input$select_misc_type,
                 {
                   # write log
-                  printLog ('observeEvent input$selectMiscType')
+                  printLog ('observeEvent input$select_misc_type')
                   
                   # change type of the misc label that was just set
-                  rv$markerTable [no == rv$index, type := input$miscType]
+                  rv$markerTable [no == rv$previousIndex, type := input$misc_type]
                   
                   # close the modal
                   removeModal ()
+                  
+                  # update growth
+                  rv$markerTable <- growthTable ()
+                  
+                })
+  
+  # cancel previously set "Misc" label
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$cancel_misc,
+                {
+                  # write log
+                  printLog ('observeEvent input$cancel_misc')
+                  
+                  # delete the row
+                  rv$markerTable <- rv$markerTable [no != rv$index, ]
+                  
+                  # reduce all label numbers that were higher than the deleted label
+                  rv$markerTable [no > rv$index, no := no - 1]
+                  
+                  # reset the label index to last label index
+                  rv$index <- rv$previousIndex
+                  
+                  # close the modal
+                  removeModal ()
+                  
+                  # update growth
+                  rv$markerTable <- growthTable ()
                   
                 })
   
@@ -1261,7 +1348,7 @@ shinyServer (function (input, output, session)
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
-                                   radioButtons (inputId = 'miscType',
+                                   radioButtons (inputId = 'misc_type',
                                                  label   = '',
                                                  choices = c ('Misc',
                                                               'Density fluctuation',
@@ -1270,9 +1357,10 @@ shinyServer (function (input, output, session)
                                                               'Early-to-latewood transition'),
                                                  selected = NULL,
                                                  inline = TRUE)),
-                                 actionButton (inputId = 'selectMiscType',
+                                 actionButton (inputId = 'select_misc_type',
                                                label = 'Select'),
-                                 modalButton ('Close')
+                                 actionButton (inputId = 'cancel_misc',
+                                               label = 'Cancel')
                                  ))
                   )
                   
@@ -1308,7 +1396,7 @@ shinyServer (function (input, output, session)
                   }
                   
                   # save index and set to index of last label
-                  rv$previousIndex <- rv$index
+                  rv$previousIndex <- rv$index + 1
                   rv$index <- nrow (rv$markerTable)
                   
                   # validate that marker table exists
@@ -1328,224 +1416,241 @@ shinyServer (function (input, output, session)
     req (rv$check_table)
     req (rv$markerTable)
     
-    # copy rv$markerTable into growth_table
+    # copy rv$markerTable into growth_table, if it has at least one row
     #------------------------------------------------------------------------------------
-    growth_table <- rv$markerTable
+    if (nrow (rv$markerTable) > 0) {
+      growth_table <- rv$markerTable
+    } else {
+      return ()
+    }
     
     # get types of labels
     #------------------------------------------------------------------------------------
     types <- growth_table [, type]
     n <- length (types)
     
-    # initialise years vector
+    # initialise years vector, which associates the starting boundary of the growth ring 
+    # with the year of the growing season  
     #------------------------------------------------------------------------------------
     years <- rep (NA, n)
-    
-    # check whether there is no pith marker (which marks oldest ring or pith) yet
+   
+    # measurement series starts at the bark
     #------------------------------------------------------------------------------------
-    if (sum (types == 'Pith', na.rm = TRUE) == 0) {
-
-      # check whether the measurement series starts at the bark
-      #----------------------------------------------------------------------------------
-      if (input$barkFirst) {
-
-        # loop over all points from bark towards the pith
-        for (i in 1:n)
-          years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 'Misc', ''),
-                                       years [i-1],
-                                       years [i-1] - 1)
-          )
-      # else the measurement series starts at the inner most ring
-      } else if (!input$barkFirst) {
-        
-        # loop over all points from inner most ring towards the bark in reverse order
-        for (i in n:1)
-          years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 
-                                                         'Misc',
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i+1],
-                                       years [i+1] - 1))
-      }
-    # else there is a pith marker already
-    } else if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+    if (input$barkFirst) {
       
-      # find the index of pith marker
-      p <- which (types == 'Pith')
-
-      # check whether the measurement series starts at the bark
-      if (input$barkFirst){
-        
-        # loop over all points from bark to pith
-        for (i in 1:p) {
-          years [i] <- ifelse (i == 1,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker', 
-                                                         'Misc',
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i-1],
-                                       years [i-1] - 1))
-        }
-        
-        # only if the last point was not the oldest ring (i.e., pith marker) 
-        if (n > p) {
-          # loop over all point from pith towards the bark in potential second profile
-          for (i in (p + 1):n) {
-            years [i] <- ifelse (i == 1,
-                                 ifelse (input$sampleYearGrowingSeason %in% 
-                                           c ('only started', 'already ended'),
-                                         input$sampleYear + 1,
-                                         input$sampleYear),
-                                 ifelse (types [i] %in% c ('Linker', 
-                                                           'Misc',
-                                                           'Density fluctuation',
-                                                           'Frost ring',
-                                                           'Fire scar',
-                                                           'Early-to-latewood transition'),
-                                         ifelse (types [i-1] != 'Pith', 
-                                                 years [i-1], 
-                                                 years [i-1] - 1),
-                                         years [i-1] + 1))
+      # is there a pith or oldest ring label? If so, find its index p
+      #------------------------------------------------------------------------------------
+      p <- ifelse ('Pith' %in% types, which (types == 'Pith'), n) 
+      
+      # loop over all points from bark to pith
+      for (i in 1:p) {
+        if (i == 1 & input$sampleYearGrowingSeason %in% c ('only started', 
+                                                           'already ended')) {
+          years [i] <- year (input$sampleDate) - input$SchulmanShift
+        } else if (i == 1 & input$sampleYearGrowingSeason == 'not started') {
+          years [i] <- year (input$sampleDate) - input$SchulmanShift - 1
+        } else {
+          
+          # find the last 'Normal' or 'Missing' label index j
+          j <- max (which (types [1:(i-1)] %in% c ('Normal','Missing')))
+          
+          # for "Normal" or "Pith" label, substract one year
+          if (types [i] %in% c ('Normal','Missing','Pith')) {
+            years [i] <- years [j] - 1
+          } else if (types [i] %in% c ('Linker','Misc','Density fluctuation','Frost ring',
+                                       'Fire scar','Early-to-latewood transition')) {
+            years [i] <- years [j]
           }
         }
-      # else the measurement series starts at the pith
-      } else if (!input$barkFirst) {
+      }
+      
+      # and beyond the pith/oldest ring if there are additional labels
+      if (n > p) {
         
-        # loop over points from potential second profile to the pith
-        for (i in n:p) {
-          years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i]  %in% c ('Linker', 
-                                                          'Misc', 
-                                                          'Density fluctuation',
-                                                          'Frost ring',
-                                                          'Fire scar',
-                                                          'Early-to-latewood transition'),
-                                       years [i+1],
-                                       years [i+1] - 1))
-        }
-
-        # loop over points from pith to bark
-        for (i in (p-1):1) {
-          years [i] <- ifelse (i == n,
-                               ifelse (input$sampleYearGrowingSeason %in% 
-                                         c ('only started', 'already ended'),
-                                       input$sampleYear + 1,
-                                       input$sampleYear),
-                               ifelse (types [i] %in% c ('Linker',
-                                                         'Misc',
-                                                         'Density fluctuation',
-                                                         'Frost ring',
-                                                         'Fire scar',
-                                                         'Early-to-latewood transition'),
-                                       years [i+1],
-                                       years [i+1] + 1))
+        # loop over all point from pith towards the bark in potential second profile
+        for (i in (p + 1):n) {
+          
+          # find the last "Normal", "Missing" or "Pith" label index j
+          j <- max (which (types [1:(i-1)] %in% c ('Normal','Missing','Pith')))
+          
+          # for "Normal", "Missing" or miscellaneous labels, add one year
+          if (types [i] %in% c ('Normal','Missing','Misc','Density fluctuation','Frost ring',
+                                'Fire scar','Early-to-latewood transition')) {
+            years [i] <- years [j] + 1
+            
+            # for "Linker" labels use the same year
+          } else if (types [i] == 'Linker') {
+            years [i] <- years [j]
+          }
         }
       }
-    }
+      
+    # else the measurement series starts at the oldest ring or pith
+    } else if (!input$barkFirst) {
+    
+      # is there a pith or oldest ring label? If so, find its index p
+      #------------------------------------------------------------------------------------
+      if (sum (types == 'Pith', na.rm = TRUE) == 1) {
+        p <- which (types == 'Pith') 
+        
+        # check that the first label is the oldest ring or pith
+        if (p != 1) {
+          showModal (strong (
+            modalDialog ("Error: You start your measurement at the pith, but your first label is not the pith. Something is not correct!",
+                         easyClose = T,
+                         fade = T,
+                         size = 's',
+                         style = 'background-color:#3b3a35; color:#f3bd48; ',
+                         footer = NULL)))
+          return ()
+        }
+    
+        # loop over all points from inner most ring towards the bark in reverse order
+        for (i in n:1) {
+          if (i == n & input$sampleYearGrowingSeason %in% c ('only started', 
+                                                             'already ended')) {
+            years [i] <- year (input$sampleDate) - input$SchulmanShift
+          } else if (i == n & input$sampleYearGrowingSeason == 'not started') {
+            years [i] <- year (input$sampleDate) - input$SchulmanShift - 1
+          } else {
+            
+            # find the last "Normal","Missing" or "Pith" label index j
+            j <- min (which (types [(i+1):n] %in% c ('Normal','Missing','Pith')))
+            
+            # for "Normal", "Missing", "Pith" or miscellaneous label, substract one year
+            if (types [i] %in% c ('Normal','Missing','Pith')) {
+              years [i] <- years [j] - 1
+            } else if (types [i] %in% c ('Linker','Misc','Density fluctuation','Frost ring',
+                                         'Fire scar','Early-to-latewood transition')) {
+              years [i] <- years [i]
+            }
+          }
+        }
+      }
+    } # Nota bene: "Linker" labels are not associated with any particular year
     
     # add years to growth table
     growth_table$year <- years
     
-    # check whether at least two labels have been set
-    if (nrow (growth_table) <= 1)  return (growth_table)
+    # with only one label, no meaningful growth can be calculated 
+    if (nrow (growth_table) == 1)  return (growth_table)
     
     # intialise growth in pixels
+    # Nota bene: first label has to be normal and "growth" will be set to NA, loop over rest
     pixels <- rep (NA, n)
     
-    # calculate "growth" for the various labels and combination 
-    # first marker has to be normal and "growth" will be set to 0 for the first marker
-    # loop over remaining labels to figure out their "growth"
-    for (i in n:2) { 
+    # calculate distance between label location and reference label
+    # each label marks the end of a growth increment, therefore the last label cannot have "growth"
+    for (i in 1:(n-1)) { 
       
-      # jump to next iteration for "Missing" ring labels 
-      if (growth_table$type [i] == 'Missing') next
+      # jump to next iteration for "Linker" and 'Pith' labels 
+      if (types [i] %in% c ('Linker','Pith')) next
       
-      # identify the index for the last and penultimate linker marker, if they exists
-      if (sum (growth_table$type == 'Linker', na.rm = TRUE) >= 1) {
-        
-        # check whether there is still a previously set linker
-        if (min (which (growth_table$type == 'Linker')) < i) {
-          lastLinker <- max (which (growth_table [no < i, type] == 'Linker')) 
-        } else {
-          lastLinker <- 0
-        }
-        
-        # check whether at least two smaller linkers were set
-        if (sum (growth_table [no < i, type] == 'Linker', na.rm = TRUE) >= 2) {
-          penultimateLinker <- head (tail (sort (which (growth_table [no < i, type] == 'Linker')), 
-                                           n = 2), 
-                                     n = 1)
-        } else {
-          penultimateLinker <- 0
-        }
-      } else {
-        lastLinker <- 0
-        penultimateLinker <- 0
+      # set growth to 0 for "Missing" labels 
+      if (types [i] == 'Missing') {
+        pixels [i] <- 0.0
+        next
       }
-      
-      # identify the index for the last normal marker
-      lastPoint  <- max (which (growth_table [no < i, type] == 'Normal'))
-      
-      # marker is a normal or misc marker (i.e., "growth" is distance to previous reference marker)
-      # exception: two previous reference labels are linker labels
-      if (growth_table$type [i] %in% c ('Normal','Misc','Density fluctuation',
-                                        'Frost ring','Fire scar','Early-to-latewood transition')) {
         
-        # last reference marker was a normal marker
-        if (lastPoint > lastLinker) {
-          pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastPoint])^2 + 
-                              (growth_table$y [i] - growth_table$y [lastPoint])^2)
-          
-        # last reference point was a linker marker
-        } else if (lastPoint < lastLinker) {
+      # calculate growth for "Normal" and all miscellaneous labels  
+      #----------------------------------------------------------------------------------
+      
+      # get pith index, if it exists
+        p <- ifelse ('Pith' %in% types, which (types == 'Pith'), n)
+      
+      # identify reference label's year
+      refYr <- years [i] - 1
+      
+      # identify the reference label index. 
+      iRef <- which (years == refYr & types %in% c ('Normal','Missing','Pith'))
+      
+      # select smaller reference label before the pith and vice versa
+      iRef <- ifelse (length (iRef) >= 2, ifelse (i <= p, min (iRef), max (iRef)), iRef)
+      
+      # determine relevant linker year, which depends on which side of the pith we are
+      linkYr <- ifelse (i <= p, years [i], refYr)
+      
+      # identify the number of Linker labels between label and reference label
+      # Note bene: the linker has to be within three labels
+      if (i <= p) {
+        nLinkers <- sum (growth_table$year == linkYr & 
+                         growth_table$type == 'Linker' & 
+                         growth_table$no > i &
+                         growth_table$no < p)
+      } else {
+        nLinkers <- sum (growth_table$year == linkYr & 
+                         growth_table$type == 'Linker' & 
+                         growth_table$no < i &
+                         growth_table$no > p)
+      }
 
-          # check whether the penultimate reference marker was a normal marker
-          if (lastPoint > penultimateLinker) { # TR There is an issue here when we have only one linker marker
-            pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [lastLinker])^2 + 
-                                (growth_table$y [i] - growth_table$y [lastLinker])^2)
-            
-          # or a linker, hence there were two consecutive linker labels
-          # in this case we measure from last normal marker to penultimate linker and 
-          # add the distance from last linker to the current marker 
-          # (i.e., jumping the gap between two linker labels)
-          } else if (lastPoint < penultimateLinker) {
-            pixels [i] <- (sqrt ((growth_table$x [lastPoint] - 
-                                  growth_table$x [penultimateLinker])^2 + 
-                                 (growth_table$y [lastPoint] - 
-                                  growth_table$y [penultimateLinker])^2)) +
-                          (sqrt ((growth_table$x [lastLinker] - growth_table$x [i])^2 + 
-                                 (growth_table$y [lastLinker] - growth_table$y [i])^2))
-          }
-
-        # marker is a linker (i.e. no "growth" is calculated)
-        } else if (growth_table$type [i] == 'Linker') {
-          pixels [i] <- NA
+      # calculate distance if there is no Linker label in between
+      if (nLinkers == 0) {
+        #print (c (i, iRef, linkYr, years [i], refYr, nLinkers))
+        pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iRef])^2 + 
+                            (growth_table$y [i] - growth_table$y [iRef])^2)
+      } else if (nLinkers == 1) {
+        # identify Linker label's index
+        if (i <= p) {
+          iLinker <- which (growth_table$year == linkYr &
+                            growth_table$type == 'Linker' & 
+                            growth_table$no > i & 
+                            growth_table$no < p)
+          pixels [i] <- sqrt ((growth_table$x [iRef] - growth_table$x [iLinker])^2 + 
+                              (growth_table$y [iRef] - growth_table$y [iLinker])^2)
+        } else {
+          iLinker <- which (growth_table$year == linkYr &
+                            growth_table$type == 'Linker' & 
+                            growth_table$no < i & 
+                            growth_table$no > p)
+          pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iLinker])^2 + 
+                              (growth_table$y [i] - growth_table$y [iLinker])^2)
         }
+
+        # print (c (i, iRef, linkYr, years [i], refYr, nLinkers, iLinker))
+      } else if (nLinkers == 2) {
+        # identify Linker label indices
+        if (i <= p) {
+          iLinkers <- which (growth_table$year == linkYr & 
+                             growth_table$type == 'Linker' & 
+                             growth_table$no > i & 
+                             growth_table$no < p)
+          
+        } else {
+          iLinkers <- which (growth_table$year == linkYr & 
+                               growth_table$type == 'Linker' & 
+                               growth_table$no < i & 
+                               growth_table$no > p)
+          iLinkers <- iLinkers [2:1]
+        }
+        
+        pixels [i] <- (sqrt ((growth_table$x [i] - growth_table$x [iLinkers [1]])^2 + 
+                             (growth_table$y [i] - growth_table$y [iLinkers [1]])^2)) +
+                      (sqrt ((growth_table$x [iLinkers [2]] - growth_table$x [iRef])^2 + 
+                             (growth_table$y [iLinkers [2]] - growth_table$y [iRef])^2))
+        # print (c (i, iRef, years [i], refYr, nLinkers, iLinkers [1], iLinkers [2]))
+      } else if (nLinkers == 3) {
+        # identify Linker label indices
+        if (i <= p) {
+          iLinkers <- which (growth_table$year == linkYr & 
+                             growth_table$type == 'Linker' & 
+                             growth_table$no > i & 
+                             growth_table$no < p)
+        } else {
+          iLinkers <- which (growth_table$year == linkYr & 
+                             growth_table$type == 'Linker' & 
+                             growth_table$no < i & 
+                             growth_table$no > p)
+          iLinkers <- iLinkers [3:1]
+        }
+        pixels [i] <- (sqrt ((growth_table$x [iLinkers [1]] - growth_table$x [iLinkers [2]])^2 + 
+                             (growth_table$y [iLinkers [1]] - growth_table$y [iLinkers [2]])^2)) +
+                      (sqrt ((growth_table$x [iLinkers [3]] - growth_table$x [iRef])^2 + 
+                             (growth_table$y [iLinkers [3]] - growth_table$y [iRef])^2))
+        # print (c (i, iRef, years [i], refYr, nLinkers, iLinkers [1], iLinkers [2], iLinkers [3]))
       }
     }
-
+    
     # add growth in pixels to the growth_table 
     #------------------------------------------------------------------------------------
     growth_table$pixels <- pixels
@@ -1567,20 +1672,16 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     printLog ('reactive$detrendGrowth ')
     
-    # get growth table 
-    #------------------------------------------------------------------------------------
-    tbl <- growthTable ()
-    
     # deselect Linker and Misc labels
     #------------------------------------------------------------------------------------
-    tbl <- tbl [type %in% c ('Normal','Pith')]
+    tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
     if ('Pith' %in% tbl [['type']]) {
       
       # find pith label's index
-      wPith <- which (tbl [['type']] == 'Pith')
+      wPith <- tbl [type == 'Pith', no]
       
       # is there only one profile 
       if (wPith == nrow (tbl)) {
@@ -1589,10 +1690,34 @@ shinyServer (function (input, output, session)
         
       # if there are two series split them at the pith
       } else {
-        data2 <- tbl [(index+1):nrow (tbl), ]
-        data1 <- tbl [1:index-1]
+        data2 <- tbl [no > wPith, ]
+        data1 <- tbl [no < wPith, ]
         nSeries <- 2
       }
+    # there is no pith/oldest ring label
+    } else {
+      nSeries <- 1
+      data1 <- tbl
+    }
+    
+    # make sure there are at least three growth increments for each series 
+    if ((nSeries == 1 & nrow (data1) < 3) | 
+        (nSeries == 2 & nrow (data1) < 3 & nrow (data2) < 3)) {
+      
+      
+      showModal (strong (
+        modalDialog (HTML ("Not enough growth increments to detrend anything yet!<br>.
+                           You need at least three!"),
+                     easyClose = T,
+                     fade = T,
+                     size = 's',
+                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     footer = NULL)))
+      
+      return ()
+    } else if (nSeries == 2 & (nrow (data1) < 3 | nrow (data2) < 3)) {
+      nSeries <- 1
+      data1 <- ifelse (nrow (data1) < 3, data2, data1)
     }
     
     # check whether data is in pixels or microns
@@ -1604,10 +1729,6 @@ shinyServer (function (input, output, session)
       data1 [, toplot := growth]
       if (nSeries == 2) data2 [, toplot := growth]
     }
-    
-    # remove the first label, which does not have any "growth"
-    #------------------------------------------------------------------------------------
-    data1 <- data1 [-1, ]
     
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
@@ -1643,7 +1764,9 @@ shinyServer (function (input, output, session)
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
                                    method = 'Spline', 
-                                   nyrs   = input$detrendingWavelength,
+                                   nyrs   = ifelse (input$detrendingWavelength > 1, 
+                                                    input$detrendingWavelength,
+                                                    2),
                                    f      = input$detrendingFrequencyResponse,
                                    difference  = detrendingDifference,
                                    make.plot   = FALSE,
@@ -1707,7 +1830,6 @@ shinyServer (function (input, output, session)
     return (detrended)
   })
   
-  # render data table with label numbers, coordinates and calculated "growth" 
   #--------------------------------------------------------------------------------------
   output$growth_table <- DT::renderDataTable ({
     
@@ -1715,13 +1837,13 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       printLog ('output$growth_table renderDataTable')
       
-      # make local copy of label and growth data
+      # make local copy of label and growth data, unless there is no data
       #----------------------------------------------------------------------------------
-      labelTable <- growthTable ()
-      
-      # return if there is no data
-      #----------------------------------------------------------------------------------
-      if (nrow (labelTable) == 0) return ()
+      if (nrow (rv$markerTable) > 0) {
+        labelTable <- rv$markerTable
+      } else {
+        return ()
+      }
       
       # order table, aka starting with the most recent year
       #----------------------------------------------------------------------------------
@@ -1733,8 +1855,7 @@ shinyServer (function (input, output, session)
                         id1 = 'delete',
                         id2 = 'insert') 
       
-    }
-  )
+    })
   
   # download a csv file with the label locations and growth
   #--------------------------------------------------------------------------------------
@@ -1793,14 +1914,11 @@ shinyServer (function (input, output, session)
         
       }
       
-      # calculate "growth"
-      tbl <- growthTable ()
-      
       # check that there are some labels
-      if (nrow (tbl) == 0) return ()
+      if (nrow (rv$markerTable) == 0) return ()
       
       # write csv file
-      write.table (tbl, 
+      write.table (rv$markerTable, 
                    file, 
                    sep = ',',
                    row.names = F)
@@ -1883,24 +2001,10 @@ shinyServer (function (input, output, session)
     # check that metadata was confirmed
     if (input$confirmMeta == 'Not Confirmed') return ()
     
-    # check that the sample year and year of sample date match
-    if (year (input$sampleDate) != input$sampleYear) {
-      
-      showModal (strong (
-        
-        modalDialog ("Warning: Year does not match the sample's date!",
-                     easyClose = T,
-                     fade      = T,
-                     size      = 's',
-                     style     = 'background-color:#3b3a35; color:#f3bd48; ',
-                     footer    = NULL
-        )))
-      
-      # update radio button
-      updateRadioButtons (session, 
-                          inputId  = 'confirmMeta', 
-                          selected = 'Not Confirmed')
-    }
+    # update radio button
+    updateRadioButtons (session, 
+                        inputId  = 'confirmMeta', 
+                        selected = 'Confirmed')
   })
   
   # draw plot of absolute growth
@@ -2068,7 +2172,7 @@ shinyServer (function (input, output, session)
       
       # paste file name together
       #----------------------------------------------------------------------------------
-      paste0 ('TRIAD_metadata_template',
+      paste0 ('WIAD_metadata_template',
               format (Sys.time (),
                       format = '%Y-%m-%d-%H%M%S'),
               '.xlsx')
@@ -2094,7 +2198,7 @@ shinyServer (function (input, output, session)
       
       # download existing metadata template file
       #----------------------------------------------------------------------------------
-      file.copy ('TRIAD-metadata-template-2020-09-14.xlsx', file)
+      file.copy ('WIAD-metadata-template-2020-09-14.xlsx', file)
     }
   )
   
@@ -2147,7 +2251,6 @@ shinyServer (function (input, output, session)
     return ()
   })
   
-
   # update oldest ring/pith action button label depending on whether the pith is in the image or not
   #--------------------------------------------------------------------------------------
   observeEvent (input$demoMode, {

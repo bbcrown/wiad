@@ -1,9 +1,9 @@
 #######################################################################
-# The auxiliary functions for the TRIAD shiny app. 
+# The auxiliary functions for the WIAD shiny app. 
 # 
-# The TRIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is developed and maintained by Bijan Seyednasrollah.
 #
-# TRIAD is the Tree Ring Image Analysis and Dataset
+# WIAD is the Wood Image Analysis and Dataset
 #
 # Most recent release: https://github.com/bnasr/TRIAD
 #######################################################################
@@ -62,9 +62,9 @@ rotate <- function (x) t (apply (x, 2, rev))
 # rotate an RGB array (or any 3D array)
 rotateRGB <- function (imgMat) {
   if (dim (imgMat) [3] != 3) stop ('matrix must have 3 layers in the 3rd dimension!')
-  r <- rotate (imgMat[,,1])
-  g <- rotate (imgMat[,,2])
-  b <- rotate (imgMat[,,3])
+  r <- rotate (imgMat [,,1])
+  g <- rotate (imgMat [,,2])
+  b <- rotate (imgMat [,,3])
   
   rot <- abind (r, g, b, along = 3)
   return (rot)
@@ -90,6 +90,74 @@ printLog <- function (msg = NULL, init = F, finit = F){
     return()
   }
   
+  message(paste(as.character(systime), 
+                signif(as.numeric(systime)-floor(as.numeric(systime)),3),
+                msg, '\t'))
+}
+
+
+#' Downloads and installs the WIAD Example Dataset
+#' The WIAD Example Dataset can be downloaded from http://wiad.science/WIAD_ExampleData.zip .
+#' This function downloads and extracts the WIAD Example Dataset in the package folder.
+#' @param mode \code{"install"} (default),\code{"update"} or \code{"remove"} 
+#' @param downloadPath custom location to temporarily store WIAD example dataset while downloading. Default: tempdir() 
+#' @param installPath custom location to place WIAD example dataset. Default: WIAD package directory
+#' @export
+#' 
+getWiadExampleData <-function(mode="install",downloadPath="",installPath=""){
+  # URLS and PATHS
+  url<-"http://wiad.science/WIAD_ExampleData.zip"
+  if (downloadPath=="") downloadPath  <- tempdir()
+  localzipfile <- file.path(downloadPath,"WIAD_ExampleData.zip")
+  
+  if (installPath=="") installPath  <- system.file(package = "wiad") # DEFINE PACKAGE NAME HERE
+  exampleDataPath <- file.path(installPath,"ExampleData" )
+  
+  if (mode %in% c("install","update")){
+   
+    # Download is started only if /ExampleDataset path does not yet exist or if mode=="update"
+    if (!dir.exists(exampleDataPath) || mode=="update") {
+        # DOWNLOAD
+      message("Downloading WIAD Example Datset (1.83 GB). This may take a while...\n")
+        dl <- try(download.file(url,localzipfile, quiet = FALSE, mode = "wb"))
+        if(!is.null(attr(dl, "class")) && attr(dl, "class") == "try-error"){
+            message("Unable to download data for URL:",url,"\n")
+            return()
+        }
+        
+        if (file.exists(localzipfile)){
+          # UNZIP
+          message ("Extracting WIAD Example Dataset\n")
+          utils::unzip(localzipfile, exdir=installPath, overwrite = TRUE)
+          # CLEANUP
+          message ("Cleanup\n")
+          unlink(localzipfile,recursive = FALSE)
+          message("sucessfully installed WIAD Example Dataset to ", exampleDataPath,'\n')
+        } else {
+          message ('Unable to extract WIAD Example Dataset: file not found\n')
+        }
+    } else {
+      message('WIAD Example Dataset is already installed\n')
+    }
+    
+    # DO STUFF HERE TO SET AS ACTIVE DATASET
+    
+  } else if (mode=="remove"){
+    # ATTENTION: Will remove the example dataset folder without further warning
+    if (dir.exists(exampleDataPath)) {
+      unlink(exampleDataPath ,recursive = TRUE)
+      message('Sucessfully removed WIAD Example Dataset\n')
+      
+    }else{
+      message('Cannot remove WIAD Example Dataset: Dataset not found\n')
+    }
+  }
+}
+
+
+
+
+
   message (paste (as.character (systime), 
                   signif (as.numeric (systime)-floor (as.numeric (systime)),3),
                   msg, '\t'))
@@ -114,7 +182,7 @@ displayDataTable <- function (df, id1, id2, ...) {
         inputId = paste (id1, i, sep="_"),
         label   = NULL,
         icon    = icon ('trash-alt'),
-        onclick = 'Shiny.setInputValue(\"deleteRow\", this.id, {priority: "event"})'))
+        onclick = 'Shiny.setInputValue(\"delete_row\", this.id, {priority: "event"})'))
   }
   
   # function to create one insert button as string
@@ -125,7 +193,7 @@ displayDataTable <- function (df, id1, id2, ...) {
         inputId = paste (id2, i, sep="_"),
         label   = NULL,
         icon    = icon ('plus-circle'),
-        onclick = 'Shiny.setInputValue(\"insertRow\", this.id, {priority: "event"})'))
+        onclick = 'Shiny.setInputValue(\"insert_row\", this.id, {priority: "event"})'))
   }
   
   # create vector of actions buttons
