@@ -1714,6 +1714,7 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
+    if(is.null(tbl)) return()
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
     if ('Pith' %in% tbl [['type']]) {
@@ -2148,8 +2149,12 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     wiad:::printLog ('output$detrended_growth_plot renderPlotly')
     
+    tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
+    
+    
     # check whether there is at least one growth icrement
     #------------------------------------------------------------------------------------
+    if(is.null(tbl)) return()
     if (nrow (tbl) == 0) return ()
     
     fontList <- list (
