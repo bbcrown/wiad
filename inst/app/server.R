@@ -39,7 +39,7 @@ library(zoo)
 # colours for ploting labels
 colours <- tibble (
   type   = c ('Normal','Linker','Pith','Misc','Missing'), 
-  colour = c ('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
+  color = c ('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
 )
 
 # set maximum image size in MB
@@ -740,14 +740,14 @@ shinyServer (function (input, output, session)
                 y = marker_tbl [wNormal, y], 
                 pch = 19, 
                 cex = 1.2, 
-                col = colours [['colour']] [colours [['type']] == 'Normal'])
-        # make empty darker cirlces around the marker to indicate missing years
+                col = colours [['color']] [colours [['type']] == 'Normal'])
+        # make empty darker circles around the marker to indicate missing years
         points (x = marker_tbl [wMissing, x],
                 y = marker_tbl [wMissing, y], 
                 pch = 1, 
                 cex = 1.5, 
                 lwd = 2,
-                col = colours [['colour']] [colours [['type']] == 'Missing'])
+                col = colours [['color']] [colours [['type']] == 'Missing'])
       }
       
       # plot marker numbers, if desired
@@ -776,7 +776,7 @@ shinyServer (function (input, output, session)
                 y = ys,
                 labels = years,
                 pos = 3,
-                col = colours [['colour']] [colours [['type']] == 'Normal'])
+                col = colours [['color']] [colours [['type']] == 'Normal'])
         }
       }
       
@@ -797,7 +797,7 @@ shinyServer (function (input, output, session)
                         x1 = rv$markerTable [wLinkers [i] - 1, x], 
                         y1 = rv$markerTable [wLinkers [i] - 1, y], 
                         lwd = 2, 
-                        col = colours [['colour']] [colours [['type']] == 'Linker'])
+                        col = colours [['color']] [colours [['type']] == 'Linker'])
             }
           }
         # the last marker was a linker
@@ -807,7 +807,7 @@ shinyServer (function (input, output, session)
                     x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
                     y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
                     lwd = 2, 
-                    col = colours [['colour']] [colours [['type']] == 'Linker'])  
+                    col = colours [['color']] [colours [['type']] == 'Linker'])  
         }
       }
       # above code draws lines between last marker and linker labels for single linker labels
@@ -817,7 +817,7 @@ shinyServer (function (input, output, session)
       if (input$displayLabels) {
         points (x = rv$markerTable [wLinkers, x], 
                 y = rv$markerTable [wLinkers, y],
-                col = colours [['colour']] [colours [['type']] == 'Linker'],
+                col = colours [['color']] [colours [['type']] == 'Linker'],
                 pch = 19,
                 cex = 1.2,
                 lwd = 2)
@@ -825,7 +825,7 @@ shinyServer (function (input, output, session)
         # plot misc labels in Cambridge blue
         points (x = rv$markerTable [wMisc, x],
                 y = rv$markerTable [wMisc, y],
-                col = colours [['colour']] [colours [['type']] == 'Misc'],
+                col = colours [['color']] [colours [['type']] == 'Misc'],
                 pch = 19,
                 cex = 1.2, 
                 lwd = 2)
@@ -834,7 +834,7 @@ shinyServer (function (input, output, session)
         # when the actual pith
         points (x = rv$markerTable [wPith, x], 
                 y = rv$markerTable [wPith, y],
-                col = colours [['colour']] [colours [['type']] == 'Pith'],
+                col = colours [['color']] [colours [['type']] == 'Pith'],
                 pch = ifelse (input$pithInImage, 4, 19),
                 cex = ifelse (input$pithInImage, 1.8, 1.2),
                 lwd = ifelse (input$pithInImage, 3, 2))
@@ -860,13 +860,13 @@ shinyServer (function (input, output, session)
         if (is.finite (slope)) {
           abline (intercept, 
                   slope,
-                  col = colours [['colour']] [colours [['type']] == 'Normal'],
+                  col = colours [['color']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         } else {
           # plot vertical line between the labels, if slope is not finite
           abline (v = mean (xy$x),
-                  col = colours [['colour']] [colours [['type']] == 'Normal'],
+                  col = colours [['color']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         }
@@ -956,7 +956,7 @@ shinyServer (function (input, output, session)
       # write log
       wiad:::printLog ('totbrightness reactive')
       
-      # sum birghtness of all three colour channels
+      # sum birghtness of all three color channels
       tmp <- rv$imgMat [,,1] + rv$imgMat [,,2] + rv$imgMat [,,3]
       
       # average tog et total birghtness
@@ -1003,7 +1003,7 @@ shinyServer (function (input, output, session)
       # check that image exists
       if (is.null (rv$imgMat)) return ()
       
-      # check that the image has three colour bands
+      # check that the image has three color bands
       if (length (dim (rv$imgMat)) == 2) {
         showModal (strong (
           modalDialog ("Warning: The image is monochrome!",
@@ -2152,7 +2152,7 @@ shinyServer (function (input, output, session)
     tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
     
-    # check whether there is at least one growth icrement
+    # check whether there is at least one growth increment
     #------------------------------------------------------------------------------------
     if(is.null(tbl)) return()
     if (nrow (tbl) == 0) return ()
@@ -2358,7 +2358,7 @@ shinyServer (function (input, output, session)
     return ()
   })
   
-  # create a demo button that changes colour
+  # create a demo button that changes color
   #------------------------------------------------------------------------------------
   output$demoButton <- renderUI (
     {
