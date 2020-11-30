@@ -1732,7 +1732,7 @@ shinyServer (function (input, output, session)
     
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
-    if ('Pith' %in% tbl [['type']]) {
+    if ('Pith' %in% tbl [['type']] & tbl [['type']] [nrow (tbl)] != 'Pith') {
       
       # find pith label's index
       wPith <- tbl [type == 'Pith', no]
