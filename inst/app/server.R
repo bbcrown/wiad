@@ -1716,7 +1716,20 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
-    if(is.null(tbl)) return()
+    # check that there are at least three labels 
+    #------------------------------------------------------------------------------------
+    if (is.null (tbl) | nrow (tbl) < 3) {
+      showModal (strong (
+        modalDialog (HTML ("Not enough growth increments to detrend!<br>
+                           You need at least three!"),
+                     easyClose = T,
+                     fade = T,
+                     size = 's',
+                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     footer = NULL)))  
+      return ()
+    }
+    
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
     if ('Pith' %in% tbl [['type']]) {
@@ -1747,7 +1760,7 @@ shinyServer (function (input, output, session)
       
       
       showModal (strong (
-        modalDialog (HTML ("Not enough growth increments to detrend anything yet!<br>.
+        modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
                      easyClose = T,
                      fade = T,
@@ -2094,6 +2107,10 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     detrended <- detrendGrowth ()
     
+    # check that there were enough data points
+    #------------------------------------------------------------------------------------
+    if (is.null (detrended)) return ()
+    
     # plot absolute growth data to object p
     #------------------------------------------------------------------------------------
     p <- plot_ly (data = detrended [['data']], 
@@ -2178,6 +2195,10 @@ shinyServer (function (input, output, session)
     # get detrended series
     #------------------------------------------------------------------------------------
     detrended <- detrendGrowth ()
+    
+    # check that there were enough data points
+    #------------------------------------------------------------------------------------
+    if (is.null (detrended)) return ()
     
     # extract rwi indices, detrending curve, and years
     #------------------------------------------------------------------------------------
