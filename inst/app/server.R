@@ -1,30 +1,70 @@
 #######################################################################
 # The server side for the WIAD shiny app. 
 # 
-# The WIAD app is developed and maintained by Bijan Seyednasrollah.
+# The WIAD app is maintained by Bijan Seyednasrollah.
+# The Core Development Team: Bijan Seyednasrollah, Tim T. Rademacher and David Basler.
 #
 # WIAD is the Wood Image Analysis and Dataset
 #
-# Most recent release: https://github.com/bnasr/TRIAD
+# Most recent release: https://github.com/bnasr/wiad
 #######################################################################
 
+if(!exists('ARCHIVE_DIR')) ARCHIVE_DIR = '~/WIAD_ARCHIVE/'
+dir.create (ARCHIVE_DIR, showWarnings = FALSE)
+
+
+library(wiad)
+library(abind)
+library(data.table)
+library(dplR)
+library(dplyr)
+library(DT)
+library(imager)
+library(jsonlite)
+library(jpeg)
+library(png)
+library(plotly)
+library(shiny)
+library(shinyFiles)
+library(shinyjs)
+library(shinythemes)
+library(raster)
+library(rgdal)
+library(readr)
+library(readxl)
+library(sp)
+library(tiff)
+library(tibble)
+library(tools)
+library(zoo)
+
+# colours for ploting labels
+colours <- tibble (
+  type   = c ('Normal','Linker','Pith','Misc','Missing'), 
+  color = c ('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
+)
+
+# set maximum image size in MB
+maxImageSize <- 200
+
 # increase maximal size of images to maxImageSize in MB 
-# maxImageSize is initialised in global.R
+# maxImageSize is initialized in global.R
 #----------------------------------------------------------------------------------------
 options (shiny.maxRequestSize = maxImageSize * 1024^2)
+
 
 shinyServer (function (input, output, session)
 {
   
   # sent the initial log message
   #--------------------------------------------------------------------------------------
-  printLog (init = TRUE)
+  wiad:::printLog (init = TRUE)
   
   # declaring reactive value
   #--------------------------------------------------------------------------------------
   rv <- reactiveValues (
     
-    imgMat = readJPEG ('no_image_loaded.jpeg')[,,1:3], # RGB matrix loaded based on the image
+    imgMat = readJPEG (system.file(package = 'wiad','demos/no_image_loaded.jpg'))[,,1:3], # RGB matrix loaded based on the image
     notLoaded = TRUE,  # whether the first image is loaded
     demoMode = FALSE,  # whether app is in demo mode 
     procband = 'RGB',  # processed matrix from the raw RGB
@@ -53,7 +93,7 @@ shinyServer (function (input, output, session)
   observeEvent (rv$imgMat,
                {
                  # write log
-                 printLog ('observeEvent rv$imgMat')
+                 wiad:::printLog ('observeEvent rv$imgMat')
                  
                  # get image dimensions
                  imgDim <- dim (rv$imgMat)
@@ -68,13 +108,13 @@ shinyServer (function (input, output, session)
   observeEvent (input$delete_row,
                 {
                   # write log
-                  printLog ('observeEvent input$delete_row')
+                  wiad:::printLog ('observeEvent input$delete_row')
 
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
 
                   # get the row number that should be deleted
-                  rowNum <- parseRowNumber (input$delete_row)
+                  rowNum <- wiad:::parseRowNumber (input$delete_row)
                   
                   # correct for the fact the the table is displayed from back to front 
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
@@ -94,13 +134,13 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$insert_row,
                 {
-                  printLog ('observeEvent input$insert_row')
+                  wiad:::printLog ('observeEvent input$insert_row')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
                   
                   # get the row number (e.g. label number) before which the new label is inserted
-                  rowNum <- parseRowNumber (input$insert_row) + 1
+                  rowNum <- wiad:::parseRowNumber (input$insert_row) + 1
                   
                   # correct for the fact the table is displayed from back to front 
                   rowNum <- nrow (rv$markerTable) - rowNum + 1
@@ -128,7 +168,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$missing_ring,
                 {
                   # write log
-                  printLog ('observeEvent input$missing_ring')
+                  wiad:::printLog ('observeEvent input$missing_ring')
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
@@ -165,7 +205,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$image,
                {
                  # write log
-                 printLog ('observeEvent input$image')
+                 wiad:::printLog ('observeEvent input$image')
                  
                  # reset radio button, so that metadata needs to be confirmed
                  updateRadioButtons (session = session, 
@@ -231,7 +271,7 @@ shinyServer (function (input, output, session)
                  
                  # rotate the image matrix by 270 degrees, if image is higher than wide
                  if (imgDim [2] < imgDim [1]) { 
-                   rv$imgMat <- rotateRGB (rotateRGB (rotateRGB (rv$imgMat)))
+                   rv$imgMat <- wiad:::rotateRGB (wiad:::rotateRGB (wiad:::rotateRGB (rv$imgMat)))
                  }
                  
                  # reset image resolution to make sure that it is checked by user
@@ -259,7 +299,7 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$labelUpload,
                 {
-                  printLog ('observeEvent input$labelUpload')
+                  wiad:::printLog ('observeEvent input$labelUpload')
                   
                   # get path to path to the marker file
                   rv$labelsPath <- input$labelUpload$datapath
@@ -414,7 +454,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$metadataUpload,
                {
                  # write log
-                 printLog ('observeEvent input$metadataUpload')
+                 wiad:::printLog ('observeEvent input$metadataUpload')
                  
                  # get path to metadata
                  rv$metaPath <- input$metadataUpload$datapath
@@ -542,7 +582,7 @@ shinyServer (function (input, output, session)
     {
       # write log
       #----------------------------------------------------------------------------------
-      printLog ('metaData reactive')
+      wiad:::printLog ('metaData reactive')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
@@ -559,7 +599,7 @@ shinyServer (function (input, output, session)
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- list (version          = WIADversion,
+      meta <- list (version          = paste0('Generated with the Wood Image Analysis and Database (WIAD) v', packageVersion(pkg = 'wiad')),
                     ownerName        = input$ownerName, 
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
@@ -595,7 +635,7 @@ shinyServer (function (input, output, session)
     {
       # write log
       #----------------------------------------------------------------------------------
-      printLog ('detrendedData reactive')
+      wiad:::printLog ('detrendedData reactive')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
@@ -644,7 +684,7 @@ shinyServer (function (input, output, session)
     },
     {
       # write log
-      printLog ('output$imageProc renderPlot')
+      wiad:::printLog ('output$imageProc renderPlot')
       
       # check for image and make local copy
       imgtmp <- imgProcessed ()
@@ -702,14 +742,14 @@ shinyServer (function (input, output, session)
                 y = marker_tbl [wNormal, y], 
                 pch = 19, 
                 cex = 1.2, 
-                col = colours [['colour']] [colours [['type']] == 'Normal'])
-        # make empty darker cirlces around the marker to indicate missing years
+                col = colours [['color']] [colours [['type']] == 'Normal'])
+        # make empty darker circles around the marker to indicate missing years
         points (x = marker_tbl [wMissing, x],
                 y = marker_tbl [wMissing, y], 
                 pch = 1, 
                 cex = 1.5, 
                 lwd = 2,
-                col = colours [['colour']] [colours [['type']] == 'Missing'])
+                col = colours [['color']] [colours [['type']] == 'Missing'])
       }
       
       # plot marker numbers, if desired
@@ -738,7 +778,7 @@ shinyServer (function (input, output, session)
                 y = ys,
                 labels = years,
                 pos = 3,
-                col = colours [['colour']] [colours [['type']] == 'Normal'])
+                col = colours [['color']] [colours [['type']] == 'Normal'])
         }
       }
       
@@ -759,7 +799,7 @@ shinyServer (function (input, output, session)
                         x1 = rv$markerTable [wLinkers [i] - 1, x], 
                         y1 = rv$markerTable [wLinkers [i] - 1, y], 
                         lwd = 2, 
-                        col = colours [['colour']] [colours [['type']] == 'Linker'])
+                        col = colours [['color']] [colours [['type']] == 'Linker'])
             }
           }
         # the last marker was a linker
@@ -769,7 +809,7 @@ shinyServer (function (input, output, session)
                     x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
                     y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
                     lwd = 2, 
-                    col = colours [['colour']] [colours [['type']] == 'Linker'])  
+                    col = colours [['color']] [colours [['type']] == 'Linker'])  
         }
       }
       # above code draws lines between last marker and linker labels for single linker labels
@@ -779,7 +819,7 @@ shinyServer (function (input, output, session)
       if (input$displayLabels) {
         points (x = rv$markerTable [wLinkers, x], 
                 y = rv$markerTable [wLinkers, y],
-                col = colours [['colour']] [colours [['type']] == 'Linker'],
+                col = colours [['color']] [colours [['type']] == 'Linker'],
                 pch = 19,
                 cex = 1.2,
                 lwd = 2)
@@ -787,7 +827,7 @@ shinyServer (function (input, output, session)
         # plot misc labels in Cambridge blue
         points (x = rv$markerTable [wMisc, x],
                 y = rv$markerTable [wMisc, y],
-                col = colours [['colour']] [colours [['type']] == 'Misc'],
+                col = colours [['color']] [colours [['type']] == 'Misc'],
                 pch = 19,
                 cex = 1.2, 
                 lwd = 2)
@@ -796,7 +836,7 @@ shinyServer (function (input, output, session)
         # when the actual pith
         points (x = rv$markerTable [wPith, x], 
                 y = rv$markerTable [wPith, y],
-                col = colours [['colour']] [colours [['type']] == 'Pith'],
+                col = colours [['color']] [colours [['type']] == 'Pith'],
                 pch = ifelse (input$pithInImage, 4, 19),
                 cex = ifelse (input$pithInImage, 1.8, 1.2),
                 lwd = ifelse (input$pithInImage, 3, 2))
@@ -822,13 +862,13 @@ shinyServer (function (input, output, session)
         if (is.finite (slope)) {
           abline (intercept, 
                   slope,
-                  col = colours [['colour']] [colours [['type']] == 'Normal'],
+                  col = colours [['color']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         } else {
           # plot vertical line between the labels, if slope is not finite
           abline (v = mean (xy$x),
-                  col = colours [['colour']] [colours [['type']] == 'Normal'],
+                  col = colours [['color']] [colours [['type']] == 'Normal'],
                   lwd = 2, 
                   lty = 2)
         }
@@ -838,77 +878,77 @@ shinyServer (function (input, output, session)
   
   observeEvent (input$selRed,
                {
-                 printLog ('observeEvent input$selRed')
+                 wiad:::printLog ('observeEvent input$selRed')
                  
                  rv$procband <- 'Red'
                })
   
   observeEvent (input$selBlue,
                {
-                 printLog ('observeEvent input$selBlue')
+                 wiad:::printLog ('observeEvent input$selBlue')
                  
                  rv$procband <- 'Blue'
                })
   
   observeEvent (input$selGreen,
                {
-                 printLog ('observeEvent input$selGreen')
+                 wiad:::printLog ('observeEvent input$selGreen')
                  
                  rv$procband <- 'Green'
                })
   
   observeEvent (input$selHue,
                {
-                 printLog ('observeEvent input$selHue')
+                 wiad:::printLog ('observeEvent input$selHue')
                  
                  rv$procband <- 'Hue'
                })
   
   observeEvent (input$selSat,
                {
-                 printLog ('observeEvent input$selSat')
+                 wiad:::printLog ('observeEvent input$selSat')
                  
                  rv$procband <- 'Saturation'
                })
   
   observeEvent (input$selValue,
                {
-                 printLog ('observeEvent input$selValue')
+                 wiad:::printLog ('observeEvent input$selValue')
                  
                  rv$procband <- 'Value'
                })
   
   observeEvent (input$selBright,
                {
-                 printLog ('observeEvent input$selBright')
+                 wiad:::printLog ('observeEvent input$selBright')
                  
                  rv$procband <- 'Brightness'
                })
   
   observeEvent (input$selDark,
                {
-                 printLog ('observeEvent input$selDark')
+                 wiad:::printLog ('observeEvent input$selDark')
                  
                  rv$procband <- 'Darkness'
                })
   
   observeEvent (input$selContrast,
                {
-                 printLog ('observeEvent input$selContrast')
+                 wiad:::printLog ('observeEvent input$selContrast')
                  
                  rv$procband <- 'Contrast'
                })
   
   observeEvent (input$selTotBr,
                {
-                 printLog ('observeEvent input$selTotBr')
+                 wiad:::printLog ('observeEvent input$selTotBr')
                  
                  rv$procband <- 'Brightness'
                })
   
   observeEvent (input$selRGB,
                {
-                 printLog ('observeEvent input$selRGB')
+                 wiad:::printLog ('observeEvent input$selRGB')
                  
                  rv$procband <- 'RGB'
                })
@@ -916,9 +956,9 @@ shinyServer (function (input, output, session)
   totbrightness <- reactive (
     {
       # write log
-      printLog ('totbrightness reactive')
+      wiad:::printLog ('totbrightness reactive')
       
-      # sum birghtness of all three colour channels
+      # sum birghtness of all three color channels
       tmp <- rv$imgMat [,,1] + rv$imgMat [,,2] + rv$imgMat [,,3]
       
       # average tog et total birghtness
@@ -928,17 +968,17 @@ shinyServer (function (input, output, session)
   brightness <- reactive (
     {
       # write log
-      printLog ('brightness reactive')
+      wiad:::printLog ('brightness reactive')
       
       # check image exists
       if (is.null (rv$imgMat)) return ()
-      tmp <- getBrightness (rv$imgMat)
+      tmp <- wiad:::getBrightness (rv$imgMat)
       tmp
     })
   
   darkness <- reactive (
     {
-      printLog ('darkness reactive')
+      wiad:::printLog ('darkness reactive')
       
       if (is.null (rv$imgMat)) 
         return ()
@@ -949,7 +989,7 @@ shinyServer (function (input, output, session)
   contrast <- reactive (
     {
       # write log
-      printLog ('contrast reactive')
+      wiad:::printLog ('contrast reactive')
       
       # check that image exists
       if (is.null (rv$imgMat)) return ()
@@ -960,12 +1000,12 @@ shinyServer (function (input, output, session)
   imgProcessed <- reactive (
     {
       # write log
-      printLog ('imgProcessed reactive')
+      wiad:::printLog ('imgProcessed reactive')
       
       # check that image exists
       if (is.null (rv$imgMat)) return ()
       
-      # check that the image has three colour bands
+      # check that the image has three color bands
       if (length (dim (rv$imgMat)) == 2) {
         showModal (strong (
           modalDialog ("Warning: The image is monochrome!",
@@ -991,8 +1031,8 @@ shinyServer (function (input, output, session)
   observeEvent (input$clearCanvas, 
                {
                  # write log
-                 printLog ('observeEvent input$clearCanvas')
-                 printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
+                 wiad:::printLog ('observeEvent input$clearCanvas')
+                 wiad:::printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
                  
                  # check that an image was loaded
                  if (rv$notLoaded == TRUE) return ()
@@ -1018,7 +1058,7 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$linkerPoint, 
                {
-                 printLog ('observeEvent input$linkerPoint')
+                 wiad:::printLog ('observeEvent input$linkerPoint')
                  
                  if (rv$notLoaded == TRUE) return ()
                  
@@ -1088,7 +1128,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$pith, 
                {
                  # write log
-                 printLog ('observeEvent input$pith')
+                 wiad:::printLog ('observeEvent input$pith')
                  
                  if (rv$notLoaded == TRUE) return ()
                  
@@ -1158,7 +1198,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$undoCanvas, 
                {
                  
-                 printLog ('observeEvent input$undoCanvas')
+                 wiad:::printLog ('observeEvent input$undoCanvas')
                  
                  if (rv$notLoaded == TRUE) return ()
                  
@@ -1202,7 +1242,7 @@ shinyServer (function (input, output, session)
                {
                  
                  # write log
-                 printLog ('observeEvent input$normal_point')
+                 wiad:::printLog ('observeEvent input$normal_point')
                  
                  # check that images is loaded
                  if (rv$notLoaded == TRUE) return ()
@@ -1268,7 +1308,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$select_misc_type,
                 {
                   # write log
-                  printLog ('observeEvent input$select_misc_type')
+                  wiad:::printLog ('observeEvent input$select_misc_type')
                   
                   # change type of the misc label that was just set
                   rv$markerTable [no == rv$previousIndex, type := input$misc_type]
@@ -1286,7 +1326,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$cancel_misc,
                 {
                   # write log
-                  printLog ('observeEvent input$cancel_misc')
+                  wiad:::printLog ('observeEvent input$cancel_misc')
                   
                   # delete the row
                   rv$markerTable <- rv$markerTable [no != rv$index, ]
@@ -1311,7 +1351,7 @@ shinyServer (function (input, output, session)
                 {
                   
                   # write log
-                  printLog ('observeEvent input$misc')
+                  wiad:::printLog ('observeEvent input$misc')
                   
                   if (rv$notLoaded == TRUE) return ()
                   
@@ -1409,7 +1449,7 @@ shinyServer (function (input, output, session)
     
     # write log
     #----------------------------------------------------------------------------------
-    printLog ('reactive$growthTable')
+    wiad:::printLog ('reactive$growthTable')
     
     # check for requirements
     #------------------------------------------------------------------------------------
@@ -1670,12 +1710,13 @@ shinyServer (function (input, output, session)
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('reactive$detrendGrowth ')
+    wiad:::printLog ('reactive$detrendGrowth ')
     
     # deselect Linker and Misc labels
     #------------------------------------------------------------------------------------
     tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
+    if(is.null(tbl)) return()
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
     if ('Pith' %in% tbl [['type']]) {
@@ -1835,7 +1876,7 @@ shinyServer (function (input, output, session)
     
       # write log
       #----------------------------------------------------------------------------------
-      printLog ('output$growth_table renderDataTable')
+      wiad:::printLog ('output$growth_table renderDataTable')
       
       # make local copy of label and growth data, unless there is no data
       #----------------------------------------------------------------------------------
@@ -1851,7 +1892,7 @@ shinyServer (function (input, output, session)
       
       # add a delete button and display the formatted datatable
       #----------------------------------------------------------------------------------
-      displayDataTable (labelTable, 
+      wiad:::displayDataTable (labelTable, 
                         id1 = 'delete',
                         id2 = 'insert') 
       
@@ -1863,7 +1904,7 @@ shinyServer (function (input, output, session)
     
     filename = function () {
       
-      printLog ('output$downloadCSV downloadHandler filename')
+      wiad:::printLog ('output$downloadCSV downloadHandler filename')
       
       paste0 ('ringdata-', 
               input$ownerName,
@@ -1885,7 +1926,7 @@ shinyServer (function (input, output, session)
 
       # write log
       #----------------------------------------------------------------------------------
-      printLog ('output$downloadCSV downloadHandler content')
+      wiad:::printLog ('output$downloadCSV downloadHandler content')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
@@ -1932,7 +1973,7 @@ shinyServer (function (input, output, session)
     
     filename = function () {
       
-      printLog ('output$downloadJSON downloadHandler filename')
+      wiad:::printLog ('output$downloadJSON downloadHandler filename')
       
       paste0 ('ringdata-', 
               input$ownerName,
@@ -1953,7 +1994,7 @@ shinyServer (function (input, output, session)
     content = function (file) {
       
       # write log
-      printLog ('output$downloadJSON downloadHandler content')
+      wiad:::printLog ('output$downloadJSON downloadHandler content')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
@@ -1996,7 +2037,7 @@ shinyServer (function (input, output, session)
   observeEvent (input$confirmMeta, {
     
     # write log
-    printLog ('observeEvent input$confirmMeta')
+    wiad:::printLog ('observeEvent input$confirmMeta')
     
     # check that metadata was confirmed
     if (input$confirmMeta == 'Not Confirmed') return ()
@@ -2013,7 +2054,7 @@ shinyServer (function (input, output, session)
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('output$growth_plot renderPlotly')
+    wiad:::printLog ('output$growth_plot renderPlotly')
     
     # select font
     #------------------------------------------------------------------------------------
@@ -2108,10 +2149,14 @@ shinyServer (function (input, output, session)
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('output$detrended_growth_plot renderPlotly')
+    wiad:::printLog ('output$detrended_growth_plot renderPlotly')
     
-    # check whether there is at least one growth icrement
+    tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
+    
+    
+    # check whether there is at least one growth increment
     #------------------------------------------------------------------------------------
+    if(is.null(tbl)) return()
     if (nrow (tbl) == 0) return ()
     
     fontList <- list (
@@ -2168,7 +2213,7 @@ shinyServer (function (input, output, session)
     
       # write log
       #----------------------------------------------------------------------------------
-      printLog ('output$downloadTemplate downloadHandler filename')
+      wiad:::printLog ('output$downloadTemplate downloadHandler filename')
       
       # paste file name together
       #----------------------------------------------------------------------------------
@@ -2181,7 +2226,7 @@ shinyServer (function (input, output, session)
       
       # write log
       #----------------------------------------------------------------------------------
-      printLog ('output$downloadTemplate downloadHandler content')
+      wiad:::printLog ('output$downloadTemplate downloadHandler content')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
@@ -2198,14 +2243,15 @@ shinyServer (function (input, output, session)
       
       # download existing metadata template file
       #----------------------------------------------------------------------------------
-      file.copy ('WIAD-metadata-template-2020-09-14.xlsx', file)
+      file.copy (from = system.file(package = 'wiad', 'demos/WIAD-metadata-template-2020-09-14.xlsx'), 
+                 to = file)
     }
   )
   
   # rotate image 180 degree
   #--------------------------------------------------------------------------------------
   observeEvent (input$rotate180,{
-    rv$imgMat <- rotateRGB (rotateRGB (rv$imgMat))
+    rv$imgMat <- wiad:::rotateRGB (wiad:::rotateRGB (rv$imgMat))
   })
   
   # update oldest ring/pith action button label depending on whether the pith is in the image or not
@@ -2214,7 +2260,7 @@ shinyServer (function (input, output, session)
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('input$pithInImage changed button')
+    wiad:::printLog ('input$pithInImage changed button')
     
     # update the label on the pith/oldest ring action button
     #------------------------------------------------------------------------------------
@@ -2233,7 +2279,7 @@ shinyServer (function (input, output, session)
 
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('input$detrendingMethod changed wavelength sliderInput')
+    wiad:::printLog ('input$detrendingMethod changed wavelength sliderInput')
 
     # get number of normal and pith labels
     #------------------------------------------------------------------------------------
@@ -2257,7 +2303,7 @@ shinyServer (function (input, output, session)
     
     # write log
     #------------------------------------------------------------------------------------
-    printLog ('input$demoImage switch demo mode on/off')
+    wiad:::printLog ('input$demoImage switch demo mode on/off')
     
     # check whether demoMode was off
     #------------------------------------------------------------------------------------
@@ -2267,7 +2313,7 @@ shinyServer (function (input, output, session)
       
       # get path to image
       #----------------------------------------------------------------------------------
-      rv$imgPath <- 'demoImage.jpg'
+      rv$imgPath <- system.file(package = 'wiad', 'demos/demoImage.jpg')
       
       # get file extension
       #----------------------------------------------------------------------------------
@@ -2314,7 +2360,7 @@ shinyServer (function (input, output, session)
     return ()
   })
   
-  # create a demo button that changes colour
+  # create a demo button that changes color
   #------------------------------------------------------------------------------------
   output$demoButton <- renderUI (
     {
@@ -2346,7 +2392,7 @@ shinyServer (function (input, output, session)
     
     filename = function () {
       
-      printLog ('output$downloadRWI_JSON downloadHandler filename')
+      wiad:::printLog ('output$downloadRWI_JSON downloadHandler filename')
       
       paste0 ('detrendeddata-', 
               input$ownerName,
@@ -2368,7 +2414,7 @@ shinyServer (function (input, output, session)
     content = function (file) {
       
       # write log
-      printLog ('output$downloadRWI_JSON downloadHandler content')
+      wiad:::printLog ('output$downloadRWI_JSON downloadHandler content')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
@@ -2402,7 +2448,7 @@ shinyServer (function (input, output, session)
   )
   
   
-  printLog (finit = TRUE)
+  wiad:::printLog (finit = TRUE)
 }
 )
 
