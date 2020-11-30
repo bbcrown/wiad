@@ -5,7 +5,7 @@
 #
 # WIAD is the Wood Image Analysis and Dataset
 #
-# Most recent release: https://github.com/bnasr/TRIAD
+# Most recent release: https://github.com/bnasr/wiad
 #######################################################################
 
 # increase maximal size of images to maxImageSize in MB 
