@@ -9,7 +9,7 @@
 #' @importFrom utils download.file
 #' @export
 #' 
-getWIADExampleData <-function(mode="install",downloadPath="",installPath=""){
+getExampleData <-function(mode="install",downloadPath="",installPath=""){
   # URLS and PATHS
   url<-"http://wiad.science/WIAD_ExampleData.zip"
   if (downloadPath=="") downloadPath  <- tempdir()
