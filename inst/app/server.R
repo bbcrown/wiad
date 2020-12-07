@@ -2335,6 +2335,22 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       rv$demoMode  <- TRUE
       
+      # reset the markerTable
+      #----------------------------------------------------------------------------------
+      rv$markerTable <- data.table ( # data.table contains the marker data
+        no   = integer (),   # no ID
+        x    = numeric (),   # x
+        y    = numeric (),   # y
+        relx = numeric (),   # relative x
+        rely = numeric (),   # relative y
+        type = character ()  # type
+      )
+      
+      # reset the label and previous label indices 
+      #----------------------------------------------------------------------------------
+      rv$index <- 0
+      rv$previousIndex <- 0
+      
       # show message to alert user for demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
