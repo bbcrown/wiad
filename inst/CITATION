@@ -1,0 +1,25 @@
+year <- sub("-.*", "", meta$Date)
+
+note <- sprintf("R package version %s", meta$Version)
+
+citHeader("To cite WIAD in publications, please cite both the paper and the R package:")
+
+citEntry(entry = "Manual",
+         author = c("Bijan Seyednasrollah",
+                    "Tim Rademacher",
+                    "David Basler"),
+         title = "WIAD R Package: Wood Image and Analysis Dataset",
+         year = 2020,
+         url = "https://github.com/bnasr/wiad/",
+         textVersion = "Bijan Seyednasrollah, Tim Rademacher, David Basler (2020), WIAD R Package: Wood Image and Analysis Dataset")
+
+citEntry(entry = "Article",
+         author = c("Tim Rademacher",
+                    "Bijan Seyednasrollah",
+                    "David Basler",
+                    "et al."),
+         title = "The Wood Image and Analysis Dataset (WIAD): open-access visual analysis tools to advance the ecological data revolution",
+         year = 2020,
+         journal = "in review",
+         url = "http://doi.org/10.XXX/XXXX",
+         textVersion = "Rademacher et al., (2020), The Wood Image and Analysis Dataset (WIAD): open-access visual analysis tools to advance the ecological data revolution")
