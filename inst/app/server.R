@@ -637,7 +637,7 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       wiad:::printLog ('detrendedData reactive')
       
-      # check for demo mode
+      # check for demo mode # TR This might have to change so that users can look at detrended curves in demo mode
       #----------------------------------------------------------------------------------
       if (rv$demoMode) {
         showModal (strong (
@@ -1035,7 +1035,7 @@ shinyServer (function (input, output, session)
                  wiad:::printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
                  
                  # check that an image was loaded
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  rv$slideShow <- 0 
                  
@@ -1060,7 +1060,7 @@ shinyServer (function (input, output, session)
                {
                  wiad:::printLog ('observeEvent input$linkerPoint')
                  
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check whether no marker has been set yet
                  if (nrow (rv$markerTable) == 0) {
@@ -1130,7 +1130,7 @@ shinyServer (function (input, output, session)
                  # write log
                  wiad:::printLog ('observeEvent input$pith')
                  
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check that metadata was confirmed
                  if (input$confirmMeta == 'Not Confirmed') {
@@ -1200,7 +1200,7 @@ shinyServer (function (input, output, session)
                  
                  wiad:::printLog ('observeEvent input$undoCanvas')
                  
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check there is more than one marker
                  if (nrow (rv$markerTable) > 1) {
@@ -1245,7 +1245,7 @@ shinyServer (function (input, output, session)
                  wiad:::printLog ('observeEvent input$normal_point')
                  
                  # check that images is loaded
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check that metadata has been confirmed
                  if (input$confirmMeta == 'Not Confirmed') {
@@ -1353,7 +1353,7 @@ shinyServer (function (input, output, session)
                   # write log
                   wiad:::printLog ('observeEvent input$misc')
                   
-                  if (rv$notLoaded == TRUE) return ()
+                  if (rv$notLoaded & !rv$demoMode) return ()
                   
                   if (input$confirmMeta == 'Not Confirmed') {
                     showModal (strong (
@@ -2022,8 +2022,8 @@ shinyServer (function (input, output, session)
         return ()
       }
       
-      # check that an image was loaded 
-      if (!rv$notLoaded ) {
+      # check that an image was loaded and we are not in demo mode
+      if (!rv$notLoaded) {
         
         # save processed image
         writePNG (imgProcessed (), 
@@ -2318,7 +2318,7 @@ shinyServer (function (input, output, session)
     return ()
   })
   
-  # update oldest ring/pith action button label depending on whether the pith is in the image or not
+  # switch in and out of demo mode
   #--------------------------------------------------------------------------------------
   observeEvent (input$demoMode, {
     
@@ -2334,7 +2334,7 @@ shinyServer (function (input, output, session)
       
       # get path to image
       #----------------------------------------------------------------------------------
-      rv$imgPath <- system.file(package = 'wiad', 'demos/demoImage.jpg')
+      rv$imgPath <- system.file (package = 'wiad', 'demos/demoImage.jpg')
       
       # get file extension
       #----------------------------------------------------------------------------------
@@ -2351,12 +2351,11 @@ shinyServer (function (input, output, session)
       # show message to alert user for demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
-        modalDialog (HTML ("Warning: <br>
-                           You are now entering demo mode!"),
+        modalDialog (HTML ("You are now entering demo mode!"),
                      easyClose = T,
                      fade = T,
                      size = 's',
-                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
       
     # else we are leaving demo mode
@@ -2368,11 +2367,10 @@ shinyServer (function (input, output, session)
       # show message to alert user for end of demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
-        modalDialog (HTML ("Warning: <br>
-                           You are now leaving demo mode!"),
+        modalDialog (HTML ("You are now leaving demo mode!"),
                      easyClose = T,
                      fade = T,
-                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
     }    
     
