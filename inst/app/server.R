@@ -637,19 +637,6 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       wiad:::printLog ('detrendedData reactive')
       
-      # check for demo mode # TR This might have to change so that users can look at detrended curves in demo mode
-      #----------------------------------------------------------------------------------
-      if (rv$demoMode) {
-        showModal (strong (
-          modalDialog ("Warning: You are still in demo mode!",
-                       easyClose = T,
-                       fade = T,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#f3bd48; ',
-                       footer = NULL)))
-        return ()
-      }
-      
       # compile and return metadata
       #----------------------------------------------------------------------------------
       meta <- metaData ()
@@ -1854,7 +1841,7 @@ shinyServer (function (input, output, session)
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
                                    method = 'Friedman', 
-                                   #wt = input$detrendingWeights, # TR Notta bene: We only allow defaults for now.
+                                   #wt = input$detrendingWeights, # TR Nota bene: We only allow defaults for now.
                                    #span = input$detrendingSpan, # TR Nota bene: We only allow defaults for now.
                                    bass = input$detrendingBASS,
                                    difference  = detrendingDifference,
