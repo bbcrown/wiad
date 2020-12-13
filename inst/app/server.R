@@ -2,7 +2,7 @@
 # The server side for the WIAD shiny app. 
 # 
 # The WIAD app is maintained by Bijan Seyednasrollah.
-# The Core Development Team: Bijan Seyednasrollah, Tim T. Rademacher and David Basler.
+# The Core Development Team: Bijan Seyednasrollah, Tim Rademacher and David Basler.
 #
 # WIAD is the Wood Image Analysis and Dataset
 #
@@ -637,19 +637,6 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       wiad:::printLog ('detrendedData reactive')
       
-      # check for demo mode
-      #----------------------------------------------------------------------------------
-      if (rv$demoMode) {
-        showModal (strong (
-          modalDialog ("Warning: You are still in demo mode!",
-                       easyClose = T,
-                       fade = T,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#f3bd48; ',
-                       footer = NULL)))
-        return ()
-      }
-      
       # compile and return metadata
       #----------------------------------------------------------------------------------
       meta <- metaData ()
@@ -1035,7 +1022,7 @@ shinyServer (function (input, output, session)
                  wiad:::printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
                  
                  # check that an image was loaded
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  rv$slideShow <- 0 
                  
@@ -1060,7 +1047,7 @@ shinyServer (function (input, output, session)
                {
                  wiad:::printLog ('observeEvent input$linkerPoint')
                  
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check whether no marker has been set yet
                  if (nrow (rv$markerTable) == 0) {
@@ -1130,7 +1117,7 @@ shinyServer (function (input, output, session)
                  # write log
                  wiad:::printLog ('observeEvent input$pith')
                  
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check that metadata was confirmed
                  if (input$confirmMeta == 'Not Confirmed') {
@@ -1200,7 +1187,7 @@ shinyServer (function (input, output, session)
                  
                  wiad:::printLog ('observeEvent input$undoCanvas')
                  
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check there is more than one marker
                  if (nrow (rv$markerTable) > 1) {
@@ -1245,7 +1232,7 @@ shinyServer (function (input, output, session)
                  wiad:::printLog ('observeEvent input$normal_point')
                  
                  # check that images is loaded
-                 if (rv$notLoaded == TRUE) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                  
                  # check that metadata has been confirmed
                  if (input$confirmMeta == 'Not Confirmed') {
@@ -1353,7 +1340,7 @@ shinyServer (function (input, output, session)
                   # write log
                   wiad:::printLog ('observeEvent input$misc')
                   
-                  if (rv$notLoaded == TRUE) return ()
+                  if (rv$notLoaded & !rv$demoMode) return ()
                   
                   if (input$confirmMeta == 'Not Confirmed') {
                     showModal (strong (
@@ -1716,10 +1703,23 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     tbl <- rv$markerTable [type %in% c ('Normal','Pith','Missing')]
     
-    if(is.null(tbl)) return()
+    # check that there are at least three labels 
+    #------------------------------------------------------------------------------------
+    if (is.null (tbl) | nrow (tbl) < 3) {
+      showModal (strong (
+        modalDialog (HTML ("Not enough growth increments to detrend!<br>
+                           You need at least three!"),
+                     easyClose = T,
+                     fade = T,
+                     size = 's',
+                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     footer = NULL)))  
+      return ()
+    }
+    
     # check whether there are two radial series
     #------------------------------------------------------------------------------------
-    if ('Pith' %in% tbl [['type']]) {
+    if ('Pith' %in% tbl [['type']] & tbl [['type']] [nrow (tbl)] != 'Pith') {
       
       # find pith label's index
       wPith <- tbl [type == 'Pith', no]
@@ -1747,7 +1747,7 @@ shinyServer (function (input, output, session)
       
       
       showModal (strong (
-        modalDialog (HTML ("Not enough growth increments to detrend anything yet!<br>.
+        modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
                      easyClose = T,
                      fade = T,
@@ -1841,7 +1841,7 @@ shinyServer (function (input, output, session)
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
                                    method = 'Friedman', 
-                                   #wt = input$detrendingWeights, # TR Notta bene: We only allow defaults for now.
+                                   #wt = input$detrendingWeights, # TR Nota bene: We only allow defaults for now.
                                    #span = input$detrendingSpan, # TR Nota bene: We only allow defaults for now.
                                    bass = input$detrendingBASS,
                                    difference  = detrendingDifference,
@@ -2009,8 +2009,8 @@ shinyServer (function (input, output, session)
         return ()
       }
       
-      # check that an image was loaded 
-      if (!rv$notLoaded ) {
+      # check that an image was loaded and we are not in demo mode
+      if (!rv$notLoaded) {
         
         # save processed image
         writePNG (imgProcessed (), 
@@ -2093,6 +2093,10 @@ shinyServer (function (input, output, session)
     # get detrended series
     #------------------------------------------------------------------------------------
     detrended <- detrendGrowth ()
+    
+    # check that there were enough data points
+    #------------------------------------------------------------------------------------
+    if (is.null (detrended)) return ()
     
     # plot absolute growth data to object p
     #------------------------------------------------------------------------------------
@@ -2178,6 +2182,10 @@ shinyServer (function (input, output, session)
     # get detrended series
     #------------------------------------------------------------------------------------
     detrended <- detrendGrowth ()
+    
+    # check that there were enough data points
+    #------------------------------------------------------------------------------------
+    if (is.null (detrended)) return ()
     
     # extract rwi indices, detrending curve, and years
     #------------------------------------------------------------------------------------
@@ -2297,7 +2305,7 @@ shinyServer (function (input, output, session)
     return ()
   })
   
-  # update oldest ring/pith action button label depending on whether the pith is in the image or not
+  # switch in and out of demo mode
   #--------------------------------------------------------------------------------------
   observeEvent (input$demoMode, {
     
@@ -2313,7 +2321,7 @@ shinyServer (function (input, output, session)
       
       # get path to image
       #----------------------------------------------------------------------------------
-      rv$imgPath <- system.file(package = 'wiad', 'demos/demoImage.jpg')
+      rv$imgPath <- system.file (package = 'wiad', 'demos/demoImage.jpg')
       
       # get file extension
       #----------------------------------------------------------------------------------
@@ -2327,15 +2335,30 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       rv$demoMode  <- TRUE
       
+      # reset the markerTable
+      #----------------------------------------------------------------------------------
+      rv$markerTable <- data.table ( # data.table contains the marker data
+        no   = integer (),   # no ID
+        x    = numeric (),   # x
+        y    = numeric (),   # y
+        relx = numeric (),   # relative x
+        rely = numeric (),   # relative y
+        type = character ()  # type
+      )
+      
+      # reset the label and previous label indices 
+      #----------------------------------------------------------------------------------
+      rv$index <- 0
+      rv$previousIndex <- 0
+      
       # show message to alert user for demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
-        modalDialog (HTML ("Warning: <br>
-                           You are now entering demo mode!"),
+        modalDialog (HTML ("You are now entering demo mode!"),
                      easyClose = T,
                      fade = T,
                      size = 's',
-                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
       
     # else we are leaving demo mode
@@ -2347,11 +2370,10 @@ shinyServer (function (input, output, session)
       # show message to alert user for end of demo mode
       #----------------------------------------------------------------------------------
       showModal (strong (
-        modalDialog (HTML ("Warning: <br>
-                           You are now leaving demo mode!"),
+        modalDialog (HTML ("You are now leaving demo mode!"),
                      easyClose = T,
                      fade = T,
-                     style = 'background-color:#3b3a35; color:#f3bd48; ',
+                     style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
     }    
     

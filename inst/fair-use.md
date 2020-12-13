@@ -6,7 +6,7 @@ We request that all publications using WIAD to process data, downloaded imagery 
 <br></br>
 Software citation:
 
-Seyednasrollah et al. (in prep.) "TRIAD", [https://github.com/bnasr/TRIAD].  
+Seyednasrollah et al. (in prep.) "TRIAD", https://github.com/bnasr/TRIAD.  
  
 <br></br>
 Paper citation:

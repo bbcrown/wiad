@@ -6,15 +6,15 @@ citHeader("To cite WIAD in publications, please cite both the paper and the R pa
 
 citEntry(entry = "Manual",
          author = c("Bijan Seyednasrollah",
-                    "Tim T. Rademacher",
+                    "Tim Rademacher",
                     "David Basler"),
          title = "WIAD R Package: Wood Image and Analysis Dataset",
          year = 2020,
          url = "https://github.com/bnasr/wiad/",
-         textVersion = "Bijan Seyednasrollah, Tim T. Rademacher, David Basler (2020), WIAD R Package: Wood Image and Analysis Dataset")
+         textVersion = "Bijan Seyednasrollah, Tim Rademacher, David Basler (2020), WIAD R Package: Wood Image and Analysis Dataset")
 
 citEntry(entry = "Article",
-         author = c("Tim T. Rademacher",
+         author = c("Tim Rademacher",
                     "Bijan Seyednasrollah",
                     "David Basler",
                     "et al."),
