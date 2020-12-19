@@ -5,7 +5,7 @@
 #
 # WIAD is the Wood Image Analysis and Dataset
 #
-# Most recent release: https://github.com/bnasr/TRIAD
+# Most recent release: https://github.com/bnasr/wiad
 #######################################################################
 
 # This is the version of the Wood Image Analysis and Database 
