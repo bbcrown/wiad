@@ -2,7 +2,7 @@
 # The UI side for the WIAD shiny app. 
 # 
 # The WIAD app is maintained by Bijan Seyednasrollah.
-# The Core Development Team: Bijan Seyednasrollah, Tim T. Rademacher and David Basler.
+# The Core Development Team: Bijan Seyednasrollah, Tim Rademacher and David Basler.
 #
 # WIAD is the Wood Image Analysis and Dataset
 #
