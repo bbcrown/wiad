@@ -25,3 +25,7 @@ test_that("test the brightness function", {
 test_that("test the rotateRGB function", {
   expect_length(wiad:::rotateRGB(rgbArray), w * h * 3)
 })
+
+test_that("test the rotate function", {
+  expect_length(wiad:::rotate(rgbArray), w * h * 3)
+})
