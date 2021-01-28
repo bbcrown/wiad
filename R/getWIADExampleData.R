@@ -9,10 +9,14 @@
 #' @importFrom utils download.file
 #' @export
 #' 
-getExampleData <-function(mode="install",downloadPath="",installPath=""){
+getExampleData <-function(mode = "install", 
+                          downloadPath = tempdir(),
+                          installPath = ""){
   # URLS and PATHS
   url<-"http://wiad.science/WIAD_ExampleData.zip"
-  if (downloadPath=="") downloadPath  <- tempdir()
+  
+
+  
   localzipfile <- file.path(downloadPath,"WIAD_ExampleData.zip")
   
   if (installPath=="") installPath  <- system.file(package = "wiad") # DEFINE PACKAGE NAME HERE
