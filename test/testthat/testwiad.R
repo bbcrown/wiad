@@ -14,3 +14,6 @@ test_that("test the brightness function", {
   expect_gt(1, mean(brightness))
 })
 
+test_that("test the brightness function", {
+  expect_gt(mean(brightness), 0)
+})
