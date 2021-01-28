@@ -1,0 +1,11 @@
+language: r
+r:
+  - oldrel
+  - release
+  - devel
+sudo: false
+
+r_packages:
+  - covr
+
+after_success:
