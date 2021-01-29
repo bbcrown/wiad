@@ -8,3 +8,7 @@ test_that("test printLog function", {
                               finit = TRUE, 
                               PRINT_LOGS = TRUE))
 })
+
+test_that("test printLog function no print", {
+  expect_null(wiad:::printLog(PRINT_LOGS = FALSE))
+})
