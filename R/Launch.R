@@ -28,7 +28,7 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
     
   }else{
     
-    print('This function requires an interactive R session!')
+    warning('This function requires an interactive R session!')
     
   }
 }
