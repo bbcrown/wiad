@@ -14,3 +14,7 @@ rgbArray2 = array(data = runif(w * h * 2),
 test_that("test the rotateRGB function", {
   expect_error(wiad:::rotateRGB(rgbArray2))
 })
+
+test_that("test the rotateRGB function", {
+  expect_length(wiad:::rotateRGB(rgbArray), w * h * 3)
+})
