@@ -1,7 +1,7 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
 
 [![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) 
-[![Travis CI](https://travis-ci.org/bnasr/wiad.svg?branch=master)](https://travis-ci.org/bnasr/wiad) 
+[![Travis CI](https://travis-ci.com/bnasr/wiad.svg?branch=master)](https://travis-ci.com/bnasr/wiad) 
 [![Coverage status](https://codecov.io/gh/bnasr/wiad/branch/master/graph/badge.svg)](https://codecov.io/gh/bnasr/wiad)
 
 [![CRAN status](http://www.r-pkg.org/badges/version-last-release/wiad)](https://cran.r-project.org/package=wiad) 
