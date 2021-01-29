@@ -18,17 +18,18 @@ printLog <- function (msg = NULL,
     message (paste ('\n--------------------------------------------------------------------\n', 
                     as.character(systime),'New session just started!',
                     '\n--------------------------------------------------------------------\n'))
-    return()
   }
   
   if (finit) {
     message (paste ('\n--------------------------------------------------------------------\n', 
                     as.character(systime),'Initial setup was completed!',
                     '\n--------------------------------------------------------------------\n'))
-    return()
   }
   
   message(paste(as.character(systime), 
                 signif(as.numeric(systime)-floor(as.numeric(systime)),3),
                 msg, '\t'))
+  
+  return()
+  
 }
