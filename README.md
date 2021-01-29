@@ -19,7 +19,7 @@ WIAD presents a dynamic interface for a wide range of scientists in archeology, 
 # Installation
 
 ### Install from CRAN
-The WIAD R package has been published on The Comprehensive R Archive Network (CRAN). The latest tested xROI package can be installed from the <a href="https://cran.r-project.org/package=wiad">CRAN packages repository</a> by running the following command in an R environment:
+The WIAD R package has been published on The Comprehensive R Archive Network (CRAN). The latest tested WIAD package can be installed from the <a href="https://cran.r-project.org/package=wiad">CRAN packages repository</a> by running the following command in an R environment:
 
 ```{r, echo=TRUE, eval=FALSE}
 
