@@ -19,7 +19,10 @@ getExampleData <-function(mode = "install",
   
   localzipfile <- file.path(downloadPath,"WIAD_ExampleData.zip")
   
-  if (installPath=="") installPath  <- system.file(package = "wiad") # DEFINE PACKAGE NAME HERE
+  if(!is.null(installPath)) 
+    if (installPath=="") 
+      installPath  <- system.file(package = "wiad") # DEFINE PACKAGE NAME HERE
+  
   exampleDataPath <- file.path(installPath,"ExampleData" )
   
   if (mode %in% c("install","update")){
@@ -28,7 +31,10 @@ getExampleData <-function(mode = "install",
     if (!dir.exists(exampleDataPath) || mode=="update") {
       # DOWNLOAD
       message("Downloading WIAD Example Datset (1.83 GB). This may take a while...\n")
-      if(!is.null(iinstallPath)) dl <- try(download.file(url,localzipfile, quiet = FALSE, mode = "wb"))
+      
+      if(!is.null(iinstallPath)) 
+        dl <- try(download.file(url,localzipfile, quiet = FALSE, mode = "wb"))
+      
       if(!is.null(attr(dl, "class")) && attr(dl, "class") == "try-error"){
         message("Unable to download data for URL:",url,"\n")
         return()
@@ -42,23 +48,33 @@ getExampleData <-function(mode = "install",
         message ("Cleanup\n")
         unlink(localzipfile,recursive = FALSE)
         message("sucessfully installed WIAD Example Dataset to ", exampleDataPath,'\n')
+        
       } else {
+        
         message ('Unable to extract WIAD Example Dataset: file not found\n')
+        
       }
+      
     } else {
+      
       message('WIAD Example Dataset is already installed\n')
     }
     
     # DO STUFF HERE TO SET AS ACTIVE DATASET
     
   } else if (mode=="remove"){
+    
     # ATTENTION: Will remove the example dataset folder without further warning
     if (dir.exists(exampleDataPath)) {
+      
       unlink(exampleDataPath ,recursive = TRUE)
+      
       message('Sucessfully removed WIAD Example Dataset\n')
       
     }else{
+      
       message('Cannot remove WIAD Example Dataset: Dataset not found\n')
+      
     }
   }
   
