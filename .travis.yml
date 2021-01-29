@@ -1,9 +1,10 @@
 language: r
-r:
-  - oldrel
-  - release
-  - devel
-sudo: false
+
+addons:
+  apt:
+    packages:
+      - gdal-bin
+      - libgdal1-dev
 
 r_packages:
   - covr
