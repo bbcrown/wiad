@@ -4,7 +4,7 @@
 [![Travis CI](https://travis-ci.org/bnasr/wiad.svg?branch=master)](https://travis-ci.org/bnasr/wiad) 
 [![Coverage status](https://codecov.io/gh/bnasr/wiad/branch/master/graph/badge.svg)](https://codecov.io/gh/bnasr/wiad)
 
-[![CRAN status](http://www.r-pkg.org/badges/version-last-release/xROI)](https://cran.r-project.org/package=wiad) 
+[![CRAN status](http://www.r-pkg.org/badges/version-last-release/wiad)](https://cran.r-project.org/package=wiad) 
 [![Downloads](http://cranlogs.r-pkg.org/badges/wiad?color=brightgreen)](http://www.r-pkg.org/pkg/wiad) 
 [![Downloads](http://cranlogs.r-pkg.org/badges/grand-total/wiad?color=brightgreen)](http://www.r-pkg.org/pkg/wiad) 
 
