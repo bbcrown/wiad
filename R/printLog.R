@@ -5,8 +5,13 @@
 #' @param init boolean variable indicating whether this is the end of the initial setup
 #' @keywords internal
 #' 
-printLog <- function (msg = NULL, init = F, finit = F, PRINT_LOGS = TRUE){
- if (!PRINT_LOGS) return ()
+printLog <- function (msg = NULL, 
+                      init = F, 
+                      finit = F, 
+                      PRINT_LOGS = TRUE){
+  
+  if (!PRINT_LOGS) return ()
+  
   systime <- Sys.time()
   
   if (init){
