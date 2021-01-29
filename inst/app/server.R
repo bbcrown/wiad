@@ -1583,7 +1583,7 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       
       # get pith index, if it exists
-        p <- ifelse ('Pith' %in% types, which (types == 'Pith'), n)
+      p <- ifelse ('Pith' %in% types, which (types == 'Pith'), n)
       
       # identify reference label's year
       refYr <- years [i] - 1
