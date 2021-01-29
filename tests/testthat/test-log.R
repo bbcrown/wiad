@@ -6,5 +6,5 @@ test_that("test printLog function", {
   expect_null(wiad:::printLog(msg = 'test', 
                               init = TRUE, 
                               finit = TRUE, 
-                              PRINT_LOGS = FALSE))
+                              PRINT_LOGS = TRUE))
 })
