@@ -1,6 +1,6 @@
 #' Downloads and installs the WIAD Example Dataset
 #' 
-#' The WIAD Example Dataset can be downloaded from http://wiad.science/WIAD_ExampleData.zip .
+#' The WIAD Example Dataset can be downloaded from https://wiad.science/WIAD_ExampleData.zip .
 #' This function downloads and extracts the WIAD Example Dataset in the package folder.
 #' 
 #' @param mode \code{"install"} (default),\code{"update"} or \code{"remove"} 
@@ -13,7 +13,7 @@ getExampleData <-function(mode = "install",
                           downloadPath = tempdir(),
                           installPath = ""){
   # URLS and PATHS
-  url<-"http://wiad.science/WIAD_ExampleData.zip"
+  url<-"https://wiad.science/WIAD_ExampleData.zip"
   
 
   
