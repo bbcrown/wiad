@@ -59,6 +59,9 @@ displayDataTable <- function (df, id1, id2, ...) {
                      "$('.dataTables_filter').css({'color':'#888'});",
                      "$('.dataTables_length').css({'color':'#888'}, );",
                      "}") 
-                 ))  %>% DT::formatRound (columns = c ('x','y','pixels','growth'), digits = 0) %>% 
+                   
+                 ))  %>% 
+    DT::formatRound (columns = c ('x','y','pixels','growth'), digits = 0) %>% 
+    
     DT::formatRound (columns = c ('relx','rely'), digits = 3)
 }
