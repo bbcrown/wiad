@@ -64,7 +64,7 @@ or form the command line (e.g., shell in Linux, Terminal in macOS and Command Pr
 
 ```{r, echo=TRUE, eval=FALSE}
 
-Rscript -e “wiad::Launch(Interactive = TRUE)”
+Rscript -e "wiad::Launch(Interactive = TRUE)"
 
 ```
 
