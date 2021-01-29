@@ -6,7 +6,9 @@
 #' @import abind
 #' 
 rotateRGB <- function (imgMat) {
-  if (dim (imgMat) [3] != 3) stop ('matrix must have 3 layers in the 3rd dimension!')
+  if (dim (imgMat) [3] != 3) 
+    stop ('matrix must have 3 layers in the 3rd dimension!')
+  
   r <- rotate (imgMat [,,1])
   g <- rotate (imgMat [,,2])
   b <- rotate (imgMat [,,3])

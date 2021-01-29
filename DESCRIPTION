@@ -2,7 +2,7 @@ Package: wiad
 Type: Package
 Title: Wood Image Analysis and Dataset
 Version: 0.0.1
-Date: 2020-11-29
+Date: 2021-01-29
 Author: Bijan Seyednasrollah, Tim Rademacher, David Basler
 Maintainer: Bijan Seyednasrollah <bijan.s.nasr@gmail.com>
 Description: This package provides a user-friendly interface to digitize wood imagery such as tree ring scans. The package offers a web-based application that the user can run locally from their computers to analyze wood characteristics.
@@ -31,6 +31,7 @@ Suggests:
   readr,
   readxl,
   sp,
+  testthat,
   tiff,
   tibble,
   tools,

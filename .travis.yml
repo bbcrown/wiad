@@ -1,0 +1,13 @@
+language: r
+
+addons:
+  apt:
+    packages:
+      - gdal-bin
+      - libgdal1-dev
+
+r_packages:
+  - covr
+
+after_success:
+  - Rscript -e 'library(covr); codecov()'

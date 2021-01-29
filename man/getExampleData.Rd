@@ -4,7 +4,7 @@
 \alias{getExampleData}
 \title{Downloads and installs the WIAD Example Dataset}
 \usage{
-getExampleData(mode = "install", downloadPath = "", installPath = "")
+getExampleData(mode = "install", downloadPath = tempdir(), installPath = "")
 }
 \arguments{
 \item{mode}{\code{"install"} (default),\code{"update"} or \code{"remove"}}
