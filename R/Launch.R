@@ -23,20 +23,26 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
                         package = package)
   
   ARCHIVE_DIR = archiveDir
-
-    ## Only run examples in interactive R sessions
+  
+  launch.browser = TRUE  
+  
+  optiions = list(launch.browser = launch.browser)
+  
+  message('The WIAD app is being loaded ...')
+  
+  ## Only run examples in interactive R sessions
   if (interactive()|Interactive) {
     
-    optiions = list(launch.browser = TRUE)
-    
-    shinyAppDir(appDir = appDir, 
-                options = optiions)
+    app = shinyAppDir(appDir = appDir, 
+                      options = optiions)
     
   }else{
     
     warning('This function requires an interactive R session!')
     
+    app = NULL
+    
   }
   
-  return()
+  return(app)
 }
