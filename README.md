@@ -1,6 +1,6 @@
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0) 
 
-[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental) 
+[![lifecycle](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental) 
 [![Travis CI](https://travis-ci.com/bnasr/wiad.svg?branch=master)](https://travis-ci.com/bnasr/wiad) 
 [![Coverage status](https://codecov.io/gh/bnasr/wiad/branch/master/graph/badge.svg)](https://codecov.io/gh/bnasr/wiad)
 
@@ -23,7 +23,7 @@ The WIAD R package has been published on The Comprehensive R Archive Network (CR
 
 ```{r, echo=TRUE, eval=FALSE}
 
-utils::install.packages('wiad', repos = "http://cran.us.r-project.org" )
+utils::install.packages('wiad', repos = "https://cran.us.r-project.org" )
 
 ```
 
