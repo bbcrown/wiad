@@ -1742,28 +1742,41 @@ shinyServer (function (input, output, session)
     }
     
     # make sure there are at least three growth increments for each series 
-    if ((nSeries == 1 & nrow (data1) < 3) | 
-        (nSeries == 2 & nrow (data1) < 3 & nrow (data2) < 3)) {
-      
-      
-      showModal (strong (
-        modalDialog (HTML ("Not enough growth increments to detrend!<br>
+    if (nSeries == 1){
+      if (nrow (data1) < 3){
+        showModal (strong (
+          modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                     easyClose = T,
-                     fade = T,
-                     size = 's',
-                     style = 'background-color:#3b3a35; color:#f3bd48; ',
-                     footer = NULL)))
-      
-      return ()
-    } else if (nSeries == 2 & (nrow (data1) < 3 | nrow (data2) < 3)) {
-      nSeries <- 1
-      data1 <- ifelse (nrow (data1) < 3, data2, data1)
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        
+        return ()  
+      }
+    } else {
+      if (nrow (data1) < 3 & nrow (data2) < 3){
+        showModal (strong (
+          modalDialog (HTML ("Not enough growth increments to detrend!<br>
+                           You need at least three!"),
+                       easyClose = T,
+                       fade = T,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        
+        return ()  
+        
+      } else if ((nrow (data1) < 3 | nrow (data2) < 3)) {
+        nSeries <- 1
+        data1 <- ifelse (nrow (data1) < 3, data2, data1)
+      }
     }
-    
+
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
-    if (is.na (sampleDPI)){
+    if (is.na (input$sampleDPI)){
       data1 [, toplot := pixels]
       if (nSeries == 2) data2 [, toplot := pixels]
     } else {
@@ -2177,6 +2190,14 @@ shinyServer (function (input, output, session)
     yAxisD <- list (
       title = 'Ring width index', 
       titlefont = fontList
+    )
+    
+    m <- list (
+      l = 100,
+      r = 50,
+      b = 100,
+      t = 50,
+      pad = 4
     )
     
     # get detrended series
