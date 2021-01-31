@@ -39,12 +39,14 @@ getExampleData <-function(mode = "install",
     
     # Download is started only if /ExampleDataset path does not yet exist or if mode=="update"
     if (!dir.exists(exampleDataPath) || mode=="update") {
+      
       # DOWNLOAD
       message("Downloading WIAD Example Datset (1.83 GB). This may take a while...\n")
+      
       dl <- try(download.file(url,localzipfile, quiet = FALSE, mode = "wb"))
+      
       if(!is.null(attr(dl, "class")) && attr(dl, "class") == "try-error"){
-        message("Unable to download data for URL:",url,"\n")
-        return()
+        message("Unable to download data for URL:",url,"\n"); return()
       }
       
       if (file.exists(localzipfile)){
