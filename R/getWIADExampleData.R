@@ -13,14 +13,27 @@ getExampleData <-function(mode = "install",
                           downloadPath = tempdir(),
                           installPath = ""){
   # URLS and PATHS
-  url<-"https://wiad.science/WIAD_ExampleData.zip"
+  url <-
+    "https://wiad.science/WIAD_ExampleData.zip"
   
-
   
-  localzipfile <- file.path(downloadPath,"WIAD_ExampleData.zip")
   
-  if (installPath=="") installPath  <- system.file(package = "wiad") # DEFINE PACKAGE NAME HERE
-  exampleDataPath <- file.path(installPath,"ExampleData" )
+  localzipfile <- 
+    file.path(
+      downloadPath,
+      "WIAD_ExampleData.zip")
+  
+  if (installPath=="") 
+    installPath  <- 
+    system.file(
+      package 
+      = 
+        "wiad") # DEFINE PACKAGE NAME HERE
+  
+  exampleDataPath <- 
+    file.path(
+      installPath,
+      "ExampleData")
   
   if (mode %in% c("install","update")){
     
@@ -38,6 +51,7 @@ getExampleData <-function(mode = "install",
         # UNZIP
         message ("Extracting WIAD Example Dataset\n")
         utils::unzip(localzipfile, exdir=installPath, overwrite = TRUE)
+        
         # CLEANUP
         message ("Cleanup\n")
         unlink(localzipfile,recursive = FALSE)
@@ -51,10 +65,23 @@ getExampleData <-function(mode = "install",
     
     # DO STUFF HERE TO SET AS ACTIVE DATASET
     
-  } else if (mode=="remove"){
+  } else if (
+    mode 
+    == 
+    "remove"
+  ){
     # ATTENTION: Will remove the example dataset folder without further warning
-    if (dir.exists(exampleDataPath)) {
-      unlink(exampleDataPath ,recursive = TRUE)
+    if (
+      dir.exists(
+        exampleDataPath
+      )
+    ) {
+      
+      unlink(
+        exampleDataPath,
+        recursive = 
+          TRUE)
+      
       message('Sucessfully removed WIAD Example Dataset\n')
       
     }else{
