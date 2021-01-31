@@ -73,8 +73,10 @@ getExampleData <-function(mode = "install",
         &&
         mode 
         != 
-        'update') 
-        url = 'example.com' # for testing routines
+        'update'
+        ) 
+        url = 
+          'example.com' # for testing routines
       
       dl <- 
         try(
@@ -95,25 +97,45 @@ getExampleData <-function(mode = "install",
         attr(dl, "class") == 
         "try-error"
       ){
-        message(
-          "Unable to download data for URL:",
-          url,
-          "\n"
-        ) 
-        
-        return(
-        )
+        message("Unable to download data for URL:", url, "\n"); return()
       }
       
-      if (file.exists(localzipfile)){
+      if (
+        file.exists(
+          localzipfile
+          )
+        )
+        {
         # UNZIP
-        message ("Extracting WIAD Example Dataset\n")
-        utils::unzip(localzipfile, exdir=installPath, overwrite = TRUE)
+        message (
+          "Extracting WIAD Example Dataset\n"
+          )
+        
+        utils::unzip(
+          zipfile =
+            localzipfile, 
+          exdir = 
+            installPath, 
+          overwrite = 
+            TRUE)
         
         # CLEANUP
-        message ("Cleanup\n")
-        unlink(localzipfile,recursive = FALSE)
-        message("sucessfully installed WIAD Example Dataset to ", exampleDataPath,'\n')
+        message (
+          "Cleanup\n"
+          )
+        
+        unlink(
+          x = 
+            localzipfile,
+          recursive = 
+            FALSE
+          )
+        
+        message(
+          "sucessfully installed WIAD Example Dataset to ",
+          exampleDataPath,
+          '\n')
+        
       } else {
         message ('Unable to extract WIAD Example Dataset: file not found\n')
       }
