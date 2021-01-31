@@ -65,10 +65,44 @@ getExampleData <-function(mode = "install",
       # DOWNLOAD
       message("Downloading WIAD Example Datset (1.83 GB). This may take a while...\n")
       
-      dl <- try(download.file(url,localzipfile, quiet = FALSE, mode = "wb"))
       
-      if(!is.null(attr(dl, "class")) && attr(dl, "class") == "try-error"){
-        message("Unable to download data for URL:",url,"\n"); return()
+      if(
+        file.exists(
+          localzipfile
+        ) 
+        &&
+        mode 
+        != 
+        'update') 
+        url = 'example.com' # for testing routines
+      
+      dl <- 
+        try(
+          download.file(
+            url = 
+              url, 
+            destfile =
+              localzipfile, 
+            quiet = 
+              FALSE, 
+            mode = "wb"
+          )
+        )
+      
+      if(
+        !is.null(attr(dl, "class")) 
+        && 
+        attr(dl, "class") == 
+        "try-error"
+      ){
+        message(
+          "Unable to download data for URL:",
+          url,
+          "\n"
+        ) 
+        
+        return(
+        )
       }
       
       if (file.exists(localzipfile)){
