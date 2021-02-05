@@ -682,6 +682,7 @@ shinyServer (function (input, output, session)
       imgDim <- dim (imgtmp)
       
       # set margins and plot are
+      oldpar = par()
       par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
@@ -860,6 +861,7 @@ shinyServer (function (input, output, session)
         }
         
       }
+      par(olpar)
     })
   
   observeEvent (input$selRed,
