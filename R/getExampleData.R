@@ -77,7 +77,7 @@ getExampleData <-function(mode = "install",
         'update'
         ) 
         url = 
-          'example.com' # for testing routines
+          'http://example.com/' # for testing routines
       
       dl <- 
         try(
