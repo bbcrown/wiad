@@ -1747,8 +1747,8 @@ shinyServer (function (input, output, session)
         showModal (strong (
           modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -1760,8 +1760,8 @@ shinyServer (function (input, output, session)
         showModal (strong (
           modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
