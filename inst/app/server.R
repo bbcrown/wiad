@@ -151,8 +151,8 @@ shinyServer (function (input, output, session)
                   # check whether user wants to insert a missing ring using input modal
                   showModal (strong (
                     modalDialog ("Do you want to insert a missing ring or other label?",
-                                 easyClose = T,
-                                 fade = T,
+                                 easyClose = TRUE,
+                                 fade = TRUE,
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
@@ -247,8 +247,8 @@ shinyServer (function (input, output, session)
                  } else {      
                    showModal (strong (
                      modalDialog ("Error: Only JPEG, TIFF or PNG files are accepted!",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
@@ -311,8 +311,8 @@ shinyServer (function (input, output, session)
                   if (rv$notLoaded) {
                     showModal (strong (
                       modalDialog ("Error: Am image must be loaded first!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
                                    footer = NULL)))
@@ -418,8 +418,8 @@ shinyServer (function (input, output, session)
                       # Prompt metadata review
                       showModal (strong (
                         modalDialog ("Review and confirm metadata below.",
-                                     easyClose = T,
-                                     fade = T,
+                                     easyClose = TRUE,
+                                     fade = TRUE,
                                      size = 's',
                                      style = 'background-color:#3b3a35; color:#b91b9a4; ',
                                      footer = NULL)))
@@ -427,8 +427,8 @@ shinyServer (function (input, output, session)
                     } else {
                       showModal (strong (
                         modalDialog ("Error: Only csv or json files are accepted for marker files!",
-                                     easyClose = T,
-                                     fade = T,
+                                     easyClose = TRUE,
+                                     fade = TRUE,
                                      size = 's',
                                      style = 'background-color:#3b3a35; color:#eb99a9; ',
                                      footer = NULL)))
@@ -437,8 +437,8 @@ shinyServer (function (input, output, session)
                   } else {
                     showModal (strong (
                       modalDialog ("Error: Erase existing labels before uploading new labels!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
                                    footer = NULL)))
@@ -489,8 +489,8 @@ shinyServer (function (input, output, session)
                  } else {
                    showModal (strong (
                      modalDialog ("Error: Only xlsx, csv or json files are accepted for metadata.",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
@@ -568,8 +568,8 @@ shinyServer (function (input, output, session)
                  # Prompt metadata review
                  showModal (strong (
                    modalDialog ("Review and confirm metadata below.",
-                                easyClose = T,
-                                fade = T,
+                                easyClose = TRUE,
+                                fade = TRUE,
                                 size = 's',
                                 style = 'background-color:#3b3a35; color:#b91b9a4; ',
                                 footer = NULL)))
@@ -589,8 +589,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -996,8 +996,8 @@ shinyServer (function (input, output, session)
       if (length (dim (rv$imgMat)) == 2) {
         showModal (strong (
           modalDialog ("Warning: The image is monochrome!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL
@@ -1053,8 +1053,8 @@ shinyServer (function (input, output, session)
                  if (nrow (rv$markerTable) == 0) {
                    showModal (strong (
                      modalDialog ("Error: No ring marker is identified yet!",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style='background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
@@ -1064,8 +1064,8 @@ shinyServer (function (input, output, session)
                  } else if (nrow (rv$markerTable) == 1) {
                    showModal (strong (
                      modalDialog ("Error: The first label cannot be a linker! Maybe start on a ring?",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style ='background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
@@ -1075,8 +1075,8 @@ shinyServer (function (input, output, session)
                  } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
                    showModal (strong (
                      modalDialog ("Error: You can set a maximum of three consecutive linkers!",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style ='background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL
@@ -1123,8 +1123,8 @@ shinyServer (function (input, output, session)
                  if (input$confirmMeta == 'Not Confirmed') {
                    showModal (strong (
                      modalDialog ("First review and confirm the metadata!",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
@@ -1136,8 +1136,8 @@ shinyServer (function (input, output, session)
                  if (nrow (rv$markerTable) == 0) {
                    showModal (strong (
                      modalDialog ("Error: No ring marker is identified yet!",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
@@ -1146,8 +1146,8 @@ shinyServer (function (input, output, session)
                  } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
                    showModal (strong (
                      modalDialog ("Error: You can only set one pith and there is already one! Delete it first.",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
                                   footer = NULL)))
@@ -1238,8 +1238,8 @@ shinyServer (function (input, output, session)
                  if (input$confirmMeta == 'Not Confirmed') {
                      showModal (strong (
                      modalDialog ("First review and confirm the metadata!",
-                                  easyClose = T,
-                                  fade = T,
+                                  easyClose = TRUE,
+                                  fade = TRUE,
                                   size = 's',
                                   style ='background-color:#3b3a35; color:#b91b9a4; ',
                                   footer = NULL)))
@@ -1345,8 +1345,8 @@ shinyServer (function (input, output, session)
                   if (input$confirmMeta == 'Not Confirmed') {
                     showModal (strong (
                       modalDialog ("First review and confirm the metadata!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style ='background-color:#3b3a35; color:#b91b9a4; ',
                                    footer = NULL)))
@@ -1359,8 +1359,8 @@ shinyServer (function (input, output, session)
                   } else if (nrow (rv$markerTable) < 1) {
                     showModal (strong (
                       modalDialog ("Error: The first marker cannot be a misc marker!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style ='background-color:#3b3a35; color:#b91b9a4; ',
                                    footer = NULL)))
@@ -1524,8 +1524,8 @@ shinyServer (function (input, output, session)
         if (p != 1) {
           showModal (strong (
             modalDialog ("Error: You start your measurement at the pith, but your first label is not the pith. Something is not correct!",
-                         easyClose = T,
-                         fade = T,
+                         easyClose = TRUE,
+                         fade = TRUE,
                          size = 's',
                          style = 'background-color:#3b3a35; color:#f3bd48; ',
                          footer = NULL)))
@@ -1709,8 +1709,8 @@ shinyServer (function (input, output, session)
       showModal (strong (
         modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      size = 's',
                      style = 'background-color:#3b3a35; color:#f3bd48; ',
                      footer = NULL)))  
@@ -1749,8 +1749,8 @@ shinyServer (function (input, output, session)
       showModal (strong (
         modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      size = 's',
                      style = 'background-color:#3b3a35; color:#f3bd48; ',
                      footer = NULL)))
@@ -1933,8 +1933,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -2001,8 +2001,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -2241,8 +2241,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -2355,8 +2355,8 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       showModal (strong (
         modalDialog (HTML ("You are now entering demo mode!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      size = 's',
                      style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
@@ -2371,8 +2371,8 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       showModal (strong (
         modalDialog (HTML ("You are now leaving demo mode!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
     }    
@@ -2443,8 +2443,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -2454,8 +2454,8 @@ shinyServer (function (input, output, session)
       } else if (rv$notLoaded) { 
         showModal (strong (
           modalDialog ("Warning: You have to start by loading an image!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
