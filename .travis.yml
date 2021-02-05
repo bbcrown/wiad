@@ -1,22 +1,19 @@
-arch:
-  - amd64
-  - arm64 
-  - ppc64le
-  - s390x
+arch: amd64
+language: r
 
-os:
-  - windows
-  - linux
-  - osx
-  
-language: 
-  - r
+jobs:
+  include:
+   - os: linux
+     r:
+      - oldrel
+      - release
+      - devel
+   - os: osx
+     r:
+      - oldrel
+      - release
 
-r:
-  - oldrel
-  - release
-  - devel
-  
+
 addons:
   apt:
     packages:
