@@ -13,6 +13,9 @@ getExampleData(mode = "install", downloadPath = tempdir(), installPath = "")
 
 \item{installPath}{custom location to place WIAD example dataset. Default: WIAD package directory}
 }
+\value{
+No return value
+}
 \description{
 The WIAD Example Dataset can be downloaded from https://wiad.science/WIAD_ExampleData.zip .
 This function downloads and extracts the WIAD Example Dataset in the package folder.
