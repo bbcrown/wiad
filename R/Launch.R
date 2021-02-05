@@ -4,7 +4,7 @@
 #' 
 #' @param archiveDir path to the archive directory
 #' @param Interactive logical variable to force an interactive session
-#' @return this should be run in an interactive R session
+#' @return No return value, this should be run in an interactive R session
 #' @export
 #' @import shiny
 #' @examples
