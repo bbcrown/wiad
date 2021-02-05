@@ -1975,7 +1975,7 @@ shinyServer (function (input, output, session)
       write.table (rv$markerTable, 
                    file, 
                    sep = ',',
-                   row.names = F)
+                   row.names = FALSE)
       
     }
   )
