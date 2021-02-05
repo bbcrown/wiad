@@ -15,6 +15,8 @@
 #'
 Launch <- function(archiveDir = './WIAD_ARCHIVE/',
                    Interactive = FALSE){
+  oldpar = 
+    par()
   
   package = 
     'wiad'
@@ -57,9 +59,7 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
   )
     
   {
-    
     app = shinyAppDir(appDir = appDir, options = options)
-    
   }
   else
   {
@@ -72,6 +72,9 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
       NULL
     
   }
+  
+  par = 
+    oldpar
   
   return(app)
 }

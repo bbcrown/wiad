@@ -3,6 +3,8 @@ Type: Package
 Title: Wood Image Analysis and Dataset
 Version: 0.0.1.0
 Date: 2021-01-29
+Maintainer: Bijan Seyednasrollah <bijan.s.nasr@gmail.com>
+Author: Bijan Seyednasrollah, Tim Rademacher, David Basler
 Author@R: c(person("Bijan Seyednasrollah", "Developer", role = c("aut", "cre","cph"), email = "bijan.s.nasr@gmail.com"),
             person("Tim T. Rademacher", "Developer", role = c("aut", "cph", "wdc"), email = "rademacher.tim@gmail.com"),
             person("David Basler", "Developer", role = c("aut", "cph", "wdc"), email = "david.j.basler@gmail.com"))
