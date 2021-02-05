@@ -1,4 +1,10 @@
-language: r
+os:
+  - windows
+  - linux
+  - osx
+  
+language: 
+  - r
 
 r:
   - oldrel
