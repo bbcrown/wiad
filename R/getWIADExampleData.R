@@ -6,6 +6,7 @@
 #' @param mode \code{"install"} (default),\code{"update"} or \code{"remove"} 
 #' @param downloadPath custom location to temporarily store WIAD example dataset while downloading. Default: tempdir() 
 #' @param installPath custom location to place WIAD example dataset. Default: WIAD package directory
+#' @return No return value
 #' @importFrom utils download.file
 #' @export
 #' 
