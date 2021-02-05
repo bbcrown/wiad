@@ -4,15 +4,9 @@ language: r
 jobs:
   include:
    - os: linux
-     r:
-      - oldrel
-      - release
-      - devel
+     r: oldrel, release, devel
    - os: osx
-     r:
-      - oldrel
-      - release
-
+     r: oldrel, release
 
 addons:
   apt:
