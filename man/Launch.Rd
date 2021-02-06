@@ -12,7 +12,7 @@ Launch(archiveDir = "./WIAD_ARCHIVE/", Interactive = FALSE)
 \item{Interactive}{logical variable to force an interactive session}
 }
 \value{
-this should be run in an interactive R session
+No return value, this should be run in an interactive R session
 }
 \description{
 This function launches the app by opening the default web browser.

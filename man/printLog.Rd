@@ -4,12 +4,15 @@
 \alias{printLog}
 \title{print a message into konsole given the message string for logging purposes}
 \usage{
-printLog(msg = NULL, init = F, finit = F, PRINT_LOGS = TRUE)
+printLog(msg = NULL, init = FALSE, finit = FALSE, PRINT_LOGS = TRUE)
 }
 \arguments{
 \item{msg}{string message to be printed to stdout}
 
 \item{init}{boolean variable indicating whether this is the end of the initial setup}
+}
+\value{
+No return value
 }
 \description{
 print a message into konsole given the message string for logging purposes

@@ -4,7 +4,7 @@
 #' 
 #' @param archiveDir path to the archive directory
 #' @param Interactive logical variable to force an interactive session
-#' @return this should be run in an interactive R session
+#' @return No return value, this should be run in an interactive R session
 #' @export
 #' @import shiny
 #' @examples
@@ -15,40 +15,66 @@
 #'
 Launch <- function(archiveDir = './WIAD_ARCHIVE/',
                    Interactive = FALSE){
+  oldpar = 
+    par()
   
-  package = 'wiad'
-  path = 'app'
+  package = 
+    'wiad'
   
-  appDir <- system.file(path = path,
-                        package = package)
+  path = 
+    'app'
   
-  ARCHIVE_DIR = archiveDir
+  appDir <- 
+    system.file(
+      path 
+      = 
+        path,
+      package
+      = 
+        package
+    )
   
-  launch.browser = TRUE  
+  ARCHIVE_DIR = 
+    archiveDir
   
-  optiions = list(
-    launch.browser 
-    =
-      launch.browser
+  launch.browser = 
+    TRUE  
+  
+  options = 
+    list(
+      launch.browser 
+      =
+        launch.browser
+    )
+  
+  message(
+    'The WIAD app is being loaded ...'
   )
   
-  message('The WIAD app is being loaded ...')
-  
   ## Only run examples in interactive R sessions
-  if (interactive()|Interactive) 
+  if (
+    interactive()
+    |
+    Interactive
+  )
+    
   {
-    
-    app = shinyAppDir(appDir = appDir, options = optiions)
-    
+    app = shinyAppDir(appDir = appDir, options = options)
   }
   else
   {
     
-    warning('This function requires an interactive R session!')
+    warning(
+      'This function requires an interactive R session!'
+    )
     
-    app = NULL
+    app = 
+      NULL
     
   }
+  
+  par = 
+    oldpar
   
   return(app)
 }
