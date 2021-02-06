@@ -4,7 +4,7 @@
 #' 
 #' @param archiveDir path to the archive directory
 #' @param Interactive logical variable to force an interactive session
-#' @return this should be run in an interactive R session
+#' @return No return value, this should be run in an interactive R session
 #' @export
 #' @import shiny
 #' @examples
@@ -15,6 +15,8 @@
 #'
 Launch <- function(archiveDir = './WIAD_ARCHIVE/',
                    Interactive = FALSE){
+  oldpar = 
+    par()
   
   package = 
     'wiad'
@@ -57,9 +59,7 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
   )
     
   {
-    
     app = shinyAppDir(appDir = appDir, options = options)
-    
   }
   else
   {
@@ -72,6 +72,9 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
       NULL
     
   }
+  
+  par = 
+    oldpar
   
   return(app)
 }

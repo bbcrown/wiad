@@ -6,6 +6,7 @@
 #' @param mode \code{"install"} (default),\code{"update"} or \code{"remove"} 
 #' @param downloadPath custom location to temporarily store WIAD example dataset while downloading. Default: tempdir() 
 #' @param installPath custom location to place WIAD example dataset. Default: WIAD package directory
+#' @return No return value
 #' @importFrom utils download.file
 #' @export
 #' 
@@ -63,7 +64,10 @@ getExampleData <-function(mode = "install",
     {
       
       # DOWNLOAD
-      message("Downloading WIAD Example Datset (1.83 GB). This may take a while...\n")
+      message(
+        "Downloading WIAD Example Datset (1.83 GB). 
+        This may take a while...\n"
+        )
       
       
       if(
@@ -76,7 +80,7 @@ getExampleData <-function(mode = "install",
         'update'
         ) 
         url = 
-          'example.com' # for testing routines
+          'http://example.com/' # for testing routines
       
       dl <- 
         try(

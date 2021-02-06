@@ -3,11 +3,12 @@
 #' @param msg string message to be printed to stdout
 #' @param init boolean variable indicating whether this is the start of the initial setup
 #' @param init boolean variable indicating whether this is the end of the initial setup
+#' @return No return value
 #' @keywords internal
 #' 
 printLog <- function (msg = NULL, 
-                      init = F, 
-                      finit = F, 
+                      init = FALSE, 
+                      finit = FALSE, 
                       PRINT_LOGS = TRUE){
   
   if (!PRINT_LOGS) return ()
