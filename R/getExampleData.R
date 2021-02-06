@@ -64,7 +64,10 @@ getExampleData <-function(mode = "install",
     {
       
       # DOWNLOAD
-      message("Downloading WIAD Example Datset (1.83 GB). This may take a while...\n")
+      message(
+        "Downloading WIAD Example Datset (1.83 GB). 
+        This may take a while...\n"
+        )
       
       
       if(
