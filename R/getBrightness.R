@@ -4,7 +4,11 @@
 #' @return brightness matrix
 #' @keywords internal
 #' 
-getBrightness <- function(rgbArray){
-  bI <- apply(rgbArray, 1:2, max)
+getBrightness <- 
+  function(rgbArray){
+  
+  bI <- apply(rgbArray, 
+              MARGIN = 1:2, 
+              FUN = max)
   bI
 }

@@ -4,4 +4,12 @@
 #' @return rotated matrix
 #' @keywords internal
 #' 
-rotate <- function (x) t (apply (x, 2, rev))
+rotate <- function (x) {
+  rot_x = t (
+    apply (
+      x, 
+      MARGIN = 2, 
+      FUN = rev))
+  
+  return(rot_x)
+}

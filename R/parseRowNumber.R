@@ -5,6 +5,12 @@
 #' @keywords internal
 #' 
 parseRowNumber <- function (idstr) {
-  res <- as.integer (sub (".*_([0-9]+)", "\\1", idstr))
-  if (! is.na (res)) res
+  res <- as.integer (
+    sub (
+      pattern =".*_([0-9]+)", 
+      replacement = "\\1", 
+      x = idstr))
+  
+  if (! is.na (res)) 
+    res
 }

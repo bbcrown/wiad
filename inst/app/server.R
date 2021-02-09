@@ -682,8 +682,8 @@ shinyServer (function (input, output, session)
       imgDim <- dim (imgtmp)
       
       # set margins and plot are
-      oldpar = par()
-      par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
+      #oldpar = par ()
+      par (mar = c (0, 0, 0, 0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
             ylim = c (1, imgDim [1]),
@@ -861,7 +861,7 @@ shinyServer (function (input, output, session)
         }
         
       }
-      par(olpar)
+      #par (oldpar)
     })
   
   observeEvent (input$selRed,
@@ -1725,21 +1725,14 @@ shinyServer (function (input, output, session)
       # find pith label's index
       wPith <- tbl [type == 'Pith', no]
       
-      # is there only one profile 
-      if (wPith == nrow (tbl)) {
-        data1 <- tbl
-        nSeries <- 1
-        
-        # if there are two series split them at the pith
-      } else {
-        data2 <- tbl [no > wPith, ]
-        data1 <- tbl [no < wPith, ]
-        nSeries <- 2
-      }
+      # divide data series 
+      data2 <- tbl [no >  wPith, ]
+      data1 <- tbl [no <= wPith, ]
+      nSeries <- 2
       # there is no pith/oldest ring label
     } else {
-      nSeries <- 1
       data1 <- tbl
+      nSeries <- 1
     }
     
     # make sure there are at least three growth increments for each series 
@@ -1756,7 +1749,7 @@ shinyServer (function (input, output, session)
         
         return ()  
       }
-    } else {
+    } else if (nSeries == 2) {
       if (nrow (data1) < 3 & nrow (data2) < 3){
         showModal (strong (
           modalDialog (HTML ("Not enough growth increments to detrend!<br>
@@ -1769,9 +1762,11 @@ shinyServer (function (input, output, session)
         
         return ()  
         
+        # Check whether both series are long enough to be detrended
       } else if ((nrow (data1) < 3 | nrow (data2) < 3)) {
+        if (nrow (data1) < 3) data1 <- data2
         nSeries <- 1
-        data1 <- ifelse (nrow (data1) < 3, data2, data1)
+        rm (data2)
       }
     }
     
@@ -1788,7 +1783,7 @@ shinyServer (function (input, output, session)
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
     if (nSeries == 2) {
-      data <- right_join (x = data1 [, .(year, toplot)], 
+      data <- full_join (x = data1 [, .(year, toplot)], 
                           y = data2 [, .(year, toplot)], 
                           by = 'year', 
                           suffix = c ('.1','.2'))
@@ -2070,6 +2065,11 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     wiad:::printLog ('output$growth_plot renderPlotly')
     
+    
+    # get detrended series
+    #------------------------------------------------------------------------------------
+    detrended <- detrendGrowth ()
+    
     # select font
     #------------------------------------------------------------------------------------
     fontList <- list (
@@ -2077,12 +2077,13 @@ shinyServer (function (input, output, session)
       size = 16,
       color = "#7f7f7f"
     )
-    
+
     # specify x-axis
     #------------------------------------------------------------------------------------
     xAxis <- list (
       title = "Year",
-      titlefont = fontList
+      titlefont = fontList,
+      range = range (detrended [['data']] [['year']], na.rm = TRUE)
     )
     
     # specify y-axis
@@ -2103,10 +2104,6 @@ shinyServer (function (input, output, session)
       t = 50,
       pad = 4
     )
-    
-    # get detrended series
-    #------------------------------------------------------------------------------------
-    detrended <- detrendGrowth ()
     
     # check that there were enough data points
     #------------------------------------------------------------------------------------
