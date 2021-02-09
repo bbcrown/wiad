@@ -682,8 +682,8 @@ shinyServer (function (input, output, session)
       imgDim <- dim (imgtmp)
       
       # set margins and plot are
-      oldpar = par ()
-      par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
+      #oldpar = par ()
+      par (mar = c (0, 0, 0, 0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
             ylim = c (1, imgDim [1]),
@@ -861,7 +861,7 @@ shinyServer (function (input, output, session)
         }
         
       }
-      #on.exit (par (oldpar))
+      #par (oldpar)
     })
   
   observeEvent (input$selRed,
@@ -1783,7 +1783,7 @@ shinyServer (function (input, output, session)
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
     if (nSeries == 2) {
-      data <- right_join (x = data1 [, .(year, toplot)], 
+      data <- full_join (x = data1 [, .(year, toplot)], 
                           y = data2 [, .(year, toplot)], 
                           by = 'year', 
                           suffix = c ('.1','.2'))
@@ -2065,6 +2065,11 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     wiad:::printLog ('output$growth_plot renderPlotly')
     
+    
+    # get detrended series
+    #------------------------------------------------------------------------------------
+    detrended <- detrendGrowth ()
+    
     # select font
     #------------------------------------------------------------------------------------
     fontList <- list (
@@ -2072,12 +2077,13 @@ shinyServer (function (input, output, session)
       size = 16,
       color = "#7f7f7f"
     )
-    
+
     # specify x-axis
     #------------------------------------------------------------------------------------
     xAxis <- list (
       title = "Year",
-      titlefont = fontList
+      titlefont = fontList,
+      range = range (detrended [['data']] [['year']], na.rm = TRUE)
     )
     
     # specify y-axis
@@ -2098,10 +2104,6 @@ shinyServer (function (input, output, session)
       t = 50,
       pad = 4
     )
-    
-    # get detrended series
-    #------------------------------------------------------------------------------------
-    detrended <- detrendGrowth ()
     
     # check that there were enough data points
     #------------------------------------------------------------------------------------
