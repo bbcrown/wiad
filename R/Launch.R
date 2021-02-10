@@ -16,7 +16,7 @@
 Launch <- function(archiveDir = './WIAD_ARCHIVE/',
                    Interactive = FALSE){
   oldpar = 
-    par()
+    par(no.readonly = TRUE)
   
   package = 
     'wiad'
@@ -73,8 +73,8 @@ Launch <- function(archiveDir = './WIAD_ARCHIVE/',
     
   }
   
-  par = 
-    oldpar
+  par(oldpar)
+    
   
   return(app)
 }
