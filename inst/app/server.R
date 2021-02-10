@@ -682,7 +682,7 @@ shinyServer (function (input, output, session)
       imgDim <- dim (imgtmp)
       
       # set margins and plot are
-      #oldpar = par ()
+      #oldpar = par (no.readonly = TRUE)
       par (mar = c (0, 0, 0, 0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
