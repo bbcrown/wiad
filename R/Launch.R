@@ -7,6 +7,7 @@
 #' @return No return value, this should be run in an interactive R session
 #' @export
 #' @import shiny
+#' @importFrom graphics par
 #' @examples
 #'
 #' #Launch WIAD interface
