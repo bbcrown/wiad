@@ -7,6 +7,7 @@ Authors@R: c(person("Bijan", "Seyednasrollah", role = c("aut", "cre","cph"), ema
             person("Tim", "Rademacher", role = c("aut", "cph", "wdc"), email = "rademacher.tim@gmail.com"),
             person("David", "Basler", role = c("aut", "cph", "wdc"), email = "david.j.basler@gmail.com"))
 Description: Providing a user-friendly interface to digitize wood imagery such as tree ring scans. The package offers a web-based application that the user can run locally from their computers to analyze wood characteristics.
+Issues: https://github.com/bnasr/wiad/issues
 Encoding: UTF-8
 LazyData: true
 License: AGPL-3
