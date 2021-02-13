@@ -1624,6 +1624,7 @@ shinyServer (function (input, output, session)
                               growth_table$type == 'Linker' & 
                               growth_table$no > i & 
                               growth_table$no < p)
+          
           pixels [i] <- sqrt ((growth_table$x [iRef] - growth_table$x [iLinker])^2 + 
                                 (growth_table$y [iRef] - growth_table$y [iLinker])^2)
         } else {
@@ -1783,10 +1784,9 @@ shinyServer (function (input, output, session)
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
     if (nSeries == 2) {
-      data <- full_join (x = data1 [, .(year, toplot)], 
-                          y = data2 [, .(year, toplot)], 
-                          by = 'year', 
-                          suffix = c ('.1','.2'))
+      data <- merge(x = data1 [, .(year, toplot.1 = toplot)], 
+                          y = data2 [, .(year, toplot.2 = toplot)], 
+                          by = 'year')
       
       # compute the mean of the two series
       #------------------------------------------------------------------------------------
