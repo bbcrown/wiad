@@ -16,7 +16,7 @@ Imports:
   abind,
   data.table,
   shiny,
-  dplyr,
+  magrittr,
   DT
 Suggests:
   dplR,

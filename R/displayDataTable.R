@@ -8,7 +8,7 @@
 #' @keywords internal
 #' @import data.table
 #' @importFrom DT datatable formatRound JS
-#' @importFrom dplyr %>%
+#' @importFrom magrittr %>%
 #' @import shiny
 #' 
 displayDataTable <- function (df, id1, id2, ...) {
