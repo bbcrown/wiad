@@ -19,7 +19,7 @@ citEntry(entry = "Article",
                     "David Basler",
                     "et al."),
          title = "The Wood Image and Analysis Dataset (WIAD): open-access visual analysis tools to advance the ecological data revolution",
-         year = 2020,
+         year = 2021,
          journal = "in review",
          #url = "https://doi.org/10.XXX/XXXX",
-         textVersion = "Rademacher et al., (2020), The Wood Image and Analysis Dataset (WIAD): open-access visual analysis tools to advance the ecological data revolution")
+         textVersion = "Rademacher et al., (2021), The Wood Image and Analysis Dataset (WIAD): open-access visual analysis tools to advance the ecological data revolution")
