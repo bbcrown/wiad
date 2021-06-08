@@ -11,25 +11,40 @@ printLog <- function (msg = NULL,
                       finit = FALSE, 
                       PRINT_LOGS = TRUE){
   
-  if (!PRINT_LOGS) return ()
+  if (!PRINT_LOGS) 
+    return ()
   
   systime <- Sys.time()
   
   if (init){
-    message (paste ('\n--------------------------------------------------------------------\n', 
-                    as.character(systime),'New session just started!',
-                    '\n--------------------------------------------------------------------\n'))
+    message (
+      paste ('\n--------------------------------------------------------------------\n', 
+             as.character(systime),
+             'New session just started!',
+             '\n--------------------------------------------------------------------\n'))
   }
   
   if (finit) {
-    message (paste ('\n--------------------------------------------------------------------\n', 
-                    as.character(systime),'Initial setup was completed!',
-                    '\n--------------------------------------------------------------------\n'))
+    message (
+      paste ('\n--------------------------------------------------------------------\n', 
+             as.character(systime),
+             'Initial setup was completed!',
+             '\n--------------------------------------------------------------------\n'))
   }
   
   message(paste(as.character(systime), 
-                signif(as.numeric(systime)-floor(as.numeric(systime)),3),
-                msg, '\t'))
+                signif(
+                  as.numeric(
+                    systime
+                  ) - 
+                    floor(
+                      as.numeric(
+                        systime
+                      )
+                    ),
+                  3),
+                msg,
+                '\t'))
   
   return()
   
