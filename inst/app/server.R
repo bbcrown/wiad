@@ -1,7 +1,6 @@
 #######################################################################
 # The server side for the WIAD shiny app. 
 # 
-# The WIAD app is maintained by Bijan Seyednasrollah.
 # The Core Development Team: Bijan Seyednasrollah, Tim Rademacher and David Basler.
 #
 # WIAD is the Wood Image Analysis and Dataset
@@ -71,7 +70,7 @@ shinyServer (function (input, output, session)
     check_table   = 0, # a flag to make sure a label table exists
     index         = 0, # index of the last modified label or the label that should be changed (e.g., insertion)
     previousIndex = 0, # index of the previous label
-      
+    
     markerTable = data.table ( # data.table contains the marker data
       no   = integer (),   # no ID
       x    = numeric (),   # x
@@ -79,8 +78,8 @@ shinyServer (function (input, output, session)
       relx = numeric (),   # relative x
       rely = numeric (),   # relative y
       type = character (), # type of marker ('Normal','Linker','Misc','Density fluctuation',
-                           #                 'Frost ring','Fire scar',
-                           #                 'Early-to-latewood transition' or 'Pith')
+      #                 'Frost ring','Fire scar',
+      #                 'Early-to-latewood transition' or 'Pith')
       pixels = numeric (),   # "growth" in pixels of the image
       growth = numeric (),   # "growth" in micrometers
       year   = numeric (),   # year of formation
@@ -91,16 +90,16 @@ shinyServer (function (input, output, session)
   # update the image aspect ratio
   #--------------------------------------------------------------------------------------
   observeEvent (rv$imgMat,
-               {
-                 # write log
-                 wiad:::printLog ('observeEvent rv$imgMat')
-                 
-                 # get image dimensions
-                 imgDim <- dim (rv$imgMat)
-                 
-                 # update image aspect
-                 rv$imgAsp <- imgDim [2] / imgDim [1]  
-               }
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent rv$imgMat')
+                  
+                  # get image dimensions
+                  imgDim <- dim (rv$imgMat)
+                  
+                  # update image aspect
+                  rv$imgAsp <- imgDim [2] / imgDim [1]  
+                }
   )
   
   # delete specific row in "growth" table
@@ -109,10 +108,10 @@ shinyServer (function (input, output, session)
                 {
                   # write log
                   wiad:::printLog ('observeEvent input$delete_row')
-
+                  
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
-
+                  
                   # get the row number that should be deleted
                   rowNum <- wiad:::parseRowNumber (input$delete_row)
                   
@@ -151,8 +150,8 @@ shinyServer (function (input, output, session)
                   # check whether user wants to insert a missing ring using input modal
                   showModal (strong (
                     modalDialog ("Do you want to insert a missing ring or other label?",
-                                 easyClose = T,
-                                 fade = T,
+                                 easyClose = TRUE,
+                                 fade = TRUE,
                                  size = 'm',
                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = tagList (
@@ -172,7 +171,7 @@ shinyServer (function (input, output, session)
                   
                   # check that the markerTable and outTable exist
                   req (rv$markerTable)
-
+                  
                   # initialise missing ring
                   missingRing <- data.table (no   = rv$index + 1,
                                              x    = rv$markerTable$x    [rv$index],
@@ -181,16 +180,16 @@ shinyServer (function (input, output, session)
                                              rely = rv$markerTable$rely [rv$index],
                                              type = 'Missing')
                   
-
+                  
                   # increase all marker numbers after the inserted marker
                   rv$markerTable [no > rv$index, no := no + 1]
-
+                  
                   # insert marker after identified row
                   rv$markerTable <- rbind (rv$markerTable [1:rv$index, ],
                                            missingRing,
                                            rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                            fill = TRUE)
-
+                  
                   # reset insert index to the last label in the series, after saving the index
                   rv$previousIndex <- rv$index + 1
                   rv$index <- nrow (rv$markerTable)
@@ -203,96 +202,96 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   # whenever new image was uploaded
   observeEvent (input$image,
-               {
-                 # write log
-                 wiad:::printLog ('observeEvent input$image')
-                 
-                 # reset radio button, so that metadata needs to be confirmed
-                 updateRadioButtons (session = session, 
-                                     inputId = 'confirmMeta', 
-                                     selected = 'Not Confirmed')
-                 
-                 # exit demo mode
-                 rv$demoMode <- FALSE
-                 
-                 # generate working directory id
-                 rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
-                                          pattern = ' |:', 
-                                          replacement = '-'),
-                                   paste (sample (x = c (0:9, letters, LETTERS),
-                                                  size = 32,
-                                                  replace = TRUE),
-                                          collapse = ""), 
-                                   sep = '_')
-                 
-                 # set the sub directory for the sample
-                 rv$wrkDir <- paste0 (ARCHIVE_DIR, 'W-', rv$wrkID, '/')
-                 
-                 # create the sub directory for the sample
-                 dir.create (rv$wrkDir)
-                 
-                 # get path to image
-                 rv$imgPath <- input$image$datapath
-                 
-                 # get file extension
-                 rv$imgExt <- file_ext (rv$imgPath)
-                 
-                 # read image
-                 if (rv$imgExt %in% c ('jpg', 'jpeg', 'JPG', 'JPEG')) {
-                   rv$imgMat <- readJPEG (rv$imgPath)
-                 } else if (rv$imgExt %in% c ('tiff', 'tif', 'TIF', 'TIFF')) {
-                   rv$imgMat <- readTIFF (rv$imgPath)
-                 } else if (rv$imgExt %in% c ('png','PNG')) {
-                   rv$imgMat <- readPNG (rv$imgPath)[,,1:3]
-                 } else {      
-                   showModal (strong (
-                     modalDialog ("Error: Only JPEG, TIFF or PNG files are accepted!",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL
-                     )))
-                   
-                   return ()
-                 }
-                 
-                 # change notLoaded boolean now that image is loaded
-                 rv$notLoaded <- FALSE
-                 
-                 # get image dimenions
-                 imgDim <- dim (rv$imgMat)
-                 
-                 # write image to the temporary working directory
-                 writePNG (rv$imgMat, paste0 (rv$wrkDir,
-                                              'imgorg-',
-                                              rv$wrkID,
-                                              '.png'))
-                 
-                 # rotate the image matrix by 270 degrees, if image is higher than wide
-                 if (imgDim [2] < imgDim [1]) { 
-                   rv$imgMat <- wiad:::rotateRGB (wiad:::rotateRGB (wiad:::rotateRGB (rv$imgMat)))
-                 }
-                 
-                 # reset image resolution to make sure that it is checked by user
-                 updateNumericInput (session = session,
-                                     inputId = 'sampleDPI',
-                                     value = NULL)
-                 
-                 # reset the markerTable
-                 rv$markerTable <- data.table ( # data.table contains the marker data
-                   no   = integer (),   # no ID
-                   x    = numeric (),   # x
-                   y    = numeric (),   # y
-                   relx = numeric (),   # relative x
-                   rely = numeric (),   # relative y
-                   type = character ()  # type
-                 )
-                 
-                 # reset the label and previous label indices 
-                 rv$index <- 0
-                 rv$previousIndex <- 0
-               }
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent input$image')
+                  
+                  # reset radio button, so that metadata needs to be confirmed
+                  updateRadioButtons (session = session, 
+                                      inputId = 'confirmMeta', 
+                                      selected = 'Not Confirmed')
+                  
+                  # exit demo mode
+                  rv$demoMode <- FALSE
+                  
+                  # generate working directory id
+                  rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
+                                           pattern = ' |:', 
+                                           replacement = '-'),
+                                     paste (sample (x = c (0:9, letters, LETTERS),
+                                                    size = 32,
+                                                    replace = TRUE),
+                                            collapse = ""), 
+                                     sep = '_')
+                  
+                  # set the sub directory for the sample
+                  rv$wrkDir <- paste0 (ARCHIVE_DIR, 'W-', rv$wrkID, '/')
+                  
+                  # create the sub directory for the sample
+                  dir.create (rv$wrkDir)
+                  
+                  # get path to image
+                  rv$imgPath <- input$image$datapath
+                  
+                  # get file extension
+                  rv$imgExt <- file_ext (rv$imgPath)
+                  
+                  # read image
+                  if (rv$imgExt %in% c ('jpg', 'jpeg', 'JPG', 'JPEG')) {
+                    rv$imgMat <- readJPEG (rv$imgPath)
+                  } else if (rv$imgExt %in% c ('tiff', 'tif', 'TIF', 'TIFF')) {
+                    rv$imgMat <- readTIFF (rv$imgPath)
+                  } else if (rv$imgExt %in% c ('png','PNG')) {
+                    rv$imgMat <- readPNG (rv$imgPath)[,,1:3]
+                  } else {      
+                    showModal (strong (
+                      modalDialog ("Error: Only JPEG, TIFF or PNG files are accepted!",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL
+                      )))
+                    
+                    return ()
+                  }
+                  
+                  # change notLoaded boolean now that image is loaded
+                  rv$notLoaded <- FALSE
+                  
+                  # get image dimenions
+                  imgDim <- dim (rv$imgMat)
+                  
+                  # write image to the temporary working directory
+                  writePNG (rv$imgMat, paste0 (rv$wrkDir,
+                                               'imgorg-',
+                                               rv$wrkID,
+                                               '.png'))
+                  
+                  # rotate the image matrix by 270 degrees, if image is higher than wide
+                  if (imgDim [2] < imgDim [1]) { 
+                    rv$imgMat <- wiad:::rotateRGB (wiad:::rotateRGB (wiad:::rotateRGB (rv$imgMat)))
+                  }
+                  
+                  # reset image resolution to make sure that it is checked by user
+                  updateNumericInput (session = session,
+                                      inputId = 'sampleDPI',
+                                      value = NULL)
+                  
+                  # reset the markerTable
+                  rv$markerTable <- data.table ( # data.table contains the marker data
+                    no   = integer (),   # no ID
+                    x    = numeric (),   # x
+                    y    = numeric (),   # y
+                    relx = numeric (),   # relative x
+                    rely = numeric (),   # relative y
+                    type = character ()  # type
+                  )
+                  
+                  # reset the label and previous label indices 
+                  rv$index <- 0
+                  rv$previousIndex <- 0
+                }
   )
   
   # whenever a marker file is uploaded update all the labels and plot them
@@ -311,8 +310,8 @@ shinyServer (function (input, output, session)
                   if (rv$notLoaded) {
                     showModal (strong (
                       modalDialog ("Error: Am image must be loaded first!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
                                    footer = NULL)))
@@ -327,18 +326,18 @@ shinyServer (function (input, output, session)
                       
                       # read csv file
                       labels <- as.data.table (read_csv (file = rv$labelsPath, 
-                                                          col_names = TRUE,
-                                                          col_types = 'iddddcidd'))
+                                                         col_names = TRUE,
+                                                         col_types = 'iddddcidd'))
                       
                       # update marker table from csv file
                       rv$markerTable <- labels [, .(no, x, y, relx, rely, type)]
                       
-                    # upload marker table from json file, if there is none yet
+                      # upload marker table from json file, if there is none yet
                     } else if (rv$labelsExt %in% c ('json', 'JSON')) {
                       
                       # read json file
                       labels <- read_json (rv$labelsPath)
-                        
+                      
                       # update marker table from json file 
                       rv$markerTable <- data.table::rbindlist (labels$markerData, 
                                                                fill = TRUE)
@@ -346,7 +345,7 @@ shinyServer (function (input, output, session)
                       # set the index 
                       rv$index <- nrow (rv$markerTable)
                       rv$previousIndex <- nrow (rv$markerTable) 
-                        
+                      
                       # update metadata fields
                       updateTextInput (session = session,
                                        inputId = 'ownerName',
@@ -418,17 +417,17 @@ shinyServer (function (input, output, session)
                       # Prompt metadata review
                       showModal (strong (
                         modalDialog ("Review and confirm metadata below.",
-                                     easyClose = T,
-                                     fade = T,
+                                     easyClose = TRUE,
+                                     fade = TRUE,
                                      size = 's',
                                      style = 'background-color:#3b3a35; color:#b91b9a4; ',
                                      footer = NULL)))
-              
+                      
                     } else {
                       showModal (strong (
                         modalDialog ("Error: Only csv or json files are accepted for marker files!",
-                                     easyClose = T,
-                                     fade = T,
+                                     easyClose = TRUE,
+                                     fade = TRUE,
                                      size = 's',
                                      style = 'background-color:#3b3a35; color:#eb99a9; ',
                                      footer = NULL)))
@@ -437,8 +436,8 @@ shinyServer (function (input, output, session)
                   } else {
                     showModal (strong (
                       modalDialog ("Error: Erase existing labels before uploading new labels!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
                                    footer = NULL)))
@@ -452,128 +451,128 @@ shinyServer (function (input, output, session)
   # whenever metadata is uploaded update all the metadata below and make user review it
   #--------------------------------------------------------------------------------------
   observeEvent (input$metadataUpload,
-               {
-                 # write log
-                 wiad:::printLog ('observeEvent input$metadataUpload')
-                 
-                 # get path to metadata
-                 rv$metaPath <- input$metadataUpload$datapath
-                 
-                 # get file extension
-                 rv$metaExt <- file_ext (rv$metaPath)
-                 
-                 # read metadata from .xlsx, .csv, or .json file
-                 if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
-                   metadata <- read_excel (path = rv$metaPath,
-                                           col_names = c ('ownerName','ownerEmail','species',
-                                                          'sampleDate','sampleYearGrowth','SchulmanShift',
-                                                          'sampleDPI','pithInImage','barkFirst','siteLoc',
-                                                          'siteLocID','plotID','sampleID','sampleHeight',
-                                                          'sampleAzimuth','sampleNote','collection',
-                                                          'contributor'),
-                                           col_types = c ('text','text','text','date','text','logical','numeric',
-                                                          'logical','logical','text','text','text',
-                                                          'text','numeric','numeric','text','text','text'), 
-                                           skip = 1)
-                 } else if (rv$metaExt %in% c ('csv', 'CSV')) {
-                   metadata <- read_csv (file = rv$metaPath, 
-                                         col_names = c ('ownerName','ownerEmail','species',
-                                                        'sampleDate','sampleYearGrowth','SchulmanShift',
-                                                        'sampleDPI','pithInImage','barkFirst','siteLoc',
-                                                        'siteLocID','plotID','sampleID',
-                                                        'sampleHeight','sampleAzimuth',
-                                                        'sampleNote','collection','contributor'),
-                                         col_types = 'cccDclillccccdiccc', skip = 1)
-                 } else if (rv$metaExt %in% c ('json', 'JSON')) {
-                   metadata <- read_json (rv$metaPath)
-                 } else {
-                   showModal (strong (
-                     modalDialog ("Error: Only xlsx, csv or json files are accepted for metadata.",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-
-                   return ()
-                 }
-                 
-                 # update metadata fields
-                 updateTextInput (session = session,
-                                  inputId = 'ownerName',
-                                  value = metadata$ownerName)
-                 updateTextInput (session = session,
-                                  inputId = 'ownerEmail',
-                                  value = metadata$ownerEmail)
-                 updateTextInput (session = session,
-                                  inputId = 'species',
-                                  value = metadata$species)
-                 updateTextInput (session = session,
-                                  inputId = 'sampleDate',
-                                  value = metadata$sampleDate)
-                 updateRadioButtons (session  = session,
-                                     inputId  = 'sampleYearGrowingSeason',
-                                     selected = ifelse (metadata$sampleYearGrowth == 'none', 
-                                                        'not started', 
-                                                        ifelse (metadata$sampleYearGrowth == 'some', 
-                                                                'only started', 
-                                                                'already ended')))
-                 updateCheckboxInput (session = session,
-                                      inputId = 'SchulmanShift',
-                                      value = unlist (metadata$SchulmanShift))
-                 updateNumericInput (session = session,
-                                     inputId = 'sampleDPI',
-                                     value = metadata$sampleDPI)
-                 updateCheckboxInput (session = session,
-                                      inputId = 'pithInImage',
-                                      value = unlist (metadata$pithInImage))
-                 updateCheckboxInput (session = session,
-                                      inputId = 'barkFirst',
-                                      value = unlist (metadata$barkFirst))
-                 updateTextInput (session = session,
-                                  inputId = 'siteLoc',
-                                  value = metadata$siteLoc)
-                 updateTextInput (session = session,
-                                  inputId = 'siteLocID',
-                                  value = metadata$siteLocID)
-                 updateTextInput (session = session,
-                                  inputId = 'plotID',
-                                  value = metadata$plotID)
-                 updateTextInput (session = session,
-                                  inputId = 'sampleID',
-                                  value = metadata$sampleID)
-                 updateNumericInput (session = session,
-                                     inputId = 'sampleHeight',
-                                     value = ifelse (is.null (metadata$sampleHeight), NA,
-                                                     metadata$sampleHeight))
-                 updateNumericInput (session = session,
-                                     inputId = 'sampleAzimuth',
-                                     value = ifelse (is.null (metadata$sampleAzimuth), NA,
-                                                     metadata$sampleAzimuth))
-                 updateTextInput (session = session,
-                                  inputId = 'sampleNote',
-                                  value = metadata$sampleNote)
-                 updateTextInput (session = session,
-                                  inputId = 'collection',
-                                  value = metadata$collection)
-                 updateTextInput (session = session,
-                                  inputId = 'contributor',
-                                  value = metadata$contributor)
-                 
-                 # make sure the metadata is reviewed
-                 updateRadioButtons (session = session, 
-                                     inputId = 'confirmMeta', 
-                                     selected = 'Not Confirmed')
-                 
-                 # Prompt metadata review
-                 showModal (strong (
-                   modalDialog ("Review and confirm metadata below.",
-                                easyClose = T,
-                                fade = T,
-                                size = 's',
-                                style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                                footer = NULL)))
-               }
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent input$metadataUpload')
+                  
+                  # get path to metadata
+                  rv$metaPath <- input$metadataUpload$datapath
+                  
+                  # get file extension
+                  rv$metaExt <- file_ext (rv$metaPath)
+                  
+                  # read metadata from .xlsx, .csv, or .json file
+                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
+                    metadata <- read_excel (path = rv$metaPath,
+                                            col_names = c ('ownerName','ownerEmail','species',
+                                                           'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                           'sampleDPI','pithInImage','barkFirst','siteLoc',
+                                                           'siteLocID','plotID','sampleID','sampleHeight',
+                                                           'sampleAzimuth','sampleNote','collection',
+                                                           'contributor'),
+                                            col_types = c ('text','text','text','date','text','logical','numeric',
+                                                           'logical','logical','text','text','text',
+                                                           'text','numeric','numeric','text','text','text'), 
+                                            skip = 1)
+                  } else if (rv$metaExt %in% c ('csv', 'CSV')) {
+                    metadata <- read_csv (file = rv$metaPath, 
+                                          col_names = c ('ownerName','ownerEmail','species',
+                                                         'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                         'sampleDPI','pithInImage','barkFirst','siteLoc',
+                                                         'siteLocID','plotID','sampleID',
+                                                         'sampleHeight','sampleAzimuth',
+                                                         'sampleNote','collection','contributor'),
+                                          col_types = 'cccDclillccccdiccc', skip = 1)
+                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
+                    metadata <- read_json (rv$metaPath)
+                  } else {
+                    showModal (strong (
+                      modalDialog ("Error: Only xlsx, csv or json files are accepted for metadata.",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                    
+                    return ()
+                  }
+                  
+                  # update metadata fields
+                  updateTextInput (session = session,
+                                   inputId = 'ownerName',
+                                   value = metadata$ownerName)
+                  updateTextInput (session = session,
+                                   inputId = 'ownerEmail',
+                                   value = metadata$ownerEmail)
+                  updateTextInput (session = session,
+                                   inputId = 'species',
+                                   value = metadata$species)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleDate',
+                                   value = metadata$sampleDate)
+                  updateRadioButtons (session  = session,
+                                      inputId  = 'sampleYearGrowingSeason',
+                                      selected = ifelse (metadata$sampleYearGrowth == 'none', 
+                                                         'not started', 
+                                                         ifelse (metadata$sampleYearGrowth == 'some', 
+                                                                 'only started', 
+                                                                 'already ended')))
+                  updateCheckboxInput (session = session,
+                                       inputId = 'SchulmanShift',
+                                       value = unlist (metadata$SchulmanShift))
+                  updateNumericInput (session = session,
+                                      inputId = 'sampleDPI',
+                                      value = metadata$sampleDPI)
+                  updateCheckboxInput (session = session,
+                                       inputId = 'pithInImage',
+                                       value = unlist (metadata$pithInImage))
+                  updateCheckboxInput (session = session,
+                                       inputId = 'barkFirst',
+                                       value = unlist (metadata$barkFirst))
+                  updateTextInput (session = session,
+                                   inputId = 'siteLoc',
+                                   value = metadata$siteLoc)
+                  updateTextInput (session = session,
+                                   inputId = 'siteLocID',
+                                   value = metadata$siteLocID)
+                  updateTextInput (session = session,
+                                   inputId = 'plotID',
+                                   value = metadata$plotID)
+                  updateTextInput (session = session,
+                                   inputId = 'sampleID',
+                                   value = metadata$sampleID)
+                  updateNumericInput (session = session,
+                                      inputId = 'sampleHeight',
+                                      value = ifelse (is.null (metadata$sampleHeight), NA,
+                                                      metadata$sampleHeight))
+                  updateNumericInput (session = session,
+                                      inputId = 'sampleAzimuth',
+                                      value = ifelse (is.null (metadata$sampleAzimuth), NA,
+                                                      metadata$sampleAzimuth))
+                  updateTextInput (session = session,
+                                   inputId = 'sampleNote',
+                                   value = metadata$sampleNote)
+                  updateTextInput (session = session,
+                                   inputId = 'collection',
+                                   value = metadata$collection)
+                  updateTextInput (session = session,
+                                   inputId = 'contributor',
+                                   value = metadata$contributor)
+                  
+                  # make sure the metadata is reviewed
+                  updateRadioButtons (session = session, 
+                                      inputId = 'confirmMeta', 
+                                      selected = 'Not Confirmed')
+                  
+                  # Prompt metadata review
+                  showModal (strong (
+                    modalDialog ("Review and confirm metadata below.",
+                                 easyClose = TRUE,
+                                 fade = TRUE,
+                                 size = 's',
+                                 style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                 footer = NULL)))
+                }
   )
   
   # create metaData object that is pulled when metadata is saved
@@ -589,8 +588,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -683,7 +682,8 @@ shinyServer (function (input, output, session)
       imgDim <- dim (imgtmp)
       
       # set margins and plot are
-      par (mar = c (0,0,0,0), xaxs = 'i', yaxs = 'i')
+      #oldpar = par ()
+      par (mar = c (0, 0, 0, 0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
             ylim = c (1, imgDim [1]),
@@ -701,8 +701,8 @@ shinyServer (function (input, output, session)
                    ybottom = window [3], 
                    xright  = window [2], 
                    ytop    = window [4])
-
-       
+      
+      
       # check that there are labels to plot
       #----------------------------------------------------------------------------------
       if (nrow (rv$markerTable) == 0) return ()
@@ -789,7 +789,7 @@ shinyServer (function (input, output, session)
                         col = colours [['color']] [colours [['type']] == 'Linker'])
             }
           }
-        # the last marker was a linker
+          # the last marker was a linker
         } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE) ) {
           segments (x0 = rv$markerTable [max (wLinkers, na.rm = TRUE), x], 
                     y0 = rv$markerTable [max (wLinkers, na.rm = TRUE), y],
@@ -810,7 +810,7 @@ shinyServer (function (input, output, session)
                 pch = 19,
                 cex = 1.2,
                 lwd = 2)
-  
+        
         # plot misc labels in Cambridge blue
         points (x = rv$markerTable [wMisc, x],
                 y = rv$markerTable [wMisc, y],
@@ -861,84 +861,85 @@ shinyServer (function (input, output, session)
         }
         
       }
+      #par (oldpar)
     })
   
   observeEvent (input$selRed,
-               {
-                 wiad:::printLog ('observeEvent input$selRed')
-                 
-                 rv$procband <- 'Red'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selRed')
+                  
+                  rv$procband <- 'Red'
+                })
   
   observeEvent (input$selBlue,
-               {
-                 wiad:::printLog ('observeEvent input$selBlue')
-                 
-                 rv$procband <- 'Blue'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selBlue')
+                  
+                  rv$procband <- 'Blue'
+                })
   
   observeEvent (input$selGreen,
-               {
-                 wiad:::printLog ('observeEvent input$selGreen')
-                 
-                 rv$procband <- 'Green'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selGreen')
+                  
+                  rv$procband <- 'Green'
+                })
   
   observeEvent (input$selHue,
-               {
-                 wiad:::printLog ('observeEvent input$selHue')
-                 
-                 rv$procband <- 'Hue'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selHue')
+                  
+                  rv$procband <- 'Hue'
+                })
   
   observeEvent (input$selSat,
-               {
-                 wiad:::printLog ('observeEvent input$selSat')
-                 
-                 rv$procband <- 'Saturation'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selSat')
+                  
+                  rv$procband <- 'Saturation'
+                })
   
   observeEvent (input$selValue,
-               {
-                 wiad:::printLog ('observeEvent input$selValue')
-                 
-                 rv$procband <- 'Value'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selValue')
+                  
+                  rv$procband <- 'Value'
+                })
   
   observeEvent (input$selBright,
-               {
-                 wiad:::printLog ('observeEvent input$selBright')
-                 
-                 rv$procband <- 'Brightness'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selBright')
+                  
+                  rv$procband <- 'Brightness'
+                })
   
   observeEvent (input$selDark,
-               {
-                 wiad:::printLog ('observeEvent input$selDark')
-                 
-                 rv$procband <- 'Darkness'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selDark')
+                  
+                  rv$procband <- 'Darkness'
+                })
   
   observeEvent (input$selContrast,
-               {
-                 wiad:::printLog ('observeEvent input$selContrast')
-                 
-                 rv$procband <- 'Contrast'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selContrast')
+                  
+                  rv$procband <- 'Contrast'
+                })
   
   observeEvent (input$selTotBr,
-               {
-                 wiad:::printLog ('observeEvent input$selTotBr')
-                 
-                 rv$procband <- 'Brightness'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selTotBr')
+                  
+                  rv$procband <- 'Brightness'
+                })
   
   observeEvent (input$selRGB,
-               {
-                 wiad:::printLog ('observeEvent input$selRGB')
-                 
-                 rv$procband <- 'RGB'
-               })
+                {
+                  wiad:::printLog ('observeEvent input$selRGB')
+                  
+                  rv$procband <- 'RGB'
+                })
   
   totbrightness <- reactive (
     {
@@ -996,299 +997,299 @@ shinyServer (function (input, output, session)
       if (length (dim (rv$imgMat)) == 2) {
         showModal (strong (
           modalDialog ("Warning: The image is monochrome!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL
           )))
         return (rv$imgMat)
       }
-     
+      
       # extract save rbg, blue channel only and total brightness version of the image 
       switch (rv$procband,
               'RGB'  = rv$imgMat,
               'Blue' = rv$imgMat [,,3],
               'Brightness' = totbrightness ())
-
+      
     })
   
   # erase all previous labels
   #--------------------------------------------------------------------------------------
   observeEvent (input$clearCanvas, 
-               {
-                 # write log
-                 wiad:::printLog ('observeEvent input$clearCanvas')
-                 wiad:::printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
-                 
-                 # check that an image was loaded
-                 if (rv$notLoaded & !rv$demoMode) return ()
-                 
-                 rv$slideShow <- 0 
-                 
-                 # reset the marker table
-                 rv$markerTable <- data.table (no = integer (),
-                                               x  = numeric (),
-                                               y  = numeric (),
-                                               relx = numeric (),
-                                               rely = numeric (),
-                                               type = character ())
-                 
-                 # reset indices for insertion and last set marker
-                 rv$index  <- 0
-                 
-                 # make sure to update table
-                 rv$check_table <- rv$check_table + 1
-               })
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent input$clearCanvas')
+                  wiad:::printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
+                  
+                  # check that an image was loaded
+                  if (rv$notLoaded & !rv$demoMode) return ()
+                  
+                  rv$slideShow <- 0 
+                  
+                  # reset the marker table
+                  rv$markerTable <- data.table (no = integer (),
+                                                x  = numeric (),
+                                                y  = numeric (),
+                                                relx = numeric (),
+                                                rely = numeric (),
+                                                type = character ())
+                  
+                  # reset indices for insertion and last set marker
+                  rv$index  <- 0
+                  
+                  # make sure to update table
+                  rv$check_table <- rv$check_table + 1
+                })
   
   # swtich marker type of previsouly set marker from "Normal" to "Linker"
   #--------------------------------------------------------------------------------------
   observeEvent (input$linkerPoint, 
-               {
-                 wiad:::printLog ('observeEvent input$linkerPoint')
-                 
-                 if (rv$notLoaded & !rv$demoMode) return ()
-                 
-                 # check whether no marker has been set yet
-                 if (nrow (rv$markerTable) == 0) {
-                   showModal (strong (
-                     modalDialog ("Error: No ring marker is identified yet!",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style='background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL
-                     )))
-                   return ()
-                 # check whether this is the first label 
-                 } else if (nrow (rv$markerTable) == 1) {
-                   showModal (strong (
-                     modalDialog ("Error: The first label cannot be a linker! Maybe start on a ring?",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style ='background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL
-                     )))
-                   return ()
-                 # check whether this is the second linker label in a row 
-                 } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
-                   showModal (strong (
-                     modalDialog ("Error: You can set a maximum of three consecutive linkers!",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style ='background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL
-                     )))
-                   return ()
-                   # else two or more normal labels have been set and 
-                   # the type of the last indexed label is switched
-                 } else {
-                   
-                   # change the label type of the "Normal" label closest to the last indexed label
-                   if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
-                     rv$markerTable [no == rv$previousIndex, 
-                                     type := switch (type, 
-                                                     'Linker' = 'Normal', 
-                                                     'Normal' = 'Linker')]
-                   } else {
-                     # find the last "Normal" label to change that one instead
-                     j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
-                                                         rv$markerTable$type == 'Normal')]) 
-                     rv$markerTable [no == j, type := switch (type, 
-                                                              'Linker' = 'Normal', 
-                                                              'Normal' = 'Linker')]
-                     
-                   }
-                   
-                   # update "growth" 
-                   rv$markerTable <- growthTable ()
-                   
-                   # validate that a marker table exists
-                   rv$check_table <- rv$check_table + 1
-                 }
-               })
+                {
+                  wiad:::printLog ('observeEvent input$linkerPoint')
+                  
+                  if (rv$notLoaded & !rv$demoMode) return ()
+                  
+                  # check whether no marker has been set yet
+                  if (nrow (rv$markerTable) == 0) {
+                    showModal (strong (
+                      modalDialog ("Error: No ring marker is identified yet!",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style='background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL
+                      )))
+                    return ()
+                    # check whether this is the first label 
+                  } else if (nrow (rv$markerTable) == 1) {
+                    showModal (strong (
+                      modalDialog ("Error: The first label cannot be a linker! Maybe start on a ring?",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style ='background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL
+                      )))
+                    return ()
+                    # check whether this is the second linker label in a row 
+                  } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
+                    showModal (strong (
+                      modalDialog ("Error: You can set a maximum of three consecutive linkers!",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style ='background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL
+                      )))
+                    return ()
+                    # else two or more normal labels have been set and 
+                    # the type of the last indexed label is switched
+                  } else {
+                    
+                    # change the label type of the "Normal" label closest to the last indexed label
+                    if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+                      rv$markerTable [no == rv$previousIndex, 
+                                      type := switch (type, 
+                                                      'Linker' = 'Normal', 
+                                                      'Normal' = 'Linker')]
+                    } else {
+                      # find the last "Normal" label to change that one instead
+                      j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                                            rv$markerTable$type == 'Normal')]) 
+                      rv$markerTable [no == j, type := switch (type, 
+                                                               'Linker' = 'Normal', 
+                                                               'Normal' = 'Linker')]
+                      
+                    }
+                    
+                    # update "growth" 
+                    rv$markerTable <- growthTable ()
+                    
+                    # validate that a marker table exists
+                    rv$check_table <- rv$check_table + 1
+                  }
+                })
   
   # change type of previously set marker from "Normal" to "Pith"
   #--------------------------------------------------------------------------------------
   observeEvent (input$pith, 
-               {
-                 # write log
-                 wiad:::printLog ('observeEvent input$pith')
-                 
-                 if (rv$notLoaded & !rv$demoMode) return ()
-                 
-                 # check that metadata was confirmed
-                 if (input$confirmMeta == 'Not Confirmed') {
-                   showModal (strong (
-                     modalDialog ("First review and confirm the metadata!",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-                   return ()
-                   # check whether there is already a pith label
-                 }
-                 
-                 # check whether no label has been set yet
-                 if (nrow (rv$markerTable) == 0) {
-                   showModal (strong (
-                     modalDialog ("Error: No ring marker is identified yet!",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-                   return ()
-                 # check whether there is already a pith label
-                 } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
-                   showModal (strong (
-                     modalDialog ("Error: You can only set one pith and there is already one! Delete it first.",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-                   return ()
-                 # else we have at least one label and no pith yet, check that this is a "Normal" label
-                 } else {
-                   
-                   # change the label type of the "Normal" label closest to the last indexed label
-                   if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
-                     rv$markerTable [no == rv$previousIndex, 
-                                     type := switch (type, 
-                                                     'Pith' = 'Normal', 
-                                                     'Normal' = 'Pith')]
-                   } else {
-                     # find the last "Normal" label to change that one instead
-                     j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
-                                                         rv$markerTable$type == 'Normal')]) 
-                     rv$markerTable [no == j, type := switch (type, 
-                                                              'Pith' = 'Normal', 
-                                                              'Normal' = 'Pith')]
-                     
-                   }   
-                   
-                   # update "growth" 
-                   rv$markerTable <- growthTable ()
-                   
-                   # validate that a marker table exists
-                   rv$check_table <- rv$check_table + 1
-                   
-                 }
-               })
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent input$pith')
+                  
+                  if (rv$notLoaded & !rv$demoMode) return ()
+                  
+                  # check that metadata was confirmed
+                  if (input$confirmMeta == 'Not Confirmed') {
+                    showModal (strong (
+                      modalDialog ("First review and confirm the metadata!",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                    return ()
+                    # check whether there is already a pith label
+                  }
+                  
+                  # check whether no label has been set yet
+                  if (nrow (rv$markerTable) == 0) {
+                    showModal (strong (
+                      modalDialog ("Error: No ring marker is identified yet!",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                    return ()
+                    # check whether there is already a pith label
+                  } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
+                    showModal (strong (
+                      modalDialog ("Error: You can only set one pith and there is already one! Delete it first.",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                    return ()
+                    # else we have at least one label and no pith yet, check that this is a "Normal" label
+                  } else {
+                    
+                    # change the label type of the "Normal" label closest to the last indexed label
+                    if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+                      rv$markerTable [no == rv$previousIndex, 
+                                      type := switch (type, 
+                                                      'Pith' = 'Normal', 
+                                                      'Normal' = 'Pith')]
+                    } else {
+                      # find the last "Normal" label to change that one instead
+                      j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                                            rv$markerTable$type == 'Normal')]) 
+                      rv$markerTable [no == j, type := switch (type, 
+                                                               'Pith' = 'Normal', 
+                                                               'Normal' = 'Pith')]
+                      
+                    }   
+                    
+                    # update "growth" 
+                    rv$markerTable <- growthTable ()
+                    
+                    # validate that a marker table exists
+                    rv$check_table <- rv$check_table + 1
+                    
+                  }
+                })
   
   # undo last marker 
   #--------------------------------------------------------------------------------------
   observeEvent (input$undoCanvas, 
-               {
-                 
-                 wiad:::printLog ('observeEvent input$undoCanvas')
-                 
-                 if (rv$notLoaded & !rv$demoMode) return ()
-                 
-                 # check there is more than one marker
-                 if (nrow (rv$markerTable) > 1) {
-                   
-                   # delete the previously modified marker or the last marker
-                   rv$markerTable <- rv$markerTable [-rv$previousIndex, ]
-                   # N.B. Currently there is only memory of one index and thereafter 
-                   #      points will be deleted from the end of the markerTable  
-                   
-                   # reset index to index of last label, after saving it
-                   rv$index <- nrow (rv$markerTable)
-                   rv$previousIndex <- nrow (rv$markerTable)
-                     
-                   # make sure that the no are consecutive, after marker was deleted
-                   rv$markerTable$no <- 1:nrow (rv$markerTable)
-                   
-                 # else no or only one label was set yet
-                 } else {
-                   # create new label table
-                   rv$markerTable <- data.table (no   = integer (),
-                                                 x    = numeric (),
-                                                 y    = numeric (),
-                                                 relx = numeric (),
-                                                 rely = numeric (),
-                                                 type = character ())
-                   
-                   # reset index to index of last label, after saving it
-                   rv$index <- 0
-                   rv$previousIndex <- 0
-                 }
-                 
-                 #  validate that a label table exists
-                 rv$check_table <- rv$check_table + 1
-               })
+                {
+                  
+                  wiad:::printLog ('observeEvent input$undoCanvas')
+                  
+                  if (rv$notLoaded & !rv$demoMode) return ()
+                  
+                  # check there is more than one marker
+                  if (nrow (rv$markerTable) > 1) {
+                    
+                    # delete the previously modified marker or the last marker
+                    rv$markerTable <- rv$markerTable [-rv$previousIndex, ]
+                    # N.B. Currently there is only memory of one index and thereafter 
+                    #      points will be deleted from the end of the markerTable  
+                    
+                    # reset index to index of last label, after saving it
+                    rv$index <- nrow (rv$markerTable)
+                    rv$previousIndex <- nrow (rv$markerTable)
+                    
+                    # make sure that the no are consecutive, after marker was deleted
+                    rv$markerTable$no <- 1:nrow (rv$markerTable)
+                    
+                    # else no or only one label was set yet
+                  } else {
+                    # create new label table
+                    rv$markerTable <- data.table (no   = integer (),
+                                                  x    = numeric (),
+                                                  y    = numeric (),
+                                                  relx = numeric (),
+                                                  rely = numeric (),
+                                                  type = character ())
+                    
+                    # reset index to index of last label, after saving it
+                    rv$index <- 0
+                    rv$previousIndex <- 0
+                  }
+                  
+                  #  validate that a label table exists
+                  rv$check_table <- rv$check_table + 1
+                })
   
   # add a "Normal" label by simple click
   #--------------------------------------------------------------------------------------
   observeEvent (input$normal_point,
-               {
-                 
-                 # write log
-                 wiad:::printLog ('observeEvent input$normal_point')
-                 
-                 # check that images is loaded
-                 if (rv$notLoaded & !rv$demoMode) return ()
-                 
-                 # check that metadata has been confirmed
-                 if (input$confirmMeta == 'Not Confirmed') {
-                     showModal (strong (
-                     modalDialog ("First review and confirm the metadata!",
-                                  easyClose = T,
-                                  fade = T,
-                                  size = 's',
-                                  style ='background-color:#3b3a35; color:#b91b9a4; ',
-                                  footer = NULL)))
-                   
-                   return ()
-                 }
-                 
-                 # initialise new point
-                 newPoint <- data.table (no = rv$index + 1,
-                                         x  = input$normal_point$x,
-                                         y  = input$normal_point$y,
-                                         relx = input$normal_point$x / input$normal_point$domain$right,
-                                         rely = input$normal_point$y / input$normal_point$domain$top,
-                                         type = 'Normal',
-                                         growth = NA,
-                                         pixels = NA,
-                                         year   = NA)
-                 
-                 # check that new point is different from old point
-                 if (nrow (rv$markerTable) > 0){
-                   last <- rv$markerTable [nrow (rv$markerTable)]
-                   if (newPoint$x == last$x & newPoint$y == last$y) return ()
-                 }
-                 
-                 # insert or append new point to the label table
-                 if (rv$index < nrow (rv$markerTable)) {
-                   
-                   # increase all label numbers with higher no than the inserted label
-                   rv$markerTable [no >= rv$index + 1, no := no + 1]
-                   
-                   # insert label before identified row 
-                   rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
-                                            newPoint,
-                                            rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
-                                            fill = TRUE)
-                 } else {
-                   rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
-                 }
-                 
-                 # save index and reset to index of last label
-                 rv$previousIndex <- rv$index + 1
-                 rv$index <- nrow (rv$markerTable)
-                 
-                 # update growth
-                 rv$markerTable <- growthTable ()
-                 
-                 # validate that a marker table exists
-                 rv$check_table <- rv$check_table + 1
-               })
+                {
+                  
+                  # write log
+                  wiad:::printLog ('observeEvent input$normal_point')
+                  
+                  # check that images is loaded
+                  if (rv$notLoaded & !rv$demoMode) return ()
+                  
+                  # check that metadata has been confirmed
+                  if (input$confirmMeta == 'Not Confirmed') {
+                    showModal (strong (
+                      modalDialog ("First review and confirm the metadata!",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                   footer = NULL)))
+                    
+                    return ()
+                  }
+                  
+                  # initialise new point
+                  newPoint <- data.table (no = rv$index + 1,
+                                          x  = input$normal_point$x,
+                                          y  = input$normal_point$y,
+                                          relx = input$normal_point$x / input$normal_point$domain$right,
+                                          rely = input$normal_point$y / input$normal_point$domain$top,
+                                          type = 'Normal',
+                                          growth = NA,
+                                          pixels = NA,
+                                          year   = NA)
+                  
+                  # check that new point is different from old point
+                  if (nrow (rv$markerTable) > 0){
+                    last <- rv$markerTable [nrow (rv$markerTable)]
+                    if (newPoint$x == last$x & newPoint$y == last$y) return ()
+                  }
+                  
+                  # insert or append new point to the label table
+                  if (rv$index < nrow (rv$markerTable)) {
+                    
+                    # increase all label numbers with higher no than the inserted label
+                    rv$markerTable [no >= rv$index + 1, no := no + 1]
+                    
+                    # insert label before identified row 
+                    rv$markerTable <- rbind (rv$markerTable [1:rv$index, ], 
+                                             newPoint,
+                                             rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
+                                             fill = TRUE)
+                  } else {
+                    rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
+                  }
+                  
+                  # save index and reset to index of last label
+                  rv$previousIndex <- rv$index + 1
+                  rv$index <- nrow (rv$markerTable)
+                  
+                  # update growth
+                  rv$markerTable <- growthTable ()
+                  
+                  # validate that a marker table exists
+                  rv$check_table <- rv$check_table + 1
+                })
   
   # select type of previously set "Misc" label
   #--------------------------------------------------------------------------------------
@@ -1345,8 +1346,8 @@ shinyServer (function (input, output, session)
                   if (input$confirmMeta == 'Not Confirmed') {
                     showModal (strong (
                       modalDialog ("First review and confirm the metadata!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style ='background-color:#3b3a35; color:#b91b9a4; ',
                                    footer = NULL)))
@@ -1359,8 +1360,8 @@ shinyServer (function (input, output, session)
                   } else if (nrow (rv$markerTable) < 1) {
                     showModal (strong (
                       modalDialog ("Error: The first marker cannot be a misc marker!",
-                                   easyClose = T,
-                                   fade = T,
+                                   easyClose = TRUE,
+                                   fade = TRUE,
                                    size = 's',
                                    style ='background-color:#3b3a35; color:#b91b9a4; ',
                                    footer = NULL)))
@@ -1388,7 +1389,7 @@ shinyServer (function (input, output, session)
                                                label = 'Select'),
                                  actionButton (inputId = 'cancel_misc',
                                                label = 'Cancel')
-                                 ))
+                    ))
                   )
                   
                   # initialise new point
@@ -1398,7 +1399,7 @@ shinyServer (function (input, output, session)
                                           relx = input$misc_point$x / input$misc_point$domain$right,
                                           rely = input$misc_point$y / input$misc_point$domain$top,
                                           type = 'Misc')
-                                          
+                  
                   # check that new point is different from old point
                   if (nrow (rv$markerTable) > 0) {
                     last <- rv$markerTable [nrow (rv$markerTable)]
@@ -1417,7 +1418,7 @@ shinyServer (function (input, output, session)
                                              rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
                                              fill = TRUE)
                     
-                  # or append new point in the end
+                    # or append new point in the end
                   } else {
                     rv$markerTable <- rbind (rv$markerTable, newPoint, fill = TRUE)
                   }
@@ -1460,7 +1461,7 @@ shinyServer (function (input, output, session)
     # with the year of the growing season  
     #------------------------------------------------------------------------------------
     years <- rep (NA, n)
-   
+    
     # measurement series starts at the bark
     #------------------------------------------------------------------------------------
     if (input$barkFirst) {
@@ -1512,9 +1513,9 @@ shinyServer (function (input, output, session)
         }
       }
       
-    # else the measurement series starts at the oldest ring or pith
+      # else the measurement series starts at the oldest ring or pith
     } else if (!input$barkFirst) {
-    
+      
       # is there a pith or oldest ring label? If so, find its index p
       #------------------------------------------------------------------------------------
       if (sum (types == 'Pith', na.rm = TRUE) == 1) {
@@ -1524,14 +1525,14 @@ shinyServer (function (input, output, session)
         if (p != 1) {
           showModal (strong (
             modalDialog ("Error: You start your measurement at the pith, but your first label is not the pith. Something is not correct!",
-                         easyClose = T,
-                         fade = T,
+                         easyClose = TRUE,
+                         fade = TRUE,
                          size = 's',
                          style = 'background-color:#3b3a35; color:#f3bd48; ',
                          footer = NULL)))
           return ()
         }
-    
+        
         # loop over all points from inner most ring towards the bark in reverse order
         for (i in n:1) {
           if (i == n & input$sampleYearGrowingSeason %in% c ('only started', 
@@ -1578,7 +1579,7 @@ shinyServer (function (input, output, session)
         pixels [i] <- 0.0
         next
       }
-        
+      
       # calculate growth for "Normal" and all miscellaneous labels  
       #----------------------------------------------------------------------------------
       
@@ -1601,47 +1602,47 @@ shinyServer (function (input, output, session)
       # Note bene: the linker has to be within three labels
       if (i <= p) {
         nLinkers <- sum (growth_table$year == linkYr & 
-                         growth_table$type == 'Linker' & 
-                         growth_table$no > i &
-                         growth_table$no < p)
+                           growth_table$type == 'Linker' & 
+                           growth_table$no > i &
+                           growth_table$no < p)
       } else {
         nLinkers <- sum (growth_table$year == linkYr & 
-                         growth_table$type == 'Linker' & 
-                         growth_table$no < i &
-                         growth_table$no > p)
+                           growth_table$type == 'Linker' & 
+                           growth_table$no < i &
+                           growth_table$no > p)
       }
-
+      
       # calculate distance if there is no Linker label in between
       if (nLinkers == 0) {
         #print (c (i, iRef, linkYr, years [i], refYr, nLinkers))
         pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iRef])^2 + 
-                            (growth_table$y [i] - growth_table$y [iRef])^2)
+                              (growth_table$y [i] - growth_table$y [iRef])^2)
       } else if (nLinkers == 1) {
         # identify Linker label's index
         if (i <= p) {
           iLinker <- which (growth_table$year == linkYr &
-                            growth_table$type == 'Linker' & 
-                            growth_table$no > i & 
-                            growth_table$no < p)
+                              growth_table$type == 'Linker' & 
+                              growth_table$no > i & 
+                              growth_table$no < p)
           pixels [i] <- sqrt ((growth_table$x [iRef] - growth_table$x [iLinker])^2 + 
-                              (growth_table$y [iRef] - growth_table$y [iLinker])^2)
+                                (growth_table$y [iRef] - growth_table$y [iLinker])^2)
         } else {
           iLinker <- which (growth_table$year == linkYr &
-                            growth_table$type == 'Linker' & 
-                            growth_table$no < i & 
-                            growth_table$no > p)
+                              growth_table$type == 'Linker' & 
+                              growth_table$no < i & 
+                              growth_table$no > p)
           pixels [i] <- sqrt ((growth_table$x [i] - growth_table$x [iLinker])^2 + 
-                              (growth_table$y [i] - growth_table$y [iLinker])^2)
+                                (growth_table$y [i] - growth_table$y [iLinker])^2)
         }
-
+        
         # print (c (i, iRef, linkYr, years [i], refYr, nLinkers, iLinker))
       } else if (nLinkers == 2) {
         # identify Linker label indices
         if (i <= p) {
           iLinkers <- which (growth_table$year == linkYr & 
-                             growth_table$type == 'Linker' & 
-                             growth_table$no > i & 
-                             growth_table$no < p)
+                               growth_table$type == 'Linker' & 
+                               growth_table$no > i & 
+                               growth_table$no < p)
           
         } else {
           iLinkers <- which (growth_table$year == linkYr & 
@@ -1652,28 +1653,28 @@ shinyServer (function (input, output, session)
         }
         
         pixels [i] <- (sqrt ((growth_table$x [i] - growth_table$x [iLinkers [1]])^2 + 
-                             (growth_table$y [i] - growth_table$y [iLinkers [1]])^2)) +
-                      (sqrt ((growth_table$x [iLinkers [2]] - growth_table$x [iRef])^2 + 
-                             (growth_table$y [iLinkers [2]] - growth_table$y [iRef])^2))
+                               (growth_table$y [i] - growth_table$y [iLinkers [1]])^2)) +
+          (sqrt ((growth_table$x [iLinkers [2]] - growth_table$x [iRef])^2 + 
+                   (growth_table$y [iLinkers [2]] - growth_table$y [iRef])^2))
         # print (c (i, iRef, years [i], refYr, nLinkers, iLinkers [1], iLinkers [2]))
       } else if (nLinkers == 3) {
         # identify Linker label indices
         if (i <= p) {
           iLinkers <- which (growth_table$year == linkYr & 
-                             growth_table$type == 'Linker' & 
-                             growth_table$no > i & 
-                             growth_table$no < p)
+                               growth_table$type == 'Linker' & 
+                               growth_table$no > i & 
+                               growth_table$no < p)
         } else {
           iLinkers <- which (growth_table$year == linkYr & 
-                             growth_table$type == 'Linker' & 
-                             growth_table$no < i & 
-                             growth_table$no > p)
+                               growth_table$type == 'Linker' & 
+                               growth_table$no < i & 
+                               growth_table$no > p)
           iLinkers <- iLinkers [3:1]
         }
         pixels [i] <- (sqrt ((growth_table$x [iLinkers [1]] - growth_table$x [iLinkers [2]])^2 + 
-                             (growth_table$y [iLinkers [1]] - growth_table$y [iLinkers [2]])^2)) +
-                      (sqrt ((growth_table$x [iLinkers [3]] - growth_table$x [iRef])^2 + 
-                             (growth_table$y [iLinkers [3]] - growth_table$y [iRef])^2))
+                               (growth_table$y [iLinkers [1]] - growth_table$y [iLinkers [2]])^2)) +
+          (sqrt ((growth_table$x [iLinkers [3]] - growth_table$x [iRef])^2 + 
+                   (growth_table$y [iLinkers [3]] - growth_table$y [iRef])^2))
         # print (c (i, iRef, years [i], refYr, nLinkers, iLinkers [1], iLinkers [2], iLinkers [3]))
       }
     }
@@ -1709,8 +1710,8 @@ shinyServer (function (input, output, session)
       showModal (strong (
         modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      size = 's',
                      style = 'background-color:#3b3a35; color:#f3bd48; ',
                      footer = NULL)))  
@@ -1724,46 +1725,54 @@ shinyServer (function (input, output, session)
       # find pith label's index
       wPith <- tbl [type == 'Pith', no]
       
-      # is there only one profile 
-      if (wPith == nrow (tbl)) {
-        data1 <- tbl
-        nSeries <- 1
-        
-      # if there are two series split them at the pith
-      } else {
-        data2 <- tbl [no > wPith, ]
-        data1 <- tbl [no < wPith, ]
-        nSeries <- 2
-      }
-    # there is no pith/oldest ring label
+      # divide data series 
+      data2 <- tbl [no >  wPith, ]
+      data1 <- tbl [no <= wPith, ]
+      nSeries <- 2
+      # there is no pith/oldest ring label
     } else {
-      nSeries <- 1
       data1 <- tbl
+      nSeries <- 1
     }
     
     # make sure there are at least three growth increments for each series 
-    if ((nSeries == 1 & nrow (data1) < 3) | 
-        (nSeries == 2 & nrow (data1) < 3 & nrow (data2) < 3)) {
-      
-      
-      showModal (strong (
-        modalDialog (HTML ("Not enough growth increments to detrend!<br>
+    if (nSeries == 1){
+      if (nrow (data1) < 3){
+        showModal (strong (
+          modalDialog (HTML ("Not enough growth increments to detrend!<br>
                            You need at least three!"),
-                     easyClose = T,
-                     fade = T,
-                     size = 's',
-                     style = 'background-color:#3b3a35; color:#f3bd48; ',
-                     footer = NULL)))
-      
-      return ()
-    } else if (nSeries == 2 & (nrow (data1) < 3 | nrow (data2) < 3)) {
-      nSeries <- 1
-      data1 <- ifelse (nrow (data1) < 3, data2, data1)
+                       easyClose = TRUE,
+                       fade = TRUE,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        
+        return ()  
+      }
+    } else if (nSeries == 2) {
+      if (nrow (data1) < 3 & nrow (data2) < 3){
+        showModal (strong (
+          modalDialog (HTML ("Not enough growth increments to detrend!<br>
+                           You need at least three!"),
+                       easyClose = TRUE,
+                       fade = TRUE,
+                       size = 's',
+                       style = 'background-color:#3b3a35; color:#f3bd48; ',
+                       footer = NULL)))
+        
+        return ()  
+        
+        # Check whether both series are long enough to be detrended
+      } else if ((nrow (data1) < 3 | nrow (data2) < 3)) {
+        if (nrow (data1) < 3) data1 <- data2
+        nSeries <- 1
+        rm (data2)
+      }
     }
     
     # check whether data is in pixels or microns
     #------------------------------------------------------------------------------------
-    if (is.na (sampleDPI)){
+    if (is.na (input$sampleDPI)){
       data1 [, toplot := pixels]
       if (nSeries == 2) data2 [, toplot := pixels]
     } else {
@@ -1774,7 +1783,7 @@ shinyServer (function (input, output, session)
     # convert table to dlpR format, which reads rwl files
     #------------------------------------------------------------------------------------
     if (nSeries == 2) {
-      data <- right_join (x = data1 [, .(year, toplot)], 
+      data <- full_join (x = data1 [, .(year, toplot)], 
                           y = data2 [, .(year, toplot)], 
                           by = 'year', 
                           suffix = c ('.1','.2'))
@@ -1799,10 +1808,10 @@ shinyServer (function (input, output, session)
                                    difference  = detrendingDifference,
                                    make.plot   = FALSE,
                                    return.info = TRUE)
-    # use spline for detrending
-    #------------------------------------------------------------------------------------
+      # use spline for detrending
+      #------------------------------------------------------------------------------------
     } else if (input$detrendingMethod == 'Spline') {
-      detrended <- detrend.series (y      = data [['toplot']], 
+      detrended <- detrend.series (y = data [['toplot']], 
                                    y.name = 'toplot', 
                                    method = 'Spline', 
                                    nyrs   = ifelse (input$detrendingWavelength > 1, 
@@ -1813,8 +1822,8 @@ shinyServer (function (input, output, session)
                                    make.plot   = FALSE,
                                    return.info = TRUE)
       
-    # use modified negative exponential for detrending
-    #------------------------------------------------------------------------------------
+      # use modified negative exponential for detrending
+      #------------------------------------------------------------------------------------
     } else if (input$detrendingMethod == 'Modified negative exponential') {
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
@@ -1825,8 +1834,8 @@ shinyServer (function (input, output, session)
                                    make.plot   = FALSE,
                                    return.info = TRUE)
       
-    # use Ar model for detrending
-    #------------------------------------------------------------------------------------
+      # use Ar model for detrending
+      #------------------------------------------------------------------------------------
     } else if (input$detrendingMethod == 'Prewhitening') {
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
@@ -1835,8 +1844,8 @@ shinyServer (function (input, output, session)
                                    make.plot   = FALSE,
                                    return.info = TRUE)
       
-    # use Friedman's Super Smoother for detrending
-    #------------------------------------------------------------------------------------
+      # use Friedman's Super Smoother for detrending
+      #------------------------------------------------------------------------------------
     } else if (input$detrendingMethod == 'Friedman') {
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
@@ -1848,8 +1857,8 @@ shinyServer (function (input, output, session)
                                    make.plot   = FALSE,
                                    return.info = TRUE)
       
-    # use a modified Hugershoff for detrending
-    #------------------------------------------------------------------------------------
+      # use a modified Hugershoff for detrending
+      #------------------------------------------------------------------------------------
     } else if (input$detrendingMethod == 'Modified Hugershoff') {
       detrended <- detrend.series (y      = data [['toplot']], 
                                    y.name = 'toplot', 
@@ -1874,29 +1883,29 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   output$growth_table <- DT::renderDataTable ({
     
-      # write log
-      #----------------------------------------------------------------------------------
-      wiad:::printLog ('output$growth_table renderDataTable')
-      
-      # make local copy of label and growth data, unless there is no data
-      #----------------------------------------------------------------------------------
-      if (nrow (rv$markerTable) > 0) {
-        labelTable <- rv$markerTable
-      } else {
-        return ()
-      }
-      
-      # order table, aka starting with the most recent year
-      #----------------------------------------------------------------------------------
-      labelTable <- labelTable [order (no)]
-      
-      # add a delete button and display the formatted datatable
-      #----------------------------------------------------------------------------------
-      wiad:::displayDataTable (labelTable, 
-                        id1 = 'delete',
-                        id2 = 'insert') 
-      
-    })
+    # write log
+    #----------------------------------------------------------------------------------
+    wiad:::printLog ('output$growth_table renderDataTable')
+    
+    # make local copy of label and growth data, unless there is no data
+    #----------------------------------------------------------------------------------
+    if (nrow (rv$markerTable) > 0) {
+      labelTable <- rv$markerTable
+    } else {
+      return ()
+    }
+    
+    # order table, aka starting with the most recent year
+    #----------------------------------------------------------------------------------
+    labelTable <- labelTable [order (no)]
+    
+    # add a delete button and display the formatted datatable
+    #----------------------------------------------------------------------------------
+    wiad:::displayDataTable (labelTable, 
+                             id1 = 'delete',
+                             id2 = 'insert') 
+    
+  })
   
   # download a csv file with the label locations and growth
   #--------------------------------------------------------------------------------------
@@ -1918,12 +1927,12 @@ shinyServer (function (input, output, session)
               rv$wrkID, 
               '_',
               format (Sys.time (),
-                     format = '%Y-%m-%d-%H%M%S'),
+                      format = '%Y-%m-%d-%H%M%S'),
               ".csv")
       
     },
     content = function (file) {
-
+      
       # write log
       #----------------------------------------------------------------------------------
       wiad:::printLog ('output$downloadCSV downloadHandler content')
@@ -1933,8 +1942,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -1962,7 +1971,7 @@ shinyServer (function (input, output, session)
       write.table (rv$markerTable, 
                    file, 
                    sep = ',',
-                   row.names = F)
+                   row.names = FALSE)
       
     }
   )
@@ -1987,7 +1996,7 @@ shinyServer (function (input, output, session)
               rv$wrkID, 
               '_',
               format (Sys.time(),
-                     format = '%Y-%m-%d-%H%M%S'),
+                      format = '%Y-%m-%d-%H%M%S'),
               ".json")
       
     },
@@ -2001,8 +2010,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -2019,7 +2028,7 @@ shinyServer (function (input, output, session)
         # save raw the image
         writePNG (rv$imgMat, 
                   target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
-
+        
         # write metadata json file
         write (toJSON (metaData ()), 
                paste0 (rv$wrkDir, 'meta-', rv$wrkID,'.json'))
@@ -2056,6 +2065,11 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     wiad:::printLog ('output$growth_plot renderPlotly')
     
+    
+    # get detrended series
+    #------------------------------------------------------------------------------------
+    detrended <- detrendGrowth ()
+    
     # select font
     #------------------------------------------------------------------------------------
     fontList <- list (
@@ -2063,12 +2077,13 @@ shinyServer (function (input, output, session)
       size = 16,
       color = "#7f7f7f"
     )
-    
+
     # specify x-axis
     #------------------------------------------------------------------------------------
     xAxis <- list (
       title = "Year",
-      titlefont = fontList
+      titlefont = fontList,
+      range = range (detrended [['data']] [['year']], na.rm = TRUE)
     )
     
     # specify y-axis
@@ -2089,10 +2104,6 @@ shinyServer (function (input, output, session)
       t = 50,
       pad = 4
     )
-    
-    # get detrended series
-    #------------------------------------------------------------------------------------
-    detrended <- detrendGrowth ()
     
     # check that there were enough data points
     #------------------------------------------------------------------------------------
@@ -2146,7 +2157,7 @@ shinyServer (function (input, output, session)
     return (p)
     
   })
-
+  
   # draw plot of detrended growth
   #--------------------------------------------------------------------------------------
   output$detrended_growth_plot <- renderPlotly ({
@@ -2177,6 +2188,14 @@ shinyServer (function (input, output, session)
     yAxisD <- list (
       title = 'Ring width index', 
       titlefont = fontList
+    )
+    
+    m <- list (
+      l = 100,
+      r = 50,
+      b = 100,
+      t = 50,
+      pad = 4
     )
     
     # get detrended series
@@ -2218,7 +2237,7 @@ shinyServer (function (input, output, session)
   output$downloadTemplate <- downloadHandler (
     
     filename = function () {
-    
+      
       # write log
       #----------------------------------------------------------------------------------
       wiad:::printLog ('output$downloadTemplate downloadHandler filename')
@@ -2241,8 +2260,8 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
@@ -2275,7 +2294,7 @@ shinyServer (function (input, output, session)
     updateActionButton (session = session, 
                         inputId = 'pith',
                         label = ifelse (input$pithInImage, 'Pith','Oldest ring'))
-
+    
     # return
     #------------------------------------------------------------------------------------
     return ()
@@ -2284,11 +2303,11 @@ shinyServer (function (input, output, session)
   # update max value of wavelength for spline
   #--------------------------------------------------------------------------------------
   observeEvent (input$detrendingMethod, {
-
+    
     # write log
     #------------------------------------------------------------------------------------
     wiad:::printLog ('input$detrendingMethod changed wavelength sliderInput')
-
+    
     # get number of normal and pith labels
     #------------------------------------------------------------------------------------
     n <- nrow (rv$markerTable [type %in% c ('Normal','Pith')])
@@ -2299,7 +2318,7 @@ shinyServer (function (input, output, session)
                        inputId = 'detrendingWavelength',
                        max = n,
                        value = 0.67 * n)
-
+    
     # return
     #------------------------------------------------------------------------------------
     return ()
@@ -2316,7 +2335,7 @@ shinyServer (function (input, output, session)
     # check whether demoMode was off
     #------------------------------------------------------------------------------------
     if (!rv$demoMode) {
-    
+      
       rv$demoMode <- TRUE
       
       # get path to image
@@ -2355,13 +2374,13 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       showModal (strong (
         modalDialog (HTML ("You are now entering demo mode!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      size = 's',
                      style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
       
-    # else we are leaving demo mode
+      # else we are leaving demo mode
     } else if (rv$demoMode) {
       
       # turn demo mode off
@@ -2371,8 +2390,8 @@ shinyServer (function (input, output, session)
       #----------------------------------------------------------------------------------
       showModal (strong (
         modalDialog (HTML ("You are now leaving demo mode!"),
-                     easyClose = T,
-                     fade = T,
+                     easyClose = TRUE,
+                     fade = TRUE,
                      style = 'background-color:#3b3a35; color:#91b9a4; ',
                      footer = NULL)))
     }    
@@ -2396,7 +2415,7 @@ shinyServer (function (input, output, session)
                       style = 'font-weight: bold;
                       color: #91b9a4;')
         
-      # demo mode was switched OFF and we are now entering
+        # demo mode was switched OFF and we are now entering
       } else if (!rv$demoMode) {
         actionButton (inputId = 'demoMode', 
                       label = 'Demo OFF',
@@ -2443,19 +2462,19 @@ shinyServer (function (input, output, session)
       if (rv$demoMode) {
         showModal (strong (
           modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
         return ()
         
-      # check that an image was loaded 
+        # check that an image was loaded 
       } else if (rv$notLoaded) { 
         showModal (strong (
           modalDialog ("Warning: You have to start by loading an image!",
-                       easyClose = T,
-                       fade = T,
+                       easyClose = TRUE,
+                       fade = TRUE,
                        size = 's',
                        style = 'background-color:#3b3a35; color:#f3bd48; ',
                        footer = NULL)))
