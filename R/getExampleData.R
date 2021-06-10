@@ -14,7 +14,7 @@
 getExampleData <-function(mode = "install",
                           downloadPath = tempdir(),
                           installPath = "",
-                          dataset="small"){
+                          dataset = "small"){
 
   # URLS and PATHS
   if (

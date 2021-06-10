@@ -55,9 +55,9 @@ fluidPage (
                 fileInput (inputId = 'image', 
                            label = 'Choose image file',
                            multiple = FALSE,
-                           accept = c('image/jpeg',
-                                      'image/png',
-                                      'image/tiff')),
+                           accept = c ('image/jpeg',
+                                       'image/png',
+                                       'image/tiff')),
                 
                 # the file input only accepts csv and json.
                 fileInput (inputId = 'labelUpload', 
@@ -125,6 +125,35 @@ fluidPage (
                 textInput (inputId = 'siteLoc',
                            label = 'Site location', 
                            placeholder = 'Where was the sample collected?'),
+                
+                
+                # bounding latitudes of site location
+                strong ('Bounding latitudes (decimal \u00B0)'), # \u00B0 is HTML for degree symbol
+                splitLayout (
+                  numericInput (inputId = 'siteLatN',
+                                label = 'Northern', 
+                                value = NULL,
+                                min = -90,
+                                max = 90),
+                  numericInput (inputId = 'siteLatS',
+                                label = 'Southern', 
+                                value = NULL,
+                                min = -90,
+                                max = 90)),
+                
+                # bounding longitudes of site locaiton
+                strong ('Bounding longitudes (decimal \u00B0)'), # \u00B0 is HTML for degree symbol
+                splitLayout (
+                  numericInput (inputId = 'siteLonW',
+                                label = 'Western', 
+                                value = NULL,
+                                min = -180,
+                                max = 180),
+                  numericInput (inputId = 'siteLonE',
+                                label = 'Eastern', 
+                                value = NULL,
+                                min = -180,
+                                max = 180)),
                 
                 # identifier of the location where the sample was collected
                 textInput (inputId = 'siteLocID',
