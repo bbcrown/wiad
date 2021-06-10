@@ -212,7 +212,7 @@ shinyServer (function (input, output, session)
                                       selected = 'Not Confirmed')
                   
                   # exit demo mode
-                  rv$demoMode <- FALSE
+                  #rv$demoMode <- FALSE
                   
                   # generate working directory id
                   rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
@@ -263,10 +263,13 @@ shinyServer (function (input, output, session)
                   imgDim <- dim (rv$imgMat)
                   
                   # write image to the temporary working directory
-                  writePNG (rv$imgMat, paste0 (rv$wrkDir,
-                                               'imgorg-',
-                                               rv$wrkID,
-                                               '.png'))
+                  writePNG (rv$imgMat, paste0 (rv$wrkDir,'imgorg-',rv$wrkID,'.png'))
+                  
+                  # save file name for metadata
+                  rv$wiadImageID <- paste0 (rv$wrkDir,'imgorg-',rv$wrkID,'.png')
+                  
+                  # get file name for metadata
+                  rv$ownerImageID <- input$image$name
                   
                   # rotate the image matrix by 270 degrees, if image is higher than wide
                   if (imgDim [2] < imgDim [1]) { 
@@ -467,22 +470,25 @@ shinyServer (function (input, output, session)
                                             col_names = c ('ownerName','ownerEmail','species',
                                                            'sampleDate','sampleYearGrowth','SchulmanShift',
                                                            'sampleDPI','pithInImage','barkFirst','siteLoc',
+                                                           'siteLatN','siteLatS','siteLonW','siteLonE',
                                                            'siteLocID','plotID','sampleID','sampleHeight',
                                                            'sampleAzimuth','sampleNote','collection',
                                                            'contributor'),
                                             col_types = c ('text','text','text','date','text','logical','numeric',
-                                                           'logical','logical','text','text','text',
-                                                           'text','numeric','numeric','text','text','text'), 
-                                            skip = 1)
+                                                           'logical','logical','text','numeric','numeric',
+                                                           'numeric','numeric','text','text','text','numeric',
+                                                           'numeric','text','text','text'), 
+                                            skip = 1, na = 'NA')
                   } else if (rv$metaExt %in% c ('csv', 'CSV')) {
                     metadata <- read_csv (file = rv$metaPath, 
                                           col_names = c ('ownerName','ownerEmail','species',
                                                          'sampleDate','sampleYearGrowth','SchulmanShift',
                                                          'sampleDPI','pithInImage','barkFirst','siteLoc',
+                                                         'siteLatN','siteLatS','siteLonW','siteLonE',
                                                          'siteLocID','plotID','sampleID',
                                                          'sampleHeight','sampleAzimuth',
                                                          'sampleNote','collection','contributor'),
-                                          col_types = 'cccDclillccccdiccc', skip = 1)
+                                          col_types = 'cccDclillcddddcccdiccc', skip = 1)
                   } else if (rv$metaExt %in% c ('json', 'JSON')) {
                     metadata <- read_json (rv$metaPath)
                   } else {
@@ -497,6 +503,30 @@ shinyServer (function (input, output, session)
                     return ()
                   }
                   
+                  # check that the northern most latitude is larger or equal to the southern most latitude
+                  if (metadata$siteLatN < metadata$siteLatS) {
+                    
+                    showModal (strong (
+                      modalDialog ("Error: The northern bounding latitude is smaller than the southern boundary. It must be equal or larger.",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                  }
+                  
+                  # check that the eastern most longitude is larger or equal to the western most longitude
+                  if (metadata$siteLonE < metadata$siteLonW) {
+                    
+                    showModal (strong (
+                      modalDialog ("Error: The eastern bounding longitude is smaller than the western boundary. It must be equal or larger.",
+                                   easyClose = TRUE,
+                                   fade = TRUE,
+                                   size = 's',
+                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                   footer = NULL)))
+                  }
+                    
                   # update metadata fields
                   updateTextInput (session = session,
                                    inputId = 'ownerName',
@@ -532,6 +562,18 @@ shinyServer (function (input, output, session)
                   updateTextInput (session = session,
                                    inputId = 'siteLoc',
                                    value = metadata$siteLoc)
+                  updateNumericInput (session = session,
+                                      inputId = 'siteLatN',
+                                      value = metadata$siteLatN)
+                  updateNumericInput (session = session,
+                                      inputId = 'siteLatS',
+                                      value = metadata$siteLatS)
+                  updateNumericInput (session = session,
+                                      inputId = 'siteLonW',
+                                      value = metadata$siteLonW)
+                  updateNumericInput (session = session,
+                                      inputId = 'siteLonE',
+                                      value = metadata$siteLonE)
                   updateTextInput (session = session,
                                    inputId = 'siteLocID',
                                    value = metadata$siteLocID)
@@ -598,7 +640,9 @@ shinyServer (function (input, output, session)
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- list (version          = paste0('Generated with the Wood Image Analysis and Database (WIAD) v', packageVersion(pkg = 'wiad')),
+      meta <- list (version          = paste0 ('Generated with the Wood Image Analysis and Database (WIAD) v', packageVersion (pkg = 'wiad')),
+                    wiadImageID      = rv$wiadImageID,
+                    ownerImageID     = rv$ownerImageID,
                     ownerName        = input$ownerName, 
                     ownerEmail       = input$ownerEmail,
                     species          = input$species,
@@ -611,6 +655,10 @@ shinyServer (function (input, output, session)
                     pithInImage      = input$pithInImage,
                     barkFirst        = input$barkFirst,
                     siteLoc          = input$siteLoc,
+                    siteLatN         = input$siteLatN,
+                    siteLatS         = input$siteLatS,
+                    siteLonW         = input$siteLonW,
+                    siteLatE         = input$siteLatE,
                     siteLocID        = input$siteLocID,
                     plotID           = input$plotID,
                     sampleNote       = input$sampleNote,
