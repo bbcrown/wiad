@@ -4,14 +4,21 @@
 \alias{getExampleData}
 \title{Downloads and installs the WIAD Example Dataset}
 \usage{
-getExampleData(mode = "install", downloadPath = tempdir(), installPath = "")
+getExampleData(
+  mode = "install",
+  downloadPath = tempdir(),
+  installPath = "",
+  dataset = "small"
+)
 }
 \arguments{
 \item{mode}{\code{"install"} (default),\code{"update"} or \code{"remove"}}
 
-\item{downloadPath}{custom location to temporarily store WIAD example dataset while downloading. Default: tempdir()}
+\item{downloadPath}{custom location to temporarily store WIAD example dataset while downloading. Default: \code{tempdir()}}
 
 \item{installPath}{custom location to place WIAD example dataset. Default: WIAD package directory}
+
+\item{dataset}{choose to download the \code{"small"} example dataset (248 MB) or the  \code{"full"} example dataset (1.83 GB). Default: \code{"small"}}
 }
 \value{
 No return value

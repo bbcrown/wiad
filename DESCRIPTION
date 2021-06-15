@@ -12,7 +12,7 @@ Description: Providing a user-friendly interface to digitize wood imagery such a
 Encoding: UTF-8
 LazyData: true
 License: AGPL-3
-RoxygenNote: 7.1.0
+RoxygenNote: 7.1.1
 Imports:
   abind,
   data.table,
