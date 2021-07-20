@@ -8,13 +8,13 @@
 # Most recent release: https://github.com/bnasr/wiad
 #######################################################################
 
-library(wiad)
-library(data.table)
-library(DT)
-library(plotly)
-library(shiny)
-library(shinyjs)
-library(shinythemes)
+library (wiad)
+library (data.table)
+library (DT)
+library (plotly)
+library (shiny)
+library (shinyjs)
+library (shinythemes)
 
 # load as a fluid page
 fluidPage (

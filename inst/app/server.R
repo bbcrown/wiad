@@ -1062,10 +1062,9 @@ shinyServer (function (input, output, session)
       
     })
   
-  # erase all previous labels
+  # ask whether all previous labels should be erased
   #--------------------------------------------------------------------------------------
-  observeEvent (input$clearCanvas, 
-                {
+  observeEvent (input$clearCanvas, {
                   # write log
                   wiad:::printLog ('observeEvent input$clearCanvas')
                   wiad:::printLog (paste ('input$clearCanvas was changed to:', '\t',input$clearCanvas))
@@ -1073,22 +1072,56 @@ shinyServer (function (input, output, session)
                   # check that an image was loaded
                   if (rv$notLoaded & !rv$demoMode) return ()
                   
-                  rv$slideShow <- 0 
-                  
-                  # reset the marker table
-                  rv$markerTable <- data.table (no = integer (),
-                                                x  = numeric (),
-                                                y  = numeric (),
-                                                relx = numeric (),
-                                                rely = numeric (),
-                                                type = character ())
-                  
-                  # reset indices for insertion and last set marker
-                  rv$index  <- 0
-                  
-                  # make sure to update table
-                  rv$check_table <- rv$check_table + 1
+                  # ask user whether they really want to delete all labels
+                  showModal (strong (
+                    modalDialog ("Do you really want to erase ALL labels?",
+                                 easyClose = TRUE,
+                                 fade = TRUE,
+                                 size = 'm',
+                                 style ='background-color:#3b3a35; color:#b91b9a4; ',
+                                 footer = tagList (
+                                   actionButton (inputId = 'erase_ALL',
+                                                 label   = 'Erase'),
+                                   actionButton (inputId = 'cancel_erase',
+                                                 label   = 'Cancel')))))
                 })
+  
+  # cancel erasure of all previous labels
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$cancel_erase, {
+                  # write log
+                  wiad:::printLog ('observeEvent input$cancel_erase')
+                  
+                  # close the modal to confirm erasure of all labels 
+                  removeModal ()
+                })
+  
+  # erase all previous labels
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$erase_ALL, {
+    # write log
+    wiad:::printLog ('observeEvent input$erase_ALL')
+    
+    rv$slideShow <- 0 
+  
+    # reset the marker table
+    rv$markerTable <- data.table (no = integer (),
+                                  x  = numeric (),
+                                  y  = numeric (),
+                                  relx = numeric (),
+                                  rely = numeric (),
+                                  type = character ())
+  
+    # reset indices for insertion and last set marker
+    rv$index  <- 0
+  
+    # close the modal to confirm erasure of all labels 
+    removeModal ()
+    
+    # make sure to update table
+    rv$check_table <- rv$check_table + 1
+  })
+  
   
   # swtich marker type of previsouly set marker from "Normal" to "Linker"
   #--------------------------------------------------------------------------------------
@@ -1349,7 +1382,7 @@ shinyServer (function (input, output, session)
                   # change type of the misc label that was just set
                   rv$markerTable [no == rv$previousIndex, type := input$misc_type]
                   
-                  # close the modal
+                  # close the modal asking what type of misc label it was
                   removeModal ()
                   
                   # update growth
@@ -1373,7 +1406,7 @@ shinyServer (function (input, output, session)
                   # reset the label index to last label index
                   rv$index <- rv$previousIndex
                   
-                  # close the modal
+                  # close the modal asking what type of misc label it was
                   removeModal ()
                   
                   # update growth
