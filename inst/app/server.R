@@ -65,6 +65,7 @@ shinyServer (function (input, output, session)
     
     imgMat = readJPEG (system.file(package = 'wiad','demos/no_image_loaded.jpg'))[,,1:3], # RGB matrix loaded based on the image
     notLoaded = TRUE,  # whether the first image is loaded
+    notConfirmed = TRUE, # whether metadata was confirmed 
     demoMode = FALSE,  # whether app is in demo mode 
     procband = 'RGB',  # processed matrix from the raw RGB
     check_table   = 0, # a flag to make sure a label table exists
@@ -199,17 +200,18 @@ shinyServer (function (input, output, session)
                 }
   )
   
-  #--------------------------------------------------------------------------------------
   # whenever new image was uploaded
+  #--------------------------------------------------------------------------------------
   observeEvent (input$image,
                 {
                   # write log
                   wiad:::printLog ('observeEvent input$image')
                   
                   # reset radio button, so that metadata needs to be confirmed
-                  updateRadioButtons (session = session, 
+                  rv$notConfirmed <- TRUE
+                  updateActionButton (session = session, 
                                       inputId = 'confirmMeta', 
-                                      selected = 'Not Confirmed')
+                                      label = 'Confirm Metadata')
                   
                   # exit demo mode
                   #rv$demoMode <- FALSE
@@ -413,9 +415,10 @@ shinyServer (function (input, output, session)
                                        value = labels$contributor)
                       
                       # make sure the metadata is reviewed
-                      updateRadioButtons (session = session, 
+                      rv$notConfirmed <- TRUE
+                      updateActionButton (session = session, 
                                           inputId = 'confirmMeta', 
-                                          selected = 'Not Confirmed')
+                                          label = 'Confirm Metadata')
                       
                       # Prompt metadata review
                       showModal (strong (
@@ -602,9 +605,10 @@ shinyServer (function (input, output, session)
                                    value = metadata$contributor)
                   
                   # make sure the metadata is reviewed
-                  updateRadioButtons (session = session, 
+                  rv$notConfirmed <- TRUE
+                  updateActionButton (session = session, 
                                       inputId = 'confirmMeta', 
-                                      selected = 'Not Confirmed')
+                                      label = 'Confirm metadata')
                   
                   # Prompt metadata review
                   showModal (strong (
@@ -614,6 +618,68 @@ shinyServer (function (input, output, session)
                                  size = 's',
                                  style = 'background-color:#3b3a35; color:#b91b9a4; ',
                                  footer = NULL)))
+                }
+  )
+  
+  # create event that confirms the metadata
+  #--------------------------------------------------------------------------------------
+  observeEvent (input$confirmMeta, 
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent input$confirmMeta')
+                  
+                  # set reactive value to confirmed
+                  rv$notConfirmed <- FALSE
+                  
+                  # update action button
+                  updateActionButton (session = session, 
+                                      inputId = 'confirmMeta', 
+                                      label = 'Confirmed')
+                }
+  )
+  
+  # reactive function to reset confirm metadata in case it is changed
+  #--------------------------------------------------------------------------------------
+  metadataChanged <- reactive ({
+    list (input$ownerName, 
+          input$ownerEmail,
+          input$species,
+          input$sampleDate,
+          input$sampleYearGrowingSeason,
+          input$SchulmanShift,
+          input$sampleDPI,
+          input$pithInImage,
+          input$barkFirst,
+          input$siteLoc,
+          input$siteLatN,
+          input$siteLatS,
+          input$siteLonW,
+          input$siteLatE,
+          input$siteLocID,
+          input$plotID,
+          input$sampleNote,
+          input$sampleID,
+          input$sampleHeight,
+          input$sampleAzimuth,
+          input$collection,
+          input$contributor)
+  })
+  
+  
+  # create event that unconfirms the metadata, if the metadata is changed
+  #--------------------------------------------------------------------------------------
+  observeEvent (metadataChanged (), 
+                {
+                  # write log
+                  wiad:::printLog ('observeEvent input$metadataChanged')
+                  
+                  # set metadata status is unconfirmed
+                  rv$notConfirmed <- TRUE
+                  
+                  # update the Confirm metadata button
+                  updateActionButton (session = session, 
+                                      inputId = 'confirmMeta', 
+                                      label = 'Confirm metadata')
                 }
   )
   
@@ -1202,7 +1268,7 @@ shinyServer (function (input, output, session)
                   if (rv$notLoaded & !rv$demoMode) return ()
                   
                   # check that metadata was confirmed
-                  if (input$confirmMeta == 'Not Confirmed') {
+                  if (rv$notConfirmed) {
                     showModal (strong (
                       modalDialog ("First review and confirm the metadata!",
                                    easyClose = TRUE,
@@ -1211,7 +1277,6 @@ shinyServer (function (input, output, session)
                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
                                    footer = NULL)))
                     return ()
-                    # check whether there is already a pith label
                   }
                   
                   # check whether no label has been set yet
@@ -1317,7 +1382,7 @@ shinyServer (function (input, output, session)
                   if (rv$notLoaded & !rv$demoMode) return ()
                   
                   # check that metadata has been confirmed
-                  if (input$confirmMeta == 'Not Confirmed') {
+                  if (rv$notConfirmed) {
                     showModal (strong (
                       modalDialog ("First review and confirm the metadata!",
                                    easyClose = TRUE,
@@ -1424,7 +1489,7 @@ shinyServer (function (input, output, session)
                   
                   if (rv$notLoaded & !rv$demoMode) return ()
                   
-                  if (input$confirmMeta == 'Not Confirmed') {
+                  if (rv$notConfirmed) {
                     showModal (strong (
                       modalDialog ("First review and confirm the metadata!",
                                    easyClose = TRUE,
@@ -2121,22 +2186,6 @@ shinyServer (function (input, output, session)
         write_lines (file)
     }
   )
-  
-  # confirm the metadata
-  #--------------------------------------------------------------------------------------
-  observeEvent (input$confirmMeta, {
-    
-    # write log
-    wiad:::printLog ('observeEvent input$confirmMeta')
-    
-    # check that metadata was confirmed
-    if (input$confirmMeta == 'Not Confirmed') return ()
-    
-    # update radio button
-    updateRadioButtons (session, 
-                        inputId  = 'confirmMeta', 
-                        selected = 'Confirmed')
-  })
   
   # draw plot of absolute growth
   #--------------------------------------------------------------------------------------

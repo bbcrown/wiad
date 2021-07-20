@@ -199,10 +199,8 @@ fluidPage (
                 hr (),
                 
                 # the user is asked to confirm the metadata each time for verification purposes
-                radioButtons (inputId = 'confirmMeta', 
-                              label = 'Metadata', 
-                              choices  = list ('Not Confirmed', 'Confirmed'),
-                              selected = 'Not Confirmed',
+                actionButton (inputId = 'confirmMeta', 
+                              label = 'Confirm metadata', 
                               inline = TRUE)
                 
               ),
