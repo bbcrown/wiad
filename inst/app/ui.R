@@ -58,53 +58,52 @@ fluidPage(
     
     # main tab panel
     tabPanel('Toolbox',
+             # section breaker
+             br(),
               
-              # section breaker
-              br(),
-              
-              # sidebar panel
-              sidebarPanel(
+             # sidebar panel
+             sidebarPanel(
+               
+               # the file input only accepts jpeg, png or tiff.
+               fileInput(inputId = 'image', 
+                         label = 'Choose image file',
+                         multiple = FALSE,
+                         accept = c('image/jpeg',
+                                    'image/png',
+                                    'image/tiff')),
                 
-                # the file input only accepts jpeg, png or tiff.
-                fileInput (inputId = 'image', 
-                           label = 'Choose image file',
-                           multiple = FALSE,
-                           accept = c ('image/jpeg',
-                                       'image/png',
-                                       'image/tiff')),
+               # the file input only accepts csv and json.
+               fileInput(inputId = 'labelUpload', 
+                         label = 'Upload label file',
+                         multiple = FALSE,
+                         accept = c('text/csv', 
+                                    'text/json',
+                                    '.json')),
                 
-                # the file input only accepts csv and json.
-                fileInput(inputId = 'labelUpload', 
-                          label = 'Upload label file',
-                          multiple = FALSE,
-                          accept = c ('text/csv', 
-                                      'text/json',
-                                      '.json')),
+               # the file input only accepts csv and json.
+               fileInput(inputId = 'metadataUpload', 
+                         label = 'Upload metadata or enter it manually below',
+                         multiple = FALSE,
+                         accept = c('text/csv',
+                                    'text/json',
+                                    '.json',
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                 
-                # the file input only accepts csv and json.
-                fileInput(inputId = 'metadataUpload', 
-                          label = 'Upload metadata or enter it manually below',
-                          multiple = FALSE,
-                          accept = c ('text/csv',
-                                      'text/json',
-                                      '.json',
-                                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
+               # bring the link closer to the metadata upload
+               div(style = "margin-top:-15px; margin-bottom:25px"),
                 
-                # bring the link closer to the metadata upload
-                div (style = "margin-top:-15px; margin-bottom:25px"),
+               # download link to retrieve metadata template
+               downloadLink(outputId = 'downloadTemplate',
+                            label = 'Download metadata template', 
+                            class = 'link'),
                 
-                # download link to retrieve metadata template
-                downloadLink (outputId = 'downloadTemplate',
-                              label = 'Download metadata template', 
-                              class = 'link'),
+               # Horizontal line -----------------------------------------------
+               tags$hr(),
                 
-                # Horizontal line ----
-                tags$hr (),
-                
-                # asking the owner name
-                textInput (inputId = 'ownerName', 
-                           label = 'Name', 
-                           placeholder = 'Your name'),
+               # asking the owner name
+               textInput(inputId = 'ownerName', 
+                         label = 'Name', 
+                         placeholder = 'Your name'),
                 
                 # the owners' email
                 textInput (inputId = 'ownerEmail', 
@@ -277,11 +276,17 @@ fluidPage(
                 br (),
                 
                 # main image plot to show the processed image, the raw image is only stored
-                column (12, (div (style = 'width:60vw;overflow-x:auto;overflow-y:auto;',
-                                  plotOutput (outputId = 'imageProc', 
-                                              click    = 'normal_point',
-                                              dblclick = 'misc_point',
-                                              inline   = TRUE)))),
+                # TR - Need to change this to only render the main image once.
+                column(12, (div(id = 'container',
+                                style = 'position:relative;width:60vw;overflow-x:auto;overflow-y:auto;',
+                                div(plotOutput(outputId = 'imageRender',
+                                               inline   = TRUE),
+                                    style = 'position:relative; top:0; left:0;'),
+                                div(plotOutput(outputId = 'imageProc', 
+                                               click    = 'normal_point',
+                                               dblclick = 'misc_point',
+                                               inline   = TRUE),
+                                    style = 'position:absolute; top:0; left:0;')))),
                 
                 # Checkbox input in a single fluid row
                 fluidRow (

@@ -789,31 +789,29 @@ shinyServer (function (input, output, session)
   
   autoInvalidate <- reactiveTimer (2000)
   
-  # render labels on the image
+  # render image
   #--------------------------------------------------------------------------------------
-  output$imageProc <- renderPlot (
+  output$imageRender <- renderPlot (
     width = function () {
       floor (input$zoomlevel)
     },
     height = function () {
-      # floor(session$clientData$output_imageProc_width/rv$imgAsp)
       floor (input$zoomlevel / rv$imgAsp)
     },
     {
       # write log
-      wiad:::printLog ('output$imageProc renderPlot')
+      wiad:::printLog('output$image renderImage')
       
       # check for image and make local copy
-      imgtmp <- imgProcessed ()
+      imgtmp <- imgProcessed()
       
       # check that it actually exists
-      if (is.null (imgtmp)) return ()
+      if (is.null(imgtmp)) return()
       
       # get images dimensions
-      imgDim <- dim (imgtmp)
+      imgDim <- dim(imgtmp)
       
       # set margins and plot are
-      #oldpar = par ()
       par (mar = c (0, 0, 0, 0), xaxs = 'i', yaxs = 'i')
       plot (NA, 
             xlim = c (1, imgDim [2]),
@@ -827,107 +825,153 @@ shinyServer (function (input, output, session)
       
       # plot actual image
       #----------------------------------------------------------------------------------
-      rasterImage (imgtmp, 
-                   xleft   = window [1], 
-                   ybottom = window [3], 
-                   xright  = window [2], 
-                   ytop    = window [4])
+      rasterImage (imgtmp,
+                  xleft   = window [1],
+                  ybottom = window [3],
+                  xright  = window [2],
+                  ytop    = window [4])
+
+      }
+    )
+
+  # render labels on the image
+  #--------------------------------------------------------------------------------------
+  output$imageProc <- renderPlot (
+    width = function () {
+      floor (input$zoomlevel)
+    },
+    height = function () {
+      # floor(session$clientData$output_imageProc_width/rv$imgAsp)
+      floor (input$zoomlevel / rv$imgAsp)
+    },
+    {
+      # write log
+      wiad:::printLog('output$imageProc renderPlot')
       
+      # check for image and make local copy
+      imgtmp <- imgProcessed()
+      
+      # check that it actually exists
+      if (is.null(imgtmp)) return ()
+      
+      # get images dimensions
+      imgDim <- dim(imgtmp)
+      
+      # set margins and plot are
+      #oldpar = par ()
+      par(mar = c(0, 0, 0, 0), xaxs = 'i', yaxs = 'i')
+      plot(NA, 
+           xlim = c(1, imgDim [2]),
+           ylim = c(1, imgDim [1]),
+           type = 'n', 
+           axes = FALSE, 
+           xlab = '',
+           ylab = '')
+      
+      window <- par()$usr
+      
+      # plot actual image
+      #----------------------------------------------------------------------------------
+      #rasterImage (imgtmp, 
+      #             xleft   = window [1], 
+      #             ybottom = window [3], 
+      #             xright  = window [2], 
+      #             ytop    = window [4])
       
       # check that there are labels to plot
       #----------------------------------------------------------------------------------
-      if (nrow (rv$markerTable) == 0) return ()
+      if (nrow(rv$markerTable) == 0) return ()
       
       # make local copy of marker table
       #----------------------------------------------------------------------------------
-      marker_tbl <- rv$markerTable [, .(x, y)]
+      marker_tbl <- rv$markerTable[, .(x, y)]
       
       # identify normal, linker, misc and pith labels
       #----------------------------------------------------------------------------------
-      wNormal  <- which (rv$markerTable$type == 'Normal')
-      wLinkers <- which (rv$markerTable$type == 'Linker')
-      wMisc    <- which (rv$markerTable$type %in% c ('Misc',
-                                                     'Density fluctuation',
-                                                     'Frost ring',
-                                                     'Fire scar',
-                                                     'Early-to-latewood transition'))
-      wPith    <- which (rv$markerTable$type == 'Pith')
-      wMissing <- which (rv$markerTable$type == 'Missing')
+      wNormal  <- which(rv$markerTable$type == 'Normal')
+      wLinkers <- which(rv$markerTable$type == 'Linker')
+      wMisc    <- which(rv$markerTable$type %in% c('Misc',
+                                                   'Density fluctuation',
+                                                   'Frost ring',
+                                                   'Fire scar',
+                                                   'Early-to-latewood transition'))
+      wPith    <- which(rv$markerTable$type == 'Pith')
+      wMissing <- which(rv$markerTable$type == 'Missing')
       
       # plot all normal labels indicate missing rings, if labels should be displayed
       if (input$displayLabels) {
-        points (x = marker_tbl [wNormal, x],
-                y = marker_tbl [wNormal, y], 
-                pch = 19, 
-                cex = 1.2, 
-                col = colours [['color']] [colours [['type']] == 'Normal'])
+        points(x = marker_tbl[wNormal, x],
+               y = marker_tbl[wNormal, y], 
+               pch = 19, 
+               cex = 1.2, 
+               col = colours[['color']] [colours [['type']] == 'Normal'])
         # make empty darker circles around the marker to indicate missing years
-        points (x = marker_tbl [wMissing, x],
-                y = marker_tbl [wMissing, y], 
-                pch = 1, 
-                cex = 1.5, 
-                lwd = 2,
-                col = colours [['color']] [colours [['type']] == 'Missing'])
+        points(x = marker_tbl[wMissing, x],
+               y = marker_tbl[wMissing, y], 
+               pch = 1, 
+               cex = 1.5, 
+               lwd = 2,
+               col = colours[['color']] [colours [['type']] == 'Missing'])
       }
       
       # plot marker numbers, if desired
       if (input$displayLabelIDs) {
-        text (x = marker_tbl$x,
-              y = marker_tbl$y,
-              labels = rv$markerTable$no,
-              pos = 1,
-              col = '#666666')
+        text(x = marker_tbl$x,
+             y = marker_tbl$y,
+             labels = rv$markerTable$no,
+             pos = 1,
+             col = '#666666')
       }
       
       # plot years between two labels to more easily identify the growth rings
       if (input$displayYears) {
         
         # find only normal and pith labels
-        years <- rv$markerTable [type %in% c ('Normal', 'Pith')]
-        if (nrow (years) > 1) {
-          xs <- rollmean (years$x, 2)
-          ys <- rollmean (years$y, 2)
-          years <- years [1:(nrow (years) - 1), ]
+        years <- rv$markerTable[type %in% c('Normal', 'Pith')]
+        if (nrow(years) > 1) {
+          xs <- rollmean(years$x, 2)
+          ys <- rollmean(years$y, 2)
+          years <- years[1:(nrow (years) - 1), ]
           if ('Pith' %in% years$type) {
-            years [no >= years [type == 'Pith', no], year := year + 1] 
+            years[no >= years[type == 'Pith', no], year := year + 1] 
           }
           years <- years$year
-          text (x = xs,
-                y = ys,
-                labels = years,
-                pos = 3,
-                col = colours [['color']] [colours [['type']] == 'Normal'])
+          text(x = xs,
+               y = ys,
+               labels = years,
+               pos = 3,
+               col = colours[['color']][colours [['type']] == 'Normal'])
         }
       }
       
       # draw blue lines which symbolise linked segmemts, that are not
       # check whether there is at least one linker marker
-      if (sum (wLinkers, na.rm = TRUE) >= 1) {
+      if (sum(wLinkers, na.rm = TRUE) >= 1) {
         
         # check whether the last marker was a linker
-        if (nrow (rv$markerTable) > max (wLinkers, na.rm = TRUE)) { 
+        if (nrow(rv$markerTable) > max(wLinkers, na.rm = TRUE)) { 
           
           # loop over all linkers
-          for (i in 1:length (wLinkers)) {
+          for (i in 1:length(wLinkers)) {
             
             # check whether the following marker is an increment or linker marker
-            if (rv$markerTable$type [wLinkers [i] + 1] != 'Linker') {
-              segments (x0 = rv$markerTable [wLinkers [i], x], 
-                        y0 = rv$markerTable [wLinkers [i], y],
-                        x1 = rv$markerTable [wLinkers [i] - 1, x], 
-                        y1 = rv$markerTable [wLinkers [i] - 1, y], 
+            if (rv$markerTable$type[wLinkers [i] + 1] != 'Linker') {
+              segments (x0 = rv$markerTable[wLinkers[i], x], 
+                        y0 = rv$markerTable[wLinkers[i], y],
+                        x1 = rv$markerTable[wLinkers[i] - 1, x], 
+                        y1 = rv$markerTable[wLinkers[i] - 1, y], 
                         lwd = 2, 
-                        col = colours [['color']] [colours [['type']] == 'Linker'])
+                        col = colours[['color']][colours [['type']] == 'Linker'])
             }
           }
           # the last marker was a linker
-        } else if (nrow (rv$markerTable) == max (wLinkers, na.rm = TRUE) ) {
-          segments (x0 = rv$markerTable [max (wLinkers, na.rm = TRUE), x], 
-                    y0 = rv$markerTable [max (wLinkers, na.rm = TRUE), y],
-                    x1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, x], 
-                    y1 = rv$markerTable [max (wLinkers, na.rm = TRUE) - 1, y], 
-                    lwd = 2, 
-                    col = colours [['color']] [colours [['type']] == 'Linker'])  
+        } else if (nrow(rv$markerTable) == max(wLinkers, na.rm = TRUE) ) {
+          segments(x0 = rv$markerTable[max (wLinkers, na.rm = TRUE), x], 
+                   y0 = rv$markerTable[max (wLinkers, na.rm = TRUE), y],
+                   x1 = rv$markerTable[max (wLinkers, na.rm = TRUE) - 1, x], 
+                   y1 = rv$markerTable[max (wLinkers, na.rm = TRUE) - 1, y], 
+                   lwd = 2, 
+                   col = colours [['color']][colours[['type']] == 'Linker'])  
         }
       }
       # above code draws lines between last marker and linker labels for single linker labels
@@ -935,65 +979,65 @@ shinyServer (function (input, output, session)
       
       # plot linker labels in blue, if labels should be displayed
       if (input$displayLabels) {
-        points (x = rv$markerTable [wLinkers, x], 
-                y = rv$markerTable [wLinkers, y],
-                col = colours [['color']] [colours [['type']] == 'Linker'],
-                pch = 19,
-                cex = 1.2,
-                lwd = 2)
+        points(x = rv$markerTable[wLinkers, x], 
+               y = rv$markerTable[wLinkers, y],
+               col = colours[['color']][colours[['type']] == 'Linker'],
+               pch = 19,
+               cex = 1.2,
+               lwd = 2)
         
         # plot misc labels in Cambridge blue
-        points (x = rv$markerTable [wMisc, x],
-                y = rv$markerTable [wMisc, y],
-                col = colours [['color']] [colours [['type']] == 'Misc'],
-                pch = 19,
-                cex = 1.2, 
-                lwd = 2)
+        points(x = rv$markerTable[wMisc, x],
+               y = rv$markerTable[wMisc, y],
+               col = colours[['color']][colours[['type']] == 'Misc'],
+               pch = 19,
+               cex = 1.2, 
+               lwd = 2)
         
         # plot the pith marker in crimson as a round point when oldest ring and larger cross 
         # when the actual pith
-        points (x = rv$markerTable [wPith, x], 
-                y = rv$markerTable [wPith, y],
-                col = colours [['color']] [colours [['type']] == 'Pith'],
-                pch = ifelse (input$pithInImage, 4, 19),
-                cex = ifelse (input$pithInImage, 1.8, 1.2),
-                lwd = ifelse (input$pithInImage, 3, 2))
+        points(x = rv$markerTable[wPith, x], 
+               y = rv$markerTable[wPith, y],
+               col = colours[['color']][colours[['type']] == 'Pith'],
+               pch = ifelse(input$pithInImage, 4, 19),
+               cex = ifelse(input$pithInImage, 1.8, 1.2),
+               lwd = ifelse(input$pithInImage, 3, 2))
       }
       
       # check whether there are already two points to draw a guide 
-      if (nrow (marker_tbl) > 1) { 
+      if (nrow(marker_tbl) > 1) { 
         
         # calculate slope and intercept for abline dissecting the last two point (i.e., guide)
-        xy <- marker_tbl [(nrow (marker_tbl)-1):nrow (marker_tbl)]
-        slope <- diff (xy$y) / diff (xy$x)
+        xy <- marker_tbl[(nrow(marker_tbl)-1):nrow(marker_tbl)]
+        slope <- diff(xy$y) / diff(xy$x)
         
         # rotate slope of guide by 90 degree after single linker point
-        if (rv$markerTable [nrow (rv$markerTable),     type] == 'Linker' &
-            rv$markerTable [nrow (rv$markerTable) - 1, type] != 'Linker') {
+        if (rv$markerTable[nrow(rv$markerTable),     type] == 'Linker' &
+            rv$markerTable[nrow(rv$markerTable) - 1, type] != 'Linker') {
           slope <- -1 / slope
         }
         
         # calculate the intercept
-        intercept <- xy$y [2] - slope * xy$x [2]
+        intercept <- xy$y[2] - slope * xy$x[2]
         
         # check whether slope is finite and plot guide
-        if (is.finite (slope)) {
-          abline (intercept, 
-                  slope,
-                  col = colours [['color']] [colours [['type']] == 'Normal'],
-                  lwd = 2, 
-                  lty = 2)
+        if (is.finite(slope)) {
+          abline(intercept, 
+                 slope,
+                 col = colours[['color']][colours[['type']] == 'Normal'],
+                 lwd = 2, 
+                 lty = 2)
         } else {
           # plot vertical line between the labels, if slope is not finite
-          abline (v = mean (xy$x),
-                  col = colours [['color']] [colours [['type']] == 'Normal'],
-                  lwd = 2, 
-                  lty = 2)
+          abline(v = mean (xy$x),
+                 col = colours[['color']][colours[['type']] == 'Normal'],
+                 lwd = 2, 
+                 lty = 2)
         }
         
       }
       #par (oldpar)
-    })
+    }, bg = "transparent")
   
   observeEvent (input$selRed,
                 {
@@ -1116,23 +1160,23 @@ shinyServer (function (input, output, session)
       tmp
     })
   
-  imgProcessed <- reactive (
+  imgProcessed <- reactive(
     {
       # write log
-      wiad:::printLog ('imgProcessed reactive')
+      wiad:::printLog('imgProcessed reactive')
       
       # check that image exists
-      if (is.null (rv$imgMat)) return ()
+      if (is.null(rv$imgMat)) return ()
       
       # check that the image has three color bands
-      if (length (dim (rv$imgMat)) == 2) {
-        showModal (strong (
-          modalDialog ("Warning: The image is monochrome!",
-                       easyClose = TRUE,
-                       fade = TRUE,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#f3bd48; ',
-                       footer = NULL
+      if (length(dim(rv$imgMat)) == 2) {
+        showModal(strong (
+          modalDialog("Warning: The image is monochrome!",
+                      easyClose = TRUE,
+                      fade = TRUE,
+                      size = 's',
+                      style = 'background-color:#3b3a35; color:#f3bd48; ',
+                      footer = NULL
           )))
         return (rv$imgMat)
       }
@@ -1140,8 +1184,8 @@ shinyServer (function (input, output, session)
       # extract save rbg, blue channel only and total brightness version of the image 
       switch (rv$procband,
               'RGB'  = rv$imgMat,
-              'Blue' = rv$imgMat [,,3],
-              'Brightness' = totbrightness ())
+              'Blue' = rv$imgMat[,,3],
+              'Brightness' = totbrightness())
       
     })
   
