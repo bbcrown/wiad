@@ -2048,11 +2048,11 @@ shinyServer (function (input, output, session)
     
     # write log
     #----------------------------------------------------------------------------------
-    wiad:::printLog ('output$growth_table renderDataTable')
+    wiad:::printLog('output$growth_table renderDataTable')
     
     # make local copy of label and growth data, unless there is no data
     #----------------------------------------------------------------------------------
-    if (nrow (rv$markerTable) > 0) {
+    if (nrow(rv$markerTable) > 0) {
       labelTable <- rv$markerTable
     } else {
       return ()
@@ -2060,13 +2060,13 @@ shinyServer (function (input, output, session)
     
     # order table, aka starting with the most recent year
     #----------------------------------------------------------------------------------
-    labelTable <- labelTable [order (no)]
+    labelTable <- labelTable[order (no)]
     
     # add a delete button and display the formatted datatable
     #----------------------------------------------------------------------------------
-    wiad:::displayDataTable (labelTable, 
-                             id1 = 'delete',
-                             id2 = 'insert') 
+    wiad:::displayDataTable(labelTable, 
+                            id1 = 'delete',
+                            id2 = 'insert') 
     
   })
   

@@ -17,39 +17,53 @@ library (shinyjs)
 library (shinythemes)
 
 # load as a fluid page
-fluidPage (
+fluidPage(
   
   # loading the "slate" theme
-  theme = shinytheme ('slate'),
+  theme = shinytheme('slate'),
   
   # adding JS functionalities
-  shinyjs::useShinyjs (),
+  shinyjs::useShinyjs(),
   
   # UI header
-  tags$head (
+  tags$head(
     
-    tags$style (HTML ('
-    .shiny-output-error-validation {color: red;}')),
+    tags$style(HTML('.shiny-output-error-validation {color: red;}')),
     
-    tags$style ('
+    # change colour of links
+    tags$style('
     .link {color: #91b9a4;} 
     .link {float: right;} 
     .link:hover {color: #a41034;}')),
   
+  
+    # change colour of 
+    tags$style(HTML('.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                    color: #ffffff;
+                    }
+                    ### ADD THIS HERE ###
+                    .dataTables_wrapper .dataTables_paginate .paginate_button{box-sizing:border-box;display:inline-block;min-width:1.5em;padding:0.5em 1em;margin-left:2px;text-align:center;text-decoration:none !important;cursor:pointer;*cursor:hand;color:#ffffff !important;border:1px solid transparent;border-radius:2px}
+
+                    ###To change text and background color of the `Search` box ###
+                    .dataTables_filter input {color: #ffffff;background-color: #0E334A}
+
+                    thead {color: #ffffff;}
+                    tbody {color: #ffffff;}')),
+  
   # title of the page
-  titlePanel ('WIAD: Wood Image Analysis and Dataset'),
+  titlePanel('WIAD: Wood Image Analysis and Dataset'),
   
   # the tabset containts four tab panels
-  tabsetPanel (
+  tabsetPanel(
     
     # main tab panel
-    tabPanel ('Toolbox',
+    tabPanel('Toolbox',
               
               # section breaker
-              br (),
+              br(),
               
               # sidebar panel
-              sidebarPanel (
+              sidebarPanel(
                 
                 # the file input only accepts jpeg, png or tiff.
                 fileInput (inputId = 'image', 
@@ -340,35 +354,35 @@ fluidPage (
                                         style = 'font-weight: bold;')), 
                   
                   # Convert type to 'pith' or 'oldest ring'
-                  column (3, 
-                          actionButton (inputId = 'pith', 
-                                        label = 'Oldest ring',
-                                        icon = icon ('bullseye'), 
-                                        class = 'btn-primary', 
-                                        width = '100%', 
-                                        style = 'font-weight: bold;')),
+                  column(3, 
+                         actionButton(inputId = 'pith', 
+                                       label = 'Oldest ring',
+                                       icon = icon ('bullseye'), 
+                                       class = 'btn-primary', 
+                                       width = '100%', 
+                                       style = 'font-weight: bold;')),
                   
                   # Button to switch to demo mode and load a demo image
-                  column (3, uiOutput (outputId = 'demoButton'))
+                  column(3, uiOutput(outputId = 'demoButton'))
                 ),
                 
                 # section breaker
-                br (),
+                br(),
                 
                 # horizontal bar breaker
-                hr (),
+                hr(),
                 
                 # show the growth table 
-                DT::dataTableOutput (outputId = 'growth_table')
+                DT::dataTableOutput(outputId = 'growth_table')
                 
               ), # end of fluid row with datatable
               
               # Two download buttons in a single fluid row
-              fluidRow (
+              fluidRow(
                 
                 # to download the ring table in CSV
-                downloadButton (outputId = 'downloadCSV', 
-                                label    = 'Download CSV'),
+                downloadButton(outputId = 'downloadCSV', 
+                               label    = 'Download CSV'),
                 
                 # to download the ring table in JSON format, this will include metadat
                 downloadButton (outputId = 'downloadJSON', 
