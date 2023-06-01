@@ -60,19 +60,21 @@ fluidPage (
                                        'image/tiff')),
                 
                 # the file input only accepts csv and json.
-                fileInput (inputId = 'labelUpload', 
-                           label = 'Upload label file',
-                           multiple = FALSE,
-                           accept = c ('text/csv',
-                                       'text/json')),
+                fileInput(inputId = 'labelUpload', 
+                          label = 'Upload label file',
+                          multiple = FALSE,
+                          accept = c ('text/csv', 
+                                      'text/json',
+                                      '.json')),
                 
                 # the file input only accepts csv and json.
-                fileInput (inputId = 'metadataUpload', 
-                           label = 'Upload metadata or enter it manually below',
-                           multiple = FALSE,
-                           accept = c ('text/csv',
-                                       'text/json',
-                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
+                fileInput(inputId = 'metadataUpload', 
+                          label = 'Upload metadata or enter it manually below',
+                          multiple = FALSE,
+                          accept = c ('text/csv',
+                                      'text/json',
+                                      '.json',
+                                      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                 
                 # bring the link closer to the metadata upload
                 div (style = "margin-top:-15px; margin-bottom:25px"),

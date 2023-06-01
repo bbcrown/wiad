@@ -47,10 +47,8 @@ colours <- tibble (
 maxImageSize <- 200
 
 # increase maximal size of images to maxImageSize in MB 
-# maxImageSize is initialized in global.R
 #----------------------------------------------------------------------------------------
 options (shiny.maxRequestSize = maxImageSize * 1024^2)
-
 
 shinyServer (function (input, output, session)
 {
@@ -303,150 +301,151 @@ shinyServer (function (input, output, session)
   #--------------------------------------------------------------------------------------
   observeEvent (input$labelUpload,
                 {
-                  wiad:::printLog ('observeEvent input$labelUpload')
+                  wiad:::printLog('observeEvent input$labelUpload')
                   
                   # get path to path to the marker file
                   rv$labelsPath <- input$labelUpload$datapath
                   
                   # get file extension
-                  rv$labelsExt <- file_ext (rv$labelsPath)
+                  rv$labelsExt <- file_ext(rv$labelsPath)
                   
                   # check whether an image is loaded
                   if (rv$notLoaded) {
-                    showModal (strong (
-                      modalDialog ("Error: Am image must be loaded first!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                    showModal(strong (
+                      modalDialog("Error: Am image must be loaded first!",
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                     return ()
                   }
                   
                   # check whether there are already labels set
-                  if (nrow (rv$markerTable) == 0) {
+                  if (nrow(rv$markerTable) == 0) {
                     
                     # read label file from .csv, or .json file
-                    if (rv$labelsExt %in% c ('csv', 'CSV')) {
+                    if (rv$labelsExt %in% c('csv', 'CSV')) {
                       
                       # read csv file
-                      labels <- as.data.table (read_csv (file = rv$labelsPath, 
-                                                         col_names = TRUE,
-                                                         col_types = 'iddddcidd'))
+                      labels <- as.data.table(read_csv(file = rv$labelsPath, 
+                                                       col_names = TRUE,
+                                                       col_types = 'iddddcidd'))
                       
                       # update marker table from csv file
-                      rv$markerTable <- labels [, .(no, x, y, relx, rely, type)]
+                      rv$markerTable <- labels[, .(no, x, y, relx, rely, type)]
                       
                       # upload marker table from json file, if there is none yet
-                    } else if (rv$labelsExt %in% c ('json', 'JSON')) {
+                    } else if (rv$labelsExt %in% c('json', 'JSON')) {
                       
                       # read json file
                       labels <- read_json (rv$labelsPath)
                       
                       # update marker table from json file 
-                      rv$markerTable <- data.table::rbindlist (labels$markerData, 
-                                                               fill = TRUE)
+                      rv$markerTable <- data.table::rbindlist(labels$markerData, 
+                                                              fill = TRUE)
                       
                       # set the index 
-                      rv$index <- nrow (rv$markerTable)
-                      rv$previousIndex <- nrow (rv$markerTable) 
+                      rv$index <- nrow(rv$markerTable)
+                      rv$previousIndex <- nrow(rv$markerTable) 
                       
                       # update metadata fields
-                      updateTextInput (session = session,
-                                       inputId = 'ownerName',
-                                       value = labels$ownerName)
-                      updateTextInput (session = session,
-                                       inputId = 'ownerEmail',
-                                       value = labels$ownerEmail)
-                      updateTextInput (session = session,
-                                       inputId = 'species',
-                                       value = labels$species)
-                      updateTextInput (session = session,
-                                       inputId = 'sampleDate',
-                                       value = labels$sampleDate)
-                      updateRadioButtons (session = session,
-                                          inputId = 'sampleYearGrowingSeason',
-                                          selected = ifelse (labels$sampleYearGrowth == 'none', 
-                                                             'not started', 
-                                                             ifelse (labels$sampleYearGrowth == 'some', 
-                                                                     'only started', 
-                                                                     'already ended')))
-                      updateCheckboxInput (session = session,
-                                           inputId = 'SchulmanShift',
-                                           value = ifelse (is.null (labels$SchulmanShift), NA,
-                                                           unlist (labels$SchulmanShift)))
-                      updateNumericInput (session = session,
-                                          inputId = 'sampleDPI',
-                                          value = labels$sampleDPI)
-                      updateCheckboxInput (session = session,
-                                           inputId = 'pithInImage',
-                                           value = unlist (labels$pithInImage))
-                      updateCheckboxInput (session = session,
-                                           inputId = 'barkFirst',
-                                           value = unlist (labels$barkFirst))
-                      updateTextInput (session = session,
-                                       inputId = 'siteLoc',
-                                       value = labels$siteLoc)
-                      updateTextInput (session = session,
-                                       inputId = 'siteLocID',
-                                       value = labels$siteLocID)
-                      updateTextInput (session = session,
-                                       inputId = 'plotID',
-                                       value = labels$plotID)
-                      updateTextInput (session = session,
-                                       inputId = 'sampleID',
-                                       value = labels$sampleID)
-                      updateNumericInput (session = session,
-                                          inputId = 'sampleHeight',
-                                          value = ifelse (is.null (labels$sampleHeight), NA,
-                                                          labels$sampleHeight))
-                      updateNumericInput (session = session,
-                                          inputId = 'sampleAzimuth',
-                                          value = ifelse (is.null (labels$sampleAzimuth), NA,
-                                                          labels$sampleAzimuth))
-                      updateTextInput (session = session,
-                                       inputId = 'sampleNote',
-                                       value = labels$sampleNote)
-                      updateTextInput (session = session,
-                                       inputId = 'collection',
-                                       value = labels$collection)
-                      updateTextInput (session = session,
-                                       inputId = 'contributor',
-                                       value = labels$contributor)
+                      # TR - Need to include the lat and lon in the update
+                      updateTextInput(session = session,
+                                      inputId = 'ownerName',
+                                      value = labels$ownerName)
+                      updateTextInput(session = session,
+                                      inputId = 'ownerEmail',
+                                      value = labels$ownerEmail)
+                      updateTextInput(session = session,
+                                      inputId = 'species',
+                                      value = labels$species)
+                      updateTextInput(session = session,
+                                      inputId = 'sampleDate',
+                                      value = labels$sampleDate)
+                      updateRadioButtons(session = session,
+                                        inputId = 'sampleYearGrowingSeason',
+                                        selected = ifelse(labels$sampleYearGrowth == 'none', 
+                                                          'not started', 
+                                                          ifelse(labels$sampleYearGrowth == 'some', 
+                                                                 'only started', 
+                                                                 'already ended')))
+                      updateCheckboxInput(session = session,
+                                          inputId = 'SchulmanShift',
+                                          value = ifelse(is.null(labels$SchulmanShift), NA,
+                                                         unlist(labels$SchulmanShift)))
+                      updateNumericInput(session = session,
+                                         inputId = 'sampleDPI',
+                                         value = labels$sampleDPI)
+                      updateCheckboxInput(session = session,
+                                          inputId = 'pithInImage',
+                                          value = unlist(labels$pithInImage))
+                      updateCheckboxInput(session = session,
+                                          inputId = 'barkFirst',
+                                          value = unlist(labels$barkFirst))
+                      updateTextInput(session = session,
+                                      inputId = 'siteLoc',
+                                      value = labels$siteLoc)
+                      updateTextInput(session = session,
+                                      inputId = 'siteLocID',
+                                      value = labels$siteLocID)
+                      updateTextInput(session = session,
+                                      inputId = 'plotID',
+                                      value = labels$plotID)
+                      updateTextInput(session = session,
+                                      inputId = 'sampleID',
+                                      value = labels$sampleID)
+                      updateNumericInput(session = session,
+                                         inputId = 'sampleHeight',
+                                         value = ifelse(is.null(labels$sampleHeight), NA,
+                                                        labels$sampleHeight))
+                      updateNumericInput(session = session,
+                                         inputId = 'sampleAzimuth',
+                                         value = ifelse(is.null(labels$sampleAzimuth), NA,
+                                                        labels$sampleAzimuth))
+                      updateTextInput(session = session,
+                                      inputId = 'sampleNote',
+                                      value = labels$sampleNote)
+                      updateTextInput(session = session,
+                                      inputId = 'collection',
+                                      value = labels$collection)
+                      updateTextInput(session = session,
+                                      inputId = 'contributor',
+                                      value = labels$contributor)
                       
                       # make sure the metadata is reviewed
                       rv$notConfirmed <- TRUE
-                      updateActionButton (session = session, 
-                                          inputId = 'confirmMeta', 
-                                          label = 'Confirm Metadata')
+                      updateActionButton(session = session, 
+                                         inputId = 'confirmMeta', 
+                                         label = 'Confirm Metadata')
                       
                       # Prompt metadata review
-                      showModal (strong (
-                        modalDialog ("Review and confirm metadata below.",
-                                     easyClose = TRUE,
-                                     fade = TRUE,
-                                     size = 's',
-                                     style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                                     footer = NULL)))
+                      showModal(strong(
+                        modalDialog("Review and confirm metadata below.",
+                                    easyClose = TRUE,
+                                    fade = TRUE,
+                                    size = 's',
+                                    style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                    footer = NULL)))
                       
                     } else {
-                      showModal (strong (
-                        modalDialog ("Error: Only csv or json files are accepted for marker files!",
-                                     easyClose = TRUE,
-                                     fade = TRUE,
-                                     size = 's',
-                                     style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                     footer = NULL)))
+                      showModal(strong(
+                        modalDialog("Error: Only csv or json files are accepted for marker files!",
+                                    easyClose = TRUE,
+                                    fade = TRUE,
+                                    size = 's',
+                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                    footer = NULL)))
                       return ()
                     }
                   } else {
-                    showModal (strong (
-                      modalDialog ("Error: Erase existing labels before uploading new labels!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                    showModal(strong(
+                      modalDialog("Error: Erase existing labels before uploading new labels!",
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                   }
                   
                   # return
@@ -468,19 +467,19 @@ shinyServer (function (input, output, session)
                   rv$metaExt <- file_ext (rv$metaPath)
                   
                   # read metadata from .xlsx, .csv, or .json file
-                  if (rv$metaExt %in% c ('xlsx', 'XLSX')) {
-                    metadata <- read_excel (path = rv$metaPath,
-                                            col_names = c ('ownerName','ownerEmail','species',
-                                                           'sampleDate','sampleYearGrowth','SchulmanShift',
-                                                           'sampleDPI','pithInImage','barkFirst','siteLoc',
-                                                           'siteLatN','siteLatS','siteLonW','siteLonE',
-                                                           'siteLocID','plotID','sampleID','sampleHeight',
-                                                           'sampleAzimuth','sampleNote','collection',
-                                                           'contributor'),
-                                            col_types = c ('text','text','text','date','text','logical','numeric',
-                                                           'logical','logical','text','numeric','numeric',
-                                                           'numeric','numeric','text','text','text','numeric',
-                                                           'numeric','text','text','text'), 
+                  if (rv$metaExt %in% c('xlsx', 'XLSX')) {
+                    metadata <- read_excel(path = rv$metaPath,
+                                           col_names = c('ownerName','ownerEmail','species',
+                                                         'sampleDate','sampleYearGrowth','SchulmanShift',
+                                                         'sampleDPI','pithInImage','barkFirst','siteLoc',
+                                                         'siteLatN','siteLatS','siteLonW','siteLonE',
+                                                         'siteLocID','plotID','sampleID','sampleHeight',
+                                                         'sampleAzimuth','sampleNote','collection',
+                                                         'contributor'),
+                                            col_types = c('text','text','text','date','text','logical','numeric',
+                                                          'logical','logical','text','numeric','numeric',
+                                                          'numeric','numeric','text','text','text','numeric',
+                                                          'numeric','text','text','text'), 
                                             skip = 1, na = 'NA')
                   } else if (rv$metaExt %in% c ('csv', 'CSV')) {
                     metadata <- read_csv (file = rv$metaPath, 
@@ -492,8 +491,8 @@ shinyServer (function (input, output, session)
                                                          'sampleHeight','sampleAzimuth',
                                                          'sampleNote','collection','contributor'),
                                           col_types = 'cccDclillcddddcccdiccc', skip = 1)
-                  } else if (rv$metaExt %in% c ('json', 'JSON')) {
-                    metadata <- read_json (rv$metaPath)
+                  } else if (rv$metaExt %in% c('json', 'JSON')) {
+                    metadata <- read_json(rv$metaPath, simplifyVector = TRUE)
                   } else {
                     showModal (strong (
                       modalDialog ("Error: Only xlsx, csv or json files are accepted for metadata.",
@@ -507,61 +506,79 @@ shinyServer (function (input, output, session)
                   }
                   
                   # check that the northern most latitude is larger or equal to the southern most latitude
-                  if (metadata$siteLatN < metadata$siteLatS) {
-                    
-                    showModal (strong (
-                      modalDialog ("Error: The northern bounding latitude is smaller than the southern boundary. It must be equal or larger.",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                  if (!is.na(metadata$siteLatN) & !is.na(metadata$siteLatS)){
+                    if (metadata$siteLatN < metadata$siteLatS) {
+                      showModal(strong(
+                        modalDialog("Error: The northern bounding latitude is smaller than the southern boundary. It must be equal or larger.",
+                                    easyClose = TRUE,
+                                    fade = TRUE,
+                                    size = 's',
+                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                    footer = NULL)))
+                    }
+                  } else {
+                    showModal(strong (
+                      modalDialog('Warning: No bounding latitudes have been provided!',
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                   }
                   
                   # check that the eastern most longitude is larger or equal to the western most longitude
-                  if (metadata$siteLonE < metadata$siteLonW) {
-                    
-                    showModal (strong (
-                      modalDialog ("Error: The eastern bounding longitude is smaller than the western boundary. It must be equal or larger.",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                  if (!is.na(metadata$siteLonE) & !is.na(metadata$siteLonW)) {
+                    if (metadata$siteLonE < metadata$siteLonW) {
+                      showModal(strong(
+                        modalDialog("Error: The eastern bounding longitude is smaller than the western boundary. It must be equal or larger.",
+                                    easyClose = TRUE,
+                                    fade = TRUE,
+                                    size = 's',
+                                    style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                    footer = NULL)))
+                    }
+                  } else {
+                    showModal(strong (
+                      modalDialog('Warning: No bounding longitudes have been provided!',
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                   }
                     
                   # update metadata fields
-                  updateTextInput (session = session,
-                                   inputId = 'ownerName',
-                                   value = metadata$ownerName)
-                  updateTextInput (session = session,
-                                   inputId = 'ownerEmail',
-                                   value = metadata$ownerEmail)
-                  updateTextInput (session = session,
-                                   inputId = 'species',
-                                   value = metadata$species)
-                  updateTextInput (session = session,
-                                   inputId = 'sampleDate',
-                                   value = metadata$sampleDate)
-                  updateRadioButtons (session  = session,
-                                      inputId  = 'sampleYearGrowingSeason',
-                                      selected = ifelse (metadata$sampleYearGrowth == 'none', 
-                                                         'not started', 
-                                                         ifelse (metadata$sampleYearGrowth == 'some', 
-                                                                 'only started', 
-                                                                 'already ended')))
-                  updateCheckboxInput (session = session,
-                                       inputId = 'SchulmanShift',
-                                       value = unlist (metadata$SchulmanShift))
-                  updateNumericInput (session = session,
-                                      inputId = 'sampleDPI',
-                                      value = metadata$sampleDPI)
-                  updateCheckboxInput (session = session,
-                                       inputId = 'pithInImage',
-                                       value = unlist (metadata$pithInImage))
-                  updateCheckboxInput (session = session,
-                                       inputId = 'barkFirst',
-                                       value = unlist (metadata$barkFirst))
+                  updateTextInput(session = session,
+                                  inputId = 'ownerName',
+                                  value = metadata$ownerName)
+                  updateTextInput(session = session,
+                                  inputId = 'ownerEmail',
+                                  value = metadata$ownerEmail)
+                  updateTextInput(session = session,
+                                  inputId = 'species',
+                                  value = metadata$species)
+                  updateTextInput(session = session,
+                                  inputId = 'sampleDate',
+                                  value = metadata$sampleDate)
+                  updateRadioButtons(session  = session,
+                                     inputId  = 'sampleYearGrowingSeason',
+                                     selected = ifelse (metadata$sampleYearGrowth == 'none', 
+                                                        'not started', 
+                                                        ifelse (metadata$sampleYearGrowth == 'some', 
+                                                                'only started', 
+                                                                'already ended')))
+                  updateCheckboxInput(session = session,
+                                      inputId = 'SchulmanShift',
+                                      value = unlist (metadata$SchulmanShift))
+                  updateNumericInput(session = session,
+                                     inputId = 'sampleDPI',
+                                     value = metadata$sampleDPI)
+                  updateCheckboxInput(session = session,
+                                      inputId = 'pithInImage',
+                                      value = unlist (metadata$pithInImage))
+                  updateCheckboxInput(session = session,
+                                      inputId = 'barkFirst',
+                                      value = unlist (metadata$barkFirst))
                   updateTextInput (session = session,
                                    inputId = 'siteLoc',
                                    value = metadata$siteLoc)
