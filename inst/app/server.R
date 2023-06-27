@@ -350,7 +350,6 @@ shinyServer (function (input, output, session)
                       rv$previousIndex <- nrow(rv$markerTable) 
                       
                       # update metadata fields
-                      # TR - Need to include the lat and lon in the update
                       updateTextInput(session = session,
                                       inputId = 'ownerName',
                                       value = labels$ownerName)
@@ -386,6 +385,18 @@ shinyServer (function (input, output, session)
                       updateTextInput(session = session,
                                       inputId = 'siteLoc',
                                       value = labels$siteLoc)
+                      updateNumericInput(session = session,
+                                         inputId = 'siteLatN',
+                                         value = labels$siteLatN)
+                      updateNumericInput(session = session,
+                                         inputId = 'siteLatS',
+                                         value = labels$siteLatS)
+                      updateNumericInput(session = session,
+                                         inputId = 'siteLonW',
+                                         value = labels$siteLonW)
+                      updateNumericInput(session = session,
+                                         inputId = 'siteLonE',
+                                         value = labels$siteLonE)
                       updateTextInput(session = session,
                                       inputId = 'siteLocID',
                                       value = labels$siteLocID)
@@ -920,7 +931,7 @@ shinyServer (function (input, output, session)
              y = marker_tbl$y,
              labels = rv$markerTable$no,
              pos = 1,
-             col = '#666666')
+             col = colours[['color']] [colours [['type']] == 'Normal'])
       }
       
       # plot years between two labels to more easily identify the growth rings
@@ -2120,108 +2131,100 @@ shinyServer (function (input, output, session)
     
     filename = function () {
       
-      wiad:::printLog ('output$downloadCSV downloadHandler filename')
+      wiad:::printLog('output$downloadCSV downloadHandler filename')
       
-      paste0 ('ringdata-', 
-              input$ownerName,
-              '_',
-              input$species,
-              '_',
-              input$siteLocID,
-              '_',
-              input$sampleDate, 
-              '_',
-              rv$wrkID, 
-              '_',
-              format (Sys.time (),
-                      format = '%Y-%m-%d-%H%M%S'),
-              ".csv")
+      paste0('ringdata-',
+             input$species,
+             '_', input$siteLocID,
+             '_', input$sampleDate, 
+             '_', input$sampleID,
+             '_', input$ownerName,
+             '_', rv$wrkID, 
+             '_', format(Sys.time(),
+                          format = '%Y-%m-%d-%H%M%S'),
+             ".csv")
       
     },
     content = function (file) {
       
       # write log
       #----------------------------------------------------------------------------------
-      wiad:::printLog ('output$downloadCSV downloadHandler content')
+      wiad:::printLog('output$downloadCSV downloadHandler content')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
       if (rv$demoMode) {
-        showModal (strong (
-          modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = TRUE,
-                       fade = TRUE,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#f3bd48; ',
-                       footer = NULL)))
+        showModal(strong(
+          modalDialog("Warning: You are still in demo mode! Downloads not possible!",
+                      easyClose = TRUE,
+                      fade = TRUE,
+                      size = 's',
+                      style = 'background-color:#3b3a35; color:#f3bd48; ',
+                      footer = NULL)))
         return ()
       }
       
       # check that image is loaded
       #----------------------------------------------------------------------------------
       if (!rv$notLoaded) {
-        writePNG (imgProcessed (), 
-                  target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        writePNG(imgProcessed(), 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
         
-        writePNG (rv$imgMat, 
-                  target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        writePNG(rv$imgMat, 
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
-        write (toJSON (metaData ()), 
-               paste0 (rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        write(toJSON(metaData()), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
       }
       
       # check that there are some labels
-      if (nrow (rv$markerTable) == 0) return ()
+      if (nrow(rv$markerTable) == 0) return ()
       
       # write csv file
-      write.table (rv$markerTable, 
-                   file, 
-                   sep = ',',
-                   row.names = FALSE)
+      write.table(rv$markerTable, 
+                  file, 
+                  sep = ',',
+                  row.names = FALSE)
       
     }
   )
   
   # download a json file with the metadata and marker locations and growth
   #--------------------------------------------------------------------------------------
-  output$downloadJSON <- downloadHandler (
+  output$downloadJSON <- downloadHandler(
     
     filename = function () {
       
-      wiad:::printLog ('output$downloadJSON downloadHandler filename')
+      wiad:::printLog('output$downloadJSON downloadHandler filename')
       
-      paste0 ('ringdata-', 
-              input$ownerName,
-              '_',
-              input$species,
-              '_',
-              input$siteLocID,
-              '_',
-              input$sampleDate, 
-              '_',
-              rv$wrkID, 
-              '_',
-              format (Sys.time(),
-                      format = '%Y-%m-%d-%H%M%S'),
-              ".json")
+      paste0('ringdata-', 
+             input$species, 
+             '_', input$siteLocID, 
+             '_', input$sampleDate, 
+             '_', input$sampleID, 
+             '_', input$ownerName, 
+             '_', rv$wrkID, 
+             '_', format(Sys.time(),
+                         format = '%Y-%m-%d-%H%M%S'),
+             ".json")
       
     },
     content = function (file) {
       
       # write log
-      wiad:::printLog ('output$downloadJSON downloadHandler content')
+      wiad:::printLog('output$downloadJSON downloadHandler content')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
       if (rv$demoMode) {
-        showModal (strong (
-          modalDialog ("Warning: You are still in demo mode! Downloads not possible!",
-                       easyClose = TRUE,
-                       fade = TRUE,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#f3bd48; ',
-                       footer = NULL)))
+        showModal(strong (
+          modalDialog("Warning: You are still in demo mode! Downloads not possible!",
+                      easyClose = TRUE,
+                      fade = TRUE,
+                      size = 's',
+                      style = 'background-color:#3b3a35; color:#f3bd48; ',
+                      footer = NULL)))
         return ()
       }
       
@@ -2229,22 +2232,22 @@ shinyServer (function (input, output, session)
       if (!rv$notLoaded) {
         
         # save processed image
-        writePNG (imgProcessed (), 
-                  target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        writePNG(imgProcessed (), 
+                 target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
         
         # save raw the image
-        writePNG (rv$imgMat, 
-                  target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+        writePNG(rv$imgMat, 
+                 target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
         # write metadata json file
-        write (toJSON (metaData ()), 
-               paste0 (rv$wrkDir, 'meta-', rv$wrkID,'.json'))
+        write(toJSON(metaData()), 
+              paste0(rv$wrkDir, 'meta-', rv$wrkID,'.json'))
         
       }
       
-      metaData () %>% 
-        toJSON () %>%
-        write_lines (file)
+      metaData() %>% 
+        toJSON() %>%
+        write_lines(file)
     }
   )
   
