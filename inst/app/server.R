@@ -103,29 +103,32 @@ shinyServer (function (input, output, session)
   
   # delete specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$delete_row,
-                {
-                  # write log
-                  wiad:::printLog ('observeEvent input$delete_row')
+  observeEvent(input$delete_row,
+               {
+                 # write log
+                 wiad:::printLog('observeEvent input$delete_row')
                   
-                  # check that the markerTable and outTable exist
-                  req (rv$markerTable)
+                 # check that the markerTable and outTable exist
+                 req(rv$markerTable)
                   
-                  # get the row number that should be deleted
-                  rowNum <- wiad:::parseRowNumber (input$delete_row)
+                 # get the row number that should be deleted
+                 rowNum <- wiad:::parseRowNumber(input$delete_row)
                   
-                  # correct for the fact the the table is displayed from back to front 
-                  rowNum <- nrow (rv$markerTable) - rowNum + 1
+                 # correct for the fact the the table is displayed from back to front 
+                 rowNum <- nrow(rv$markerTable) - rowNum + 1
                   
-                  # delete the row
-                  rv$markerTable <- rv$markerTable [-rowNum, ]
+                 # delete the row
+                 rv$markerTable <- rv$markerTable[-rowNum, ]
                   
-                  # reduce all label numbers that were higher than the deleted label
-                  rv$markerTable [no > rowNum, no := no - 1]
+                 # reduce all label numbers that were higher than the deleted label
+                 rv$markerTable[no > rowNum, no := no - 1]
                   
-                  # reset the label index to last label index
-                  rv$index <- nrow (rv$markerTable)
-                }
+                 # reset the label index to last label index
+                 rv$index <- nrow(rv$markerTable)
+                 
+                 # update growth
+                 rv$markerTable <- growthTable()
+               }
   )
   
   # insert row after specific row in "growth" table
@@ -1240,25 +1243,25 @@ shinyServer (function (input, output, session)
   
   # erase all previous labels
   #--------------------------------------------------------------------------------------
-  observeEvent (input$erase_ALL, {
+  observeEvent(input$erase_ALL, {
     # write log
-    wiad:::printLog ('observeEvent input$erase_ALL')
+    wiad:::printLog('observeEvent input$erase_ALL')
     
     rv$slideShow <- 0 
   
     # reset the marker table
-    rv$markerTable <- data.table (no = integer (),
-                                  x  = numeric (),
-                                  y  = numeric (),
-                                  relx = numeric (),
-                                  rely = numeric (),
-                                  type = character ())
+    rv$markerTable <- data.table(no = integer(),
+                                 x  = numeric(),
+                                 y  = numeric(),
+                                 relx = numeric(),
+                                 rely = numeric(),
+                                 type = character())
   
     # reset indices for insertion and last set marker
-    rv$index  <- 0
+    rv$index <- 0
   
     # close the modal to confirm erasure of all labels 
-    removeModal ()
+    removeModal()
     
     # make sure to update table
     rv$check_table <- rv$check_table + 1
@@ -1267,151 +1270,133 @@ shinyServer (function (input, output, session)
   
   # swtich marker type of previsouly set marker from "Normal" to "Linker"
   #--------------------------------------------------------------------------------------
-  observeEvent (input$linkerPoint, 
-                {
-                  wiad:::printLog ('observeEvent input$linkerPoint')
+  observeEvent (input$linkerPoint, {
+    # write log
+    wiad:::printLog ('observeEvent input$linkerPoint')
                   
-                  if (rv$notLoaded & !rv$demoMode) return ()
+    if (rv$notLoaded & !rv$demoMode) return ()
                   
-                  # check whether no marker has been set yet
-                  if (nrow (rv$markerTable) == 0) {
-                    showModal (strong (
-                      modalDialog ("Error: No ring marker is identified yet!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style='background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL
-                      )))
-                    return ()
-                    # check whether this is the first label 
-                  } else if (nrow (rv$markerTable) == 1) {
-                    showModal (strong (
-                      modalDialog ("Error: The first label cannot be a linker! Maybe start on a ring?",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style ='background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL
-                      )))
-                    return ()
-                    # check whether this is the second linker label in a row 
-                  } else if (sum (tail (rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
-                    showModal (strong (
-                      modalDialog ("Error: You can set a maximum of three consecutive linkers!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style ='background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL
-                      )))
-                    return ()
-                    # else two or more normal labels have been set and 
-                    # the type of the last indexed label is switched
-                  } else {
+    # check whether no marker has been set yet
+    if (nrow (rv$markerTable) == 0) {
+      showModal (strong (
+        modalDialog ("Error: No ring marker is identified yet!",
+                     easyClose = TRUE,
+                     fade = TRUE,
+                     size = 's',
+                     style='background-color:#3b3a35; color:#eb99a9; ',
+                     footer = NULL)))
+      
+      return ()
+    # check whether this is the first label 
+    } else if (nrow (rv$markerTable) == 1) {
+      showModal(strong(
+        modalDialog("Error: The first label cannot be a linker! Maybe start on a ring?",
+                    easyClose = TRUE,
+                    fade = TRUE,
+                    size = 's',
+                    style ='background-color:#3b3a35; color:#eb99a9; ',
+                    footer = NULL)))
+
+      return ()
+    # check whether this is the second linker label in a row 
+    } else if (sum(tail(rv$markerTable$type, n = 3) == 'Linker', na.rm = TRUE) == 3) {
+      showModal(strong(
+        modalDialog ("Error: You can set a maximum of three consecutive linkers!",
+                     easyClose = TRUE,
+                     fade = TRUE,
+                     size = 's',
+                     style ='background-color:#3b3a35; color:#eb99a9; ',
+                     footer = NULL)))
+
+      return ()
+    # else two or more normal labels have been set and the type of the last indexed label is switched
+    } else {
                     
-                    # change the label type of the "Normal" label closest to the last indexed label
-                    if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
-                      rv$markerTable [no == rv$previousIndex, 
-                                      type := switch (type, 
-                                                      'Linker' = 'Normal', 
-                                                      'Normal' = 'Linker')]
-                    } else {
-                      # find the last "Normal" label to change that one instead
-                      j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
-                                                            rv$markerTable$type == 'Normal')]) 
-                      rv$markerTable [no == j, type := switch (type, 
-                                                               'Linker' = 'Normal', 
-                                                               'Normal' = 'Linker')]
+      # change the label type of the "Normal" label closest to the last indexed label
+      if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
+        rv$markerTable [no == rv$previousIndex, 
+                        type := switch (type, 
+                                        'Linker' = 'Normal', 
+                                        'Normal' = 'Linker')]
+      } else {
+        # find the last "Normal" label to change that one instead
+        j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
+                                              rv$markerTable$type == 'Normal')]) 
+        rv$markerTable [no == j, type := switch (type, 
+                                                 'Linker' = 'Normal', 
+                                                 'Normal' = 'Linker')]
                       
-                    }
+      }
                     
-                    # update "growth" 
-                    rv$markerTable <- growthTable ()
+      # update growth 
+      rv$markerTable <- growthTable()
                     
-                    # validate that a marker table exists
-                    rv$check_table <- rv$check_table + 1
-                  }
-                })
+      # validate that a marker table exists
+      rv$check_table <- rv$check_table + 1
+    }
+  })
   
   # change type of previously set marker from "Normal" to "Pith"
   #--------------------------------------------------------------------------------------
   observeEvent(input$pith, 
-                {
-                  # write log
-                  wiad:::printLog('observeEvent input$pith')
+               {
+                 # write log
+                 wiad:::printLog('observeEvent input$pith')
                   
-                  if (rv$notLoaded & !rv$demoMode) return ()
+                 if (rv$notLoaded & !rv$demoMode) return ()
                   
-                  # check that metadata was confirmed
-                  if (rv$notConfirmed) {
-                    showModal(strong(
-                      modalDialog("First review and confirm the metadata!",
-                                  easyClose = TRUE,
-                                  fade = TRUE,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-                    return ()
-                  }
+                 # check that metadata was confirmed
+                 if (rv$notConfirmed) {
+                   showModal(strong(
+                     modalDialog("First review and confirm the metadata!",
+                                 easyClose = TRUE,
+                                 fade = TRUE,
+                                 size = 's',
+                                 style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                 footer = NULL)))
+                   return ()
+                 }
                   
-                  # check whether no label has been set yet
-                  if (nrow(rv$markerTable) == 0) {
-                    showModal(strong(
-                      modalDialog("Error: No ring marker is identified yet!",
-                                  easyClose = TRUE,
-                                  fade = TRUE,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-                    return ()
-                    # check whether there is already a pith label
-                  } else if (sum(rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
-                    showModal(strong(
-                      modalDialog("Error: You can only set one pith and there is already one! Delete it first.",
-                                  easyClose = TRUE,
-                                  fade = TRUE,
-                                  size = 's',
-                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                  footer = NULL)))
-                    return ()
-                    # else we have at least one label and no pith yet, check that this is a "Normal" label
-                  } else {
+                 # check whether no label has been set yet
+                 if (nrow(rv$markerTable) == 0) {
+                   showModal(strong(
+                     modalDialog("Error: No ring marker is identified yet!",
+                                 easyClose = TRUE,
+                                 fade = TRUE,
+                                 size = 's',
+                                 style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                 footer = NULL)))
+                   return ()
+                  
+                 # check whether there is already a pith label
+                 } else if (sum(rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
+                   showModal(strong(
+                     modalDialog("Error: You can only set one pith and there is already one! Delete it first.",
+                                 easyClose = TRUE,
+                                 fade = TRUE,
+                                 size = 's',
+                                 style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                 footer = NULL)))
                     
-                    # change the label type of the "Normal" label closest to the last indexed label
-                    if (rv$markerTable[no == rv$previousIndex, type] == 'Normal') {
-                      rv$markerTable[no == rv$previousIndex, 
-                                     type := switch(type, 
-                                                    'Pith' = 'Normal', 
-                                                    'Normal' = 'Pith')]
-                    } else {
-                      # find the last "Normal" label to change that one instead
-                      j <- max(rv$markerTable$no[which(rv$markerTable$no <= rv$previousIndex &
-                                                         rv$markerTable$type == 'Normal')]) 
-                      rv$markerTable[no == j, type := switch(type, 
-                                                             'Pith' = 'Normal', 
-                                                             'Normal' = 'Pith')]
-                      
-                    }   
+                   return ()
+                 # else we have at least one label and no pith yet, check that this is a "Normal" label
+                 } else {
                     
-                    # identify index of pith marker
-                    wPith <- which(rv$markerTable$type == 'Pith')
+                   # change the label type of the "Normal" label closest to the last indexed label
+                   if (rv$markerTable[no == rv$previousIndex, type] == 'Normal') {
+                     j <- rv$previousIndex
+                   } else {
+                     # find the last "Normal" label to change that one instead
+                     j <- max(rv$markerTable$no[which(rv$markerTable$no <= rv$previousIndex &
+                                                        rv$markerTable$type == 'Normal')]) 
+                   }   
+                   rv$markerTable$type[j] <- 'Pith'
+                
+                   # update growth
+                   rv$markerTable <- growthTable()
                     
-                    # plot the pith marker in crimson 
-                    # round point when oldest ring 
-                    # large cross when the actual pith
-                    points(x = rv$markerTable[wPith, x], 
-                           y = rv$markerTable[wPith, y],
-                           col = colours[['color']][colours[['type']] == 'Pith'],
-                           pch = ifelse(input$pithInImage, 4, 19),
-                           cex = ifelse(input$pithInImage, 1.8, 1.2),
-                           lwd = ifelse(input$pithInImage, 3, 2))
-                    
-                    # update "growth" 
-                    rv$markerTable <- growthTable()
-                    
-                    # validate that a marker table exists
-                    rv$check_table <- rv$check_table + 1
+                   # validate that a marker table exists
+                   rv$check_table <- rv$check_table + 1
                     
                   }
                 })
@@ -1455,8 +1440,12 @@ shinyServer (function (input, output, session)
                     rv$previousIndex <- 0
                   }
                   
+                  # update growth
+                  rv$markerTable <- growthTable()
+                  
                   #  validate that a label table exists
                   rv$check_table <- rv$check_table + 1
+                  
                 })
   
   # add a "Normal" label by simple click
@@ -1520,7 +1509,7 @@ shinyServer (function (input, output, session)
                   rv$index <- nrow (rv$markerTable)
                   
                   # update growth
-                  rv$markerTable <- growthTable ()
+                  rv$markerTable <- growthTable()
                   
                   # validate that a marker table exists
                   rv$check_table <- rv$check_table + 1
@@ -2504,7 +2493,7 @@ shinyServer (function (input, output, session)
     #------------------------------------------------------------------------------------
     updateActionButton (session = session, 
                         inputId = 'pith',
-                        label = ifelse (input$pithInImage, 'Pith','Oldest ring'))
+                        label = ifelse(input$pithInImage, 'Pith', 'Oldest ring'))
     
     # return
     #------------------------------------------------------------------------------------
