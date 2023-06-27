@@ -361,11 +361,11 @@ fluidPage(
                   # Convert type to 'pith' or 'oldest ring'
                   column(3, 
                          actionButton(inputId = 'pith', 
-                                       label = 'Oldest ring',
-                                       icon = icon ('bullseye'), 
-                                       class = 'btn-primary', 
-                                       width = '100%', 
-                                       style = 'font-weight: bold;')),
+                                      label = 'Oldest ring',
+                                      icon = icon ('bullseye'), 
+                                      class = 'btn-primary', 
+                                      width = '100%', 
+                                      style = 'font-weight: bold;')),
                   
                   # Button to switch to demo mode and load a demo image
                   column(3, uiOutput(outputId = 'demoButton'))

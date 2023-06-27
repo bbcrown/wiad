@@ -851,13 +851,13 @@ shinyServer (function (input, output, session)
 
   # render labels on the image
   #--------------------------------------------------------------------------------------
-  output$imageProc <- renderPlot (
+  output$imageProc <- renderPlot(
     width = function () {
-      floor (input$zoomlevel)
+      floor(input$zoomlevel)
     },
     height = function () {
       # floor(session$clientData$output_imageProc_width/rv$imgAsp)
-      floor (input$zoomlevel / rv$imgAsp)
+      floor(input$zoomlevel / rv$imgAsp)
     },
     {
       # write log
@@ -1009,7 +1009,7 @@ shinyServer (function (input, output, session)
                cex = 1.2, 
                lwd = 2)
         
-        # plot the pith marker in crimson as a round point when oldest ring and larger cross 
+        # plot the pith marker in crimson as a round point when oldest ring and large cross 
         # when the actual pith
         points(x = rv$markerTable[wPith, x], 
                y = rv$markerTable[wPith, y],
@@ -1336,66 +1336,79 @@ shinyServer (function (input, output, session)
   
   # change type of previously set marker from "Normal" to "Pith"
   #--------------------------------------------------------------------------------------
-  observeEvent (input$pith, 
+  observeEvent(input$pith, 
                 {
                   # write log
-                  wiad:::printLog ('observeEvent input$pith')
+                  wiad:::printLog('observeEvent input$pith')
                   
                   if (rv$notLoaded & !rv$demoMode) return ()
                   
                   # check that metadata was confirmed
                   if (rv$notConfirmed) {
-                    showModal (strong (
-                      modalDialog ("First review and confirm the metadata!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                    showModal(strong(
+                      modalDialog("First review and confirm the metadata!",
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                     return ()
                   }
                   
                   # check whether no label has been set yet
-                  if (nrow (rv$markerTable) == 0) {
-                    showModal (strong (
-                      modalDialog ("Error: No ring marker is identified yet!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                  if (nrow(rv$markerTable) == 0) {
+                    showModal(strong(
+                      modalDialog("Error: No ring marker is identified yet!",
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                     return ()
                     # check whether there is already a pith label
-                  } else if (sum (rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
-                    showModal (strong (
-                      modalDialog ("Error: You can only set one pith and there is already one! Delete it first.",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL)))
+                  } else if (sum(rv$markerTable$type == 'Pith', na.rm = TRUE) > 0) {
+                    showModal(strong(
+                      modalDialog("Error: You can only set one pith and there is already one! Delete it first.",
+                                  easyClose = TRUE,
+                                  fade = TRUE,
+                                  size = 's',
+                                  style = 'background-color:#3b3a35; color:#eb99a9; ',
+                                  footer = NULL)))
                     return ()
                     # else we have at least one label and no pith yet, check that this is a "Normal" label
                   } else {
                     
                     # change the label type of the "Normal" label closest to the last indexed label
-                    if (rv$markerTable [no == rv$previousIndex, type] == 'Normal') {
-                      rv$markerTable [no == rv$previousIndex, 
-                                      type := switch (type, 
-                                                      'Pith' = 'Normal', 
-                                                      'Normal' = 'Pith')]
+                    if (rv$markerTable[no == rv$previousIndex, type] == 'Normal') {
+                      rv$markerTable[no == rv$previousIndex, 
+                                     type := switch(type, 
+                                                    'Pith' = 'Normal', 
+                                                    'Normal' = 'Pith')]
                     } else {
                       # find the last "Normal" label to change that one instead
-                      j <- max (rv$markerTable$no [which (rv$markerTable$no <= rv$previousIndex &
-                                                            rv$markerTable$type == 'Normal')]) 
-                      rv$markerTable [no == j, type := switch (type, 
-                                                               'Pith' = 'Normal', 
-                                                               'Normal' = 'Pith')]
+                      j <- max(rv$markerTable$no[which(rv$markerTable$no <= rv$previousIndex &
+                                                         rv$markerTable$type == 'Normal')]) 
+                      rv$markerTable[no == j, type := switch(type, 
+                                                             'Pith' = 'Normal', 
+                                                             'Normal' = 'Pith')]
                       
                     }   
                     
+                    # identify index of pith marker
+                    wPith <- which(rv$markerTable$type == 'Pith')
+                    
+                    # plot the pith marker in crimson 
+                    # round point when oldest ring 
+                    # large cross when the actual pith
+                    points(x = rv$markerTable[wPith, x], 
+                           y = rv$markerTable[wPith, y],
+                           col = colours[['color']][colours[['type']] == 'Pith'],
+                           pch = ifelse(input$pithInImage, 4, 19),
+                           cex = ifelse(input$pithInImage, 1.8, 1.2),
+                           lwd = ifelse(input$pithInImage, 3, 2))
+                    
                     # update "growth" 
-                    rv$markerTable <- growthTable ()
+                    rv$markerTable <- growthTable()
                     
                     # validate that a marker table exists
                     rv$check_table <- rv$check_table + 1
@@ -1405,7 +1418,7 @@ shinyServer (function (input, output, session)
   
   # undo last marker 
   #--------------------------------------------------------------------------------------
-  observeEvent (input$undoCanvas, 
+  observeEvent(input$undoCanvas, 
                 {
                   
                   wiad:::printLog ('observeEvent input$undoCanvas')
