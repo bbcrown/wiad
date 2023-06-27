@@ -586,66 +586,68 @@ shinyServer (function (input, output, session)
                                      value = metadata$sampleDPI)
                   updateCheckboxInput(session = session,
                                       inputId = 'pithInImage',
-                                      value = unlist (metadata$pithInImage))
+                                      value = unlist(metadata$pithInImage))
                   updateCheckboxInput(session = session,
                                       inputId = 'barkFirst',
-                                      value = unlist (metadata$barkFirst))
-                  updateTextInput (session = session,
-                                   inputId = 'siteLoc',
-                                   value = metadata$siteLoc)
-                  updateNumericInput (session = session,
-                                      inputId = 'siteLatN',
-                                      value = metadata$siteLatN)
-                  updateNumericInput (session = session,
-                                      inputId = 'siteLatS',
-                                      value = metadata$siteLatS)
-                  updateNumericInput (session = session,
-                                      inputId = 'siteLonW',
-                                      value = metadata$siteLonW)
-                  updateNumericInput (session = session,
-                                      inputId = 'siteLonE',
-                                      value = metadata$siteLonE)
-                  updateTextInput (session = session,
-                                   inputId = 'siteLocID',
-                                   value = metadata$siteLocID)
-                  updateTextInput (session = session,
-                                   inputId = 'plotID',
-                                   value = metadata$plotID)
-                  updateTextInput (session = session,
-                                   inputId = 'sampleID',
-                                   value = metadata$sampleID)
-                  updateNumericInput (session = session,
-                                      inputId = 'sampleHeight',
-                                      value = ifelse (is.null (metadata$sampleHeight), NA,
-                                                      metadata$sampleHeight))
-                  updateNumericInput (session = session,
-                                      inputId = 'sampleAzimuth',
-                                      value = ifelse (is.null (metadata$sampleAzimuth), NA,
-                                                      metadata$sampleAzimuth))
-                  updateTextInput (session = session,
-                                   inputId = 'sampleNote',
-                                   value = metadata$sampleNote)
-                  updateTextInput (session = session,
-                                   inputId = 'collection',
-                                   value = metadata$collection)
-                  updateTextInput (session = session,
-                                   inputId = 'contributor',
-                                   value = metadata$contributor)
+                                      value = unlist(metadata$barkFirst))
+                  updateTextInput(session = session,
+                                  inputId = 'siteLoc',
+                                  value = metadata$siteLoc)
+                  updateNumericInput(session = session,
+                                     inputId = 'siteLatN',
+                                     value = metadata$siteLatN)
+                  updateNumericInput(session = session,
+                                     inputId = 'siteLatS',
+                                     value = metadata$siteLatS)
+                  updateNumericInput(session = session,
+                                     inputId = 'siteLonW',
+                                     value = metadata$siteLonW)
+                  updateNumericInput(session = session,
+                                     inputId = 'siteLonE',
+                                     value = metadata$siteLonE)
+                  updateTextInput(session = session,
+                                  inputId = 'siteLocID',
+                                  value = metadata$siteLocID)
+                  updateTextInput(session = session,
+                                  inputId = 'plotID',
+                                  value = metadata$plotID)
+                  updateTextInput(session = session,
+                                  inputId = 'sampleID',
+                                  value = metadata$sampleID)
+                  updateNumericInput(session = session,
+                                     inputId = 'sampleHeight',
+                                     value = ifelse(is.null(metadata$sampleHeight), 
+                                                    NA,
+                                                    metadata$sampleHeight))
+                  updateNumericInput(session = session,
+                                     inputId = 'sampleAzimuth',
+                                     value = ifelse(is.null(metadata$sampleAzimuth), 
+                                                    NA,
+                                                    metadata$sampleAzimuth))
+                  updateTextInput(session = session,
+                                  inputId = 'sampleNote',
+                                  value = metadata$sampleNote)
+                  updateTextInput(session = session,
+                                  inputId = 'collection',
+                                  value = metadata$collection)
+                  updateTextInput(session = session,
+                                  inputId = 'contributor',
+                                  value = metadata$contributor)
                   
                   # make sure the metadata is reviewed
                   rv$notConfirmed <- TRUE
-                  updateActionButton (session = session, 
-                                      inputId = 'confirmMeta', 
-                                      label = 'Confirm metadata')
+                  updateActionButton(session = session, 
+                                     inputId = 'confirmMeta', 
+                                     label = 'Confirm metadata')
                   
                   # Prompt metadata review
-                  showModal (strong (
-                    modalDialog ("Review and confirm metadata below.",
-                                 easyClose = TRUE,
-                                 fade = TRUE,
-                                 size = 's',
-                                 style = 'background-color:#3b3a35; color:#b91b9a4; ',
-                                 footer = NULL)))
+                  showModal(strong(
+                    modalDialog("Review and confirm metadata below.",
+                                easyClose = TRUE,
+                                fade = TRUE,
+                                size = 's',
+                                style = 'background-color:#3b3a35; color:#b91b9a4; ',
+                                footer = NULL)))
                 }
   )
   
@@ -734,35 +736,37 @@ shinyServer (function (input, output, session)
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- list (version          = paste0 ('Generated with the Wood Image Analysis and Database (WIAD) v', packageVersion (pkg = 'wiad')),
-                    wiadImageID      = rv$wiadImageID,
-                    ownerImageID     = rv$ownerImageID,
-                    ownerName        = input$ownerName, 
-                    ownerEmail       = input$ownerEmail,
-                    species          = input$species,
-                    sampleDate       = input$sampleDate,
-                    sampleYearGrowth = ifelse (input$sampleYearGrowingSeason         == 'not started', 'none',
-                                               ifelse (input$sampleYearGrowingSeason == 'already ended', 
-                                                       'all', 'some')),
-                    SchulmanShift    = input$SchulmanShift,
-                    sampleDPI        = input$sampleDPI,
-                    pithInImage      = input$pithInImage,
-                    barkFirst        = input$barkFirst,
-                    siteLoc          = input$siteLoc,
-                    siteLatN         = input$siteLatN,
-                    siteLatS         = input$siteLatS,
-                    siteLonW         = input$siteLonW,
-                    siteLatE         = input$siteLatE,
-                    siteLocID        = input$siteLocID,
-                    plotID           = input$plotID,
-                    sampleNote       = input$sampleNote,
-                    sampleID         = input$sampleID,
-                    sampleHeight     = input$sampleHeight,
-                    sampleAzimuth    = input$sampleAzimuth,
-                    collection       = input$collection,
-                    contributor      = input$contributor,
-                    markerData       = rv$markerTable,
-                    status           = input$confirmMeta)
+      meta <- list(version          = paste0('Generated with the Wood Image Analysis and Database (WIAD) v', packageVersion(pkg = 'wiad')),
+                   wiadImageID      = rv$wiadImageID,
+                   ownerImageID     = rv$ownerImageID,
+                   ownerName        = input$ownerName, 
+                   ownerEmail       = input$ownerEmail,
+                   species          = input$species,
+                   sampleDate       = input$sampleDate,
+                   sampleYearGrowth = ifelse(input$sampleYearGrowingSeason         == 'not started', 
+                                             'none',
+                                             ifelse(input$sampleYearGrowingSeason == 'already ended', 
+                                                    'all', 
+                                                    'some')),
+                   SchulmanShift    = input$SchulmanShift,
+                   sampleDPI        = input$sampleDPI,
+                   pithInImage      = input$pithInImage,
+                   barkFirst        = input$barkFirst,
+                   siteLoc          = input$siteLoc,
+                   siteLatN         = input$siteLatN,
+                   siteLatS         = input$siteLatS,
+                   siteLonW         = input$siteLonW,
+                   siteLatE         = input$siteLatE,
+                   siteLocID        = input$siteLocID,
+                   plotID           = input$plotID,
+                   sampleNote       = input$sampleNote,
+                   sampleID         = input$sampleID,
+                   sampleHeight     = input$sampleHeight,
+                   sampleAzimuth    = input$sampleAzimuth,
+                   collection       = input$collection,
+                   contributor      = input$contributor,
+                   markerData       = rv$markerTable,
+                   status           = input$confirmMeta)
       
       # return metadata
       #----------------------------------------------------------------------------------
