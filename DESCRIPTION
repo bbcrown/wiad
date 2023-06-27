@@ -1,7 +1,7 @@
 Package: wiad
 Type: Package
 Title: Wood Image Analysis and Dataset
-Version: 0.1.1.1
+Version: 0.1.1.2
 Date: 2023-06-27
 Maintainer: Tim Rademacher <tim.rademacher@uqo.ca>
 Author: Bijan Seyednasrollah, Tim Rademacher, David Basler

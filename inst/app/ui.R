@@ -157,48 +157,48 @@ fluidPage(
                                 max = 90)),
                 
                 # bounding longitudes of site locaiton
-                strong ('Bounding longitudes (decimal \u00B0)'), # \u00B0 is HTML for degree symbol
-                splitLayout (
-                  numericInput (inputId = 'siteLonW',
-                                label = 'Western', 
-                                value = NULL,
-                                min = -180,
-                                max = 180),
-                  numericInput (inputId = 'siteLonE',
-                                label = 'Eastern', 
-                                value = NULL,
-                                min = -180,
-                                max = 180)),
+                strong('Bounding longitudes (decimal \u00B0)'), # \u00B0 is HTML for degree symbol
+                splitLayout(
+                  numericInput(inputId = 'siteLonW',
+                               label = 'Western', 
+                               value = NULL,
+                               min = -180,
+                               max = 180),
+                  numericInput(inputId = 'siteLonE',
+                               label = 'Eastern', 
+                               value = NULL,
+                               min = -180,
+                               max = 180)),
                 
                 # identifier of the location where the sample was collected
-                textInput (inputId = 'siteLocID',
-                           label = 'Site ID', 
-                           placeholder = 'Internal site identifier.'),
+                textInput(inputId = 'siteLocID',
+                          label = 'Site ID', 
+                          placeholder = 'Internal site identifier.'),
                 
                 # identifier of the plot where the sample was collected
-                textInput (inputId = 'plotID',
-                           label = 'Plot ID', 
-                           placeholder = 'Internal plot identifier.'),
+                textInput(inputId = 'plotID',
+                          label = 'Plot ID', 
+                          placeholder = 'Internal plot identifier.'),
                 
                 # identifier for the sample
-                textInput (inputId = 'sampleID', 
-                           label = 'Sample ID',
-                           placeholder = 'Internal sample identifier.'),
+                textInput(inputId = 'sampleID', 
+                          label = 'Sample ID',
+                          placeholder = 'Internal sample identifier.'),
                 
                 # height above-ground at which the sample was taken
-                numericInput (inputId = 'sampleHeight', 
-                              label = 'Sample height (m)',
-                              value = 1.5),
+                numericInput(inputId = 'sampleHeight', 
+                             label = 'Sample height (m)',
+                             value = 1.5),
                 
                 # azimuth angle at which the sample was taken
-                numericInput (inputId = 'sampleAzimuth', 
-                              label = 'Sample azimuth (\u00B0)', # \u00B0 is HTML for degree symbol
-                              value = NA),
+                numericInput(inputId = 'sampleAzimuth', 
+                             label = 'Sample azimuth (\u00B0)', # \u00B0 is HTML for degree symbol
+                             value = NA),
                 
                 # any additional input metadata that the user might want to record
-                textInput (inputId = 'sampleNote', 
-                           label = 'Sample note',
-                           placeholder = 'Any additional notes? Height of sample.'),
+                textInput(inputId = 'sampleNote', 
+                          label = 'Sample note',
+                          placeholder = 'Any additional notes? Height of sample.'),
                 
                 # name of the collection
                 textInput(inputId = 'collection', 
