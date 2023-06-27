@@ -48,20 +48,20 @@ maxImageSize <- 200
 
 # increase maximal size of images to maxImageSize in MB 
 #----------------------------------------------------------------------------------------
-options (shiny.maxRequestSize = maxImageSize * 1024^2)
+options(shiny.maxRequestSize = maxImageSize * 1024^2)
 
 shinyServer (function (input, output, session)
 {
   
   # sent the initial log message
   #--------------------------------------------------------------------------------------
-  wiad:::printLog (init = TRUE)
+  wiad:::printLog(init = TRUE)
   
   # declaring reactive value
   #--------------------------------------------------------------------------------------
-  rv <- reactiveValues (
+  rv <- reactiveValues(
     
-    imgMat = readJPEG (system.file(package = 'wiad','demos/no_image_loaded.jpg'))[,,1:3], # RGB matrix loaded based on the image
+    imgMat = readJPEG(system.file(package = 'wiad','demos/no_image_loaded.jpg'))[, , 1:3], # RGB matrix loaded based on the image
     notLoaded = TRUE,  # whether the first image is loaded
     notConfirmed = TRUE, # whether metadata was confirmed 
     demoMode = FALSE,  # whether app is in demo mode 
@@ -70,20 +70,20 @@ shinyServer (function (input, output, session)
     index         = 0, # index of the last modified label or the label that should be changed (e.g., insertion)
     previousIndex = 0, # index of the previous label
     
-    markerTable = data.table ( # data.table contains the marker data
-      no   = integer (),   # no ID
-      x    = numeric (),   # x
-      y    = numeric (),   # y
-      relx = numeric (),   # relative x
-      rely = numeric (),   # relative y
-      type = character (), # type of marker ('Normal','Linker','Misc','Density fluctuation',
+    markerTable = data.table( # data.table contains the marker data
+      no   = integer(),   # no ID
+      x    = numeric(),   # x
+      y    = numeric(),   # y
+      relx = numeric(),   # relative x
+      rely = numeric(),   # relative y
+      type = character(), # type of marker ('Normal','Linker','Misc','Density fluctuation',
       #                 'Frost ring','Fire scar',
       #                 'Early-to-latewood transition' or 'Pith')
-      pixels = numeric (),   # "growth" in pixels of the image
-      growth = numeric (),   # "growth" in micrometers
-      year   = numeric (),   # year of formation
-      delete = character (), # column to add "delete" actions button 
-      insert = character ()) # column to add "insert" action button
+      pixels = numeric(),   # "growth" in pixels of the image
+      growth = numeric(),   # "growth" in micrometers
+      year   = numeric(),   # year of formation
+      delete = character(), # column to add "delete" actions button 
+      insert = character()) # column to add "insert" action button
   )
   
   # update the image aspect ratio
@@ -130,71 +130,71 @@ shinyServer (function (input, output, session)
   
   # insert row after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$insert_row,
-                {
-                  wiad:::printLog ('observeEvent input$insert_row')
+  observeEvent(input$insert_row,
+               {
+                 wiad:::printLog('observeEvent input$insert_row')
                   
-                  # check that the markerTable and outTable exist
-                  req (rv$markerTable)
+                 # check that the markerTable and outTable exist
+                 req(rv$markerTable)
                   
-                  # get the row number (e.g. label number) before which the new label is inserted
-                  rowNum <- wiad:::parseRowNumber (input$insert_row) + 1
+                 # get the row number (e.g. label number) before which the new label is inserted
+                 rowNum <- wiad:::parseRowNumber(input$insert_row) + 1
                   
-                  # correct for the fact the table is displayed from back to front 
-                  rowNum <- nrow (rv$markerTable) - rowNum + 1
+                 # correct for the fact the table is displayed from back to front 
+                 rowNum <- nrow (rv$markerTable) - rowNum + 1
                   
-                  # share the row number (e.g. label number) as rv$index, after saving the old one
-                  rv$index <- rowNum
+                 # share the row number (e.g. label number) as rv$index, after saving the old one
+                 rv$index <- rowNum
                   
-                  # check whether user wants to insert a missing ring using input modal
-                  showModal (strong (
-                    modalDialog ("Do you want to insert a missing ring or other label?",
-                                 easyClose = TRUE,
-                                 fade = TRUE,
-                                 size = 'm',
-                                 style ='background-color:#3b3a35; color:#b91b9a4; ',
-                                 footer = tagList (
-                                   actionButton (inputId = 'missing_ring',
-                                                 label   = 'Missing ring'),
-                                   modalButton (label   = 'Other'))))
-                  )
-                }
+                 # check whether user wants to insert a missing ring using input modal
+                 showModal(strong(
+                   modalDialog("Do you want to insert a missing ring or other label?",
+                               easyClose = TRUE,
+                               fade = TRUE,
+                               size = 'm',
+                               style ='background-color:#3b3a35; color:#b91b9a4; ',
+                               footer = tagList (
+                                 actionButton(inputId = 'missing_ring',
+                                               label   = 'Missing ring'),
+                                 modalButton(label   = 'Other'))))
+                )
+              }
   )
   
   # insert a missing ring after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent (input$missing_ring,
+  observeEvent(input$missing_ring,
                 {
                   # write log
-                  wiad:::printLog ('observeEvent input$missing_ring')
+                  wiad:::printLog('observeEvent input$missing_ring')
                   
                   # check that the markerTable and outTable exist
-                  req (rv$markerTable)
+                  req(rv$markerTable)
                   
                   # initialise missing ring
-                  missingRing <- data.table (no   = rv$index + 1,
-                                             x    = rv$markerTable$x    [rv$index],
-                                             y    = rv$markerTable$y    [rv$index],
-                                             relx = rv$markerTable$relx [rv$index],
-                                             rely = rv$markerTable$rely [rv$index],
-                                             type = 'Missing')
+                  missingRing <- data.table(no   = rv$index + 1,
+                                            x    = rv$markerTable$x.  [rv$index],
+                                            y    = rv$markerTable$y   [rv$index],
+                                            relx = rv$markerTable$relx[rv$index],
+                                            rely = rv$markerTable$rely[rv$index],
+                                            type = 'Missing')
                   
                   
                   # increase all marker numbers after the inserted marker
-                  rv$markerTable [no > rv$index, no := no + 1]
+                  rv$markerTable[no > rv$index, no := no + 1]
                   
                   # insert marker after identified row
-                  rv$markerTable <- rbind (rv$markerTable [1:rv$index, ],
-                                           missingRing,
-                                           rv$markerTable [(rv$index+1):nrow (rv$markerTable), ],
-                                           fill = TRUE)
+                  rv$markerTable <- rbind(rv$markerTable[1:rv$index, ],
+                                          missingRing,
+                                          rv$markerTable[(rv$index+1):nrow (rv$markerTable), ],
+                                          fill = TRUE)
                   
                   # reset insert index to the last label in the series, after saving the index
                   rv$previousIndex <- rv$index + 1
-                  rv$index <- nrow (rv$markerTable)
+                  rv$index <- nrow(rv$markerTable)
                   
                   # close modal dialog
-                  removeModal ()
+                  removeModal()
                 }
   )
   
@@ -715,22 +715,22 @@ shinyServer (function (input, output, session)
   
   # create metaData object that is pulled when metadata is saved
   #--------------------------------------------------------------------------------------
-  metaData <- reactive (
+  metaData <- reactive(
     {
       # write log
       #----------------------------------------------------------------------------------
-      wiad:::printLog ('metaData reactive')
+      wiad:::printLog('metaData reactive')
       
       # check for demo mode
       #----------------------------------------------------------------------------------
       if (rv$demoMode) {
-        showModal (strong (
-          modalDialog ("Warning: You are still in demo mode!",
-                       easyClose = TRUE,
-                       fade = TRUE,
-                       size = 's',
-                       style = 'background-color:#3b3a35; color:#f3bd48; ',
-                       footer = NULL)))
+        showModal(strong(
+          modalDialog("Warning: You are still in demo mode!",
+                      easyClose = TRUE,
+                      fade = TRUE,
+                      size = 's',
+                      style = 'background-color:#3b3a35; color:#f3bd48; ',
+                      footer = NULL)))
         return ()
       }
       
@@ -776,24 +776,24 @@ shinyServer (function (input, output, session)
   
   # create detrendedData object that is pulled when detrendedData is saved
   #--------------------------------------------------------------------------------------
-  detrendedData <- reactive (
+  detrendedData <- reactive(
     {
       # write log
       #----------------------------------------------------------------------------------
-      wiad:::printLog ('detrendedData reactive')
+      wiad:::printLog('detrendedData reactive')
       
       # compile and return metadata
       #----------------------------------------------------------------------------------
-      meta <- metaData ()
+      meta <- metaData()
       
       # get detrended data
       #----------------------------------------------------------------------------------
-      detrended <- detrendGrowth () 
-      detrended [['nSeries']] <- NULL
-      detrended [['data']] <- NULL
+      detrended <- detrendGrowth() 
+      detrended[['nSeries']] <- NULL
+      detrended[['data']] <- NULL
       
       # add detrended and metadata
-      detrended <- c (meta, detrended)
+      detrended <- c(meta, detrended)
       
       # return detrended data
       #----------------------------------------------------------------------------------
@@ -2249,12 +2249,12 @@ shinyServer (function (input, output, session)
       if (!rv$notLoaded) {
         
         # save processed image
-        writePNG(imgProcessed (), 
-                 target = paste0 (rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
+        writePNG(imgProcessed(), 
+                 target = paste0(rv$wrkDir, 'imgprc-', rv$wrkID,'.png'))
         
-        # save raw the image
+        # save the raw image
         writePNG(rv$imgMat, 
-                 target = paste0 (rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
+                 target = paste0(rv$wrkDir, 'imgraw-', rv$wrkID,'.png'))
         
         # write metadata json file
         write(toJSON(metaData()), 
