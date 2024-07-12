@@ -35,7 +35,7 @@ Alternatively, the latest beta release of WIAD can be directly downloaded and in
 if(!require(devtools)) install.packages('devtools')
 
 # installing the package from the GitHub repo
-devtools::install_github('bnasr/wiad')
+devtools::install_github('RademacherTim/wiad')
 
 # loading the package
 library(wiad)
