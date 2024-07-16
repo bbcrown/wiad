@@ -21,6 +21,7 @@ library (DT)
 library (imager)
 library (jsonlite)
 library (jpeg)
+library (markdown)
 library (png)
 library (plotly)
 library (shiny)
@@ -28,7 +29,6 @@ library (shinyFiles)
 library (shinyjs)
 library (shinythemes)
 library (raster)
-library (rgdal)
 library (readr)
 library (readxl)
 library (sp)
@@ -38,9 +38,10 @@ library (tools)
 library (zoo)
 
 # colours for ploting labels
-colours <- tibble (
-  type   = c ('Normal','Linker','Pith','Misc','Missing'), 
-  color = c ('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
+#----------------------------------------------------------------------------------------
+colours <- tibble(
+  type = c('Normal','Linker','Pith','Misc','Missing'), 
+  color = c('yellow','cornflowerblue','#a41034','#91b9a4','#a41034')
 )
 
 # set maximum image size in MB
@@ -88,217 +89,206 @@ shinyServer (function (input, output, session)
   
   # update the image aspect ratio
   #--------------------------------------------------------------------------------------
-  observeEvent (rv$imgMat,
-                {
-                  # write log
-                  wiad:::printLog ('observeEvent rv$imgMat')
+  observeEvent (rv$imgMat, {
+    # write log
+    wiad:::printLog ('observeEvent rv$imgMat')
                   
-                  # get image dimensions
-                  imgDim <- dim (rv$imgMat)
+    # get image dimensions
+    imgDim <- dim (rv$imgMat)
                   
-                  # update image aspect
-                  rv$imgAsp <- imgDim [2] / imgDim [1]  
-                }
-  )
+    # update image aspect
+    rv$imgAsp <- imgDim [2] / imgDim [1]  
+  })
   
   # delete specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent(input$delete_row,
-               {
-                 # write log
-                 wiad:::printLog('observeEvent input$delete_row')
+  observeEvent(input$delete_row, {
+    # write log
+    wiad:::printLog('observeEvent input$delete_row')
                   
-                 # check that the markerTable and outTable exist
-                 req(rv$markerTable)
+    # check that the markerTable and outTable exist
+    req(rv$markerTable)
                   
-                 # get the row number that should be deleted
-                 rowNum <- wiad:::parseRowNumber(input$delete_row)
+    # get the row number that should be deleted
+    rowNum <- wiad:::parseRowNumber(input$delete_row)
                   
-                 # correct for the fact the the table is displayed from back to front 
-                 rowNum <- nrow(rv$markerTable) - rowNum + 1
+    # correct for the fact the the table is displayed from back to front 
+    rowNum <- nrow(rv$markerTable) - rowNum + 1
                   
-                 # delete the row
-                 rv$markerTable <- rv$markerTable[-rowNum, ]
+    # delete the row
+    rv$markerTable <- rv$markerTable[-rowNum, ]
                   
-                 # reduce all label numbers that were higher than the deleted label
-                 rv$markerTable[no > rowNum, no := no - 1]
+    # reduce all label numbers that were higher than the deleted label
+    rv$markerTable[no > rowNum, no := no - 1]
                   
-                 # reset the label index to last label index
-                 rv$index <- nrow(rv$markerTable)
+    # reset the label index to last label index
+    rv$index <- nrow(rv$markerTable)
                  
-                 # update growth
-                 rv$markerTable <- growthTable()
-               }
-  )
+    # update growth
+    rv$markerTable <- growthTable()
+  })
   
   # insert row after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent(input$insert_row,
-               {
-                 wiad:::printLog('observeEvent input$insert_row')
+  observeEvent(input$insert_row, {
+    # write log
+    wiad:::printLog('observeEvent input$insert_row')
                   
-                 # check that the markerTable and outTable exist
-                 req(rv$markerTable)
+    # check that the markerTable and outTable exist
+    req(rv$markerTable)
                   
-                 # get the row number (e.g. label number) before which the new label is inserted
-                 rowNum <- wiad:::parseRowNumber(input$insert_row) + 1
+    # get the row number (e.g. label number) before which the new label is inserted
+    rowNum <- wiad:::parseRowNumber(input$insert_row) + 1
                   
-                 # correct for the fact the table is displayed from back to front 
-                 rowNum <- nrow (rv$markerTable) - rowNum + 1
+    # correct for the fact the table is displayed from back to front 
+    rowNum <- nrow (rv$markerTable) - rowNum + 1
                   
-                 # share the row number (e.g. label number) as rv$index, after saving the old one
-                 rv$index <- rowNum
+    # share the row number (e.g. label number) as rv$index, after saving the old one
+    rv$index <- rowNum
                   
-                 # check whether user wants to insert a missing ring using input modal
-                 showModal(strong(
-                   modalDialog("Do you want to insert a missing ring or other label?",
-                               easyClose = TRUE,
-                               fade = TRUE,
-                               size = 'm',
-                               style ='background-color:#3b3a35; color:#b91b9a4; ',
-                               footer = tagList (
-                                 actionButton(inputId = 'missing_ring',
-                                               label   = 'Missing ring'),
-                                 modalButton(label   = 'Other'))))
-                )
-              }
-  )
+    # check whether user wants to insert a missing ring using input modal
+    showModal(strong(
+      modalDialog("Do you want to insert a missing ring or other label?",
+                  easyClose = TRUE,
+                  fade = TRUE,
+                  size = 'm',
+                  style ='background-color:#3b3a35; color:#b91b9a4; ',
+                  footer = tagList (
+                  actionButton(inputId = 'missing_ring',
+                  label   = 'Missing ring'),
+                  modalButton(label   = 'Other')))))
+  })
   
   # insert a missing ring after specific row in "growth" table
   #--------------------------------------------------------------------------------------
-  observeEvent(input$missing_ring,
-                {
-                  # write log
-                  wiad:::printLog('observeEvent input$missing_ring')
+  observeEvent(input$missing_ring, {
+    # write log
+    wiad:::printLog('observeEvent input$missing_ring')
                   
-                  # check that the markerTable and outTable exist
-                  req(rv$markerTable)
+    # check that the markerTable and outTable exist
+    req(rv$markerTable)
                   
-                  # initialise missing ring
-                  missingRing <- data.table(no   = rv$index + 1,
-                                            x    = rv$markerTable$x.  [rv$index],
-                                            y    = rv$markerTable$y   [rv$index],
-                                            relx = rv$markerTable$relx[rv$index],
-                                            rely = rv$markerTable$rely[rv$index],
-                                            type = 'Missing')
+    # initialise missing ring
+    missingRing <- data.table(no   = rv$index + 1,
+                              x    = rv$markerTable$x.  [rv$index],
+                              y    = rv$markerTable$y   [rv$index],
+                              relx = rv$markerTable$relx[rv$index],
+                              rely = rv$markerTable$rely[rv$index],
+                              type = 'Missing')
                   
                   
-                  # increase all marker numbers after the inserted marker
-                  rv$markerTable[no > rv$index, no := no + 1]
+    # increase all marker numbers after the inserted marker
+    rv$markerTable[no > rv$index, no := no + 1]
                   
-                  # insert marker after identified row
-                  rv$markerTable <- rbind(rv$markerTable[1:rv$index, ],
-                                          missingRing,
-                                          rv$markerTable[(rv$index+1):nrow (rv$markerTable), ],
-                                          fill = TRUE)
+    # insert marker after identified row
+    rv$markerTable <- rbind(rv$markerTable[1:rv$index, ],
+                            missingRing,
+                            rv$markerTable[(rv$index+1):nrow (rv$markerTable), ],
+                            fill = TRUE)
                   
-                  # reset insert index to the last label in the series, after saving the index
-                  rv$previousIndex <- rv$index + 1
-                  rv$index <- nrow(rv$markerTable)
+    # reset insert index to the last label in the series, after saving the index
+    rv$previousIndex <- rv$index + 1
+    rv$index <- nrow(rv$markerTable)
                   
-                  # close modal dialog
-                  removeModal()
-                }
-  )
+    # close modal dialog
+    removeModal()
+  })
   
   # whenever new image was uploaded
   #--------------------------------------------------------------------------------------
-  observeEvent (input$image,
-                {
-                  # write log
-                  wiad:::printLog ('observeEvent input$image')
+  observeEvent (input$image, {
+    # write log
+    wiad:::printLog ('observeEvent input$image')
                   
-                  # reset radio button, so that metadata needs to be confirmed
-                  rv$notConfirmed <- TRUE
-                  updateActionButton (session = session, 
-                                      inputId = 'confirmMeta', 
-                                      label = 'Confirm Metadata')
+    # reset radio button, so that metadata needs to be confirmed
+    rv$notConfirmed <- TRUE
+    updateActionButton(session = session, 
+                       inputId = 'confirmMeta', 
+                       label = 'Confirm Metadata')
                   
-                  # exit demo mode
-                  #rv$demoMode <- FALSE
+    # exit demo mode
+    #rv$demoMode <- FALSE
                   
-                  # generate working directory id
-                  rv$wrkID <- paste (gsub (x = as.character (Sys.time()), 
-                                           pattern = ' |:', 
-                                           replacement = '-'),
-                                     paste (sample (x = c (0:9, letters, LETTERS),
-                                                    size = 32,
-                                                    replace = TRUE),
-                                            collapse = ""), 
-                                     sep = '_')
+    # generate working directory id
+    rv$wrkID <- paste (gsub(x = as.character(Sys.time()), 
+                            pattern = ' |:', 
+                            replacement = '-'),
+                       paste(sample(x = c(0:9, letters, LETTERS),
+                                    size = 32,
+                                    replace = TRUE),
+                             collapse = ""), 
+                       sep = '_')
                   
-                  # set the sub directory for the sample
-                  rv$wrkDir <- paste0 (ARCHIVE_DIR, 'W-', rv$wrkID, '/')
+    # set the sub directory for the sample
+    rv$wrkDir <- paste0(ARCHIVE_DIR, 'W-', rv$wrkID, '/')
                   
-                  # create the sub directory for the sample
-                  dir.create (rv$wrkDir)
+    # create the sub directory for the sample
+    dir.create(rv$wrkDir)
                   
-                  # get path to image
-                  rv$imgPath <- input$image$datapath
+    # get path to image
+    rv$imgPath <- input$image$datapath
                   
-                  # get file extension
-                  rv$imgExt <- file_ext (rv$imgPath)
+    # get file extension
+    rv$imgExt <- file_ext(rv$imgPath)
                   
-                  # read image
-                  if (rv$imgExt %in% c ('jpg', 'jpeg', 'JPG', 'JPEG')) {
-                    rv$imgMat <- readJPEG (rv$imgPath)
-                  } else if (rv$imgExt %in% c ('tiff', 'tif', 'TIF', 'TIFF')) {
-                    rv$imgMat <- readTIFF (rv$imgPath)
-                  } else if (rv$imgExt %in% c ('png','PNG')) {
-                    rv$imgMat <- readPNG (rv$imgPath)[,,1:3]
-                  } else {      
-                    showModal (strong (
-                      modalDialog ("Error: Only JPEG, TIFF or PNG files are accepted!",
-                                   easyClose = TRUE,
-                                   fade = TRUE,
-                                   size = 's',
-                                   style = 'background-color:#3b3a35; color:#eb99a9; ',
-                                   footer = NULL
-                      )))
+    # read image
+    if (rv$imgExt %in% c('jpg', 'jpeg', 'JPG', 'JPEG')) {
+      rv$imgMat <- readJPEG(rv$imgPath)
+    } else if (rv$imgExt %in% c('tiff', 'tif', 'TIF', 'TIFF')) {
+      rv$imgMat <- readTIFF(rv$imgPath)
+    } else if (rv$imgExt %in% c('png','PNG')) {
+      rv$imgMat <- readPNG(rv$imgPath)[,,1:3]
+    } else {      
+      showModal(strong(
+        modalDialog("Error: Only JPEG, TIFF or PNG files are accepted!",
+                    easyClose = TRUE,
+                    fade = TRUE,
+                    size = 's',
+                    style = 'background-color:#3b3a35; color:#eb99a9; ',
+                    footer = NULL)))
                     
-                    return ()
-                  }
+      return ()
+    }
                   
-                  # change notLoaded boolean now that image is loaded
-                  rv$notLoaded <- FALSE
+    # change notLoaded boolean now that image is loaded
+    rv$notLoaded <- FALSE
                   
-                  # get image dimenions
-                  imgDim <- dim (rv$imgMat)
+    # get image dimenions
+    imgDim <- dim(rv$imgMat)
                   
-                  # write image to the temporary working directory
-                  writePNG (rv$imgMat, paste0 (rv$wrkDir,'imgorg-',rv$wrkID,'.png'))
+    # write image to the temporary working directory
+    writePNG(rv$imgMat, paste0(rv$wrkDir,'imgorg-',rv$wrkID,'.png'))
                   
-                  # save file name for metadata
-                  rv$wiadImageID <- paste0 (rv$wrkDir,'imgorg-',rv$wrkID,'.png')
+    # save file name for metadata
+    rv$wiadImageID <- paste0(rv$wrkDir,'imgorg-',rv$wrkID,'.png')
                   
-                  # get file name for metadata
-                  rv$ownerImageID <- input$image$name
+    # get file name for metadata
+    rv$ownerImageID <- input$image$name
                   
-                  # rotate the image matrix by 270 degrees, if image is higher than wide
-                  if (imgDim [2] < imgDim [1]) { 
-                    rv$imgMat <- wiad:::rotateRGB (wiad:::rotateRGB (wiad:::rotateRGB (rv$imgMat)))
-                  }
+    # rotate the image matrix by 270 degrees, if image is higher than wide
+    if (imgDim[2] < imgDim[1]) { 
+      rv$imgMat <- wiad:::rotateRGB (wiad:::rotateRGB(wiad:::rotateRGB(rv$imgMat)))
+    }
                   
-                  # reset image resolution to make sure that it is checked by user
-                  updateNumericInput (session = session,
-                                      inputId = 'sampleDPI',
-                                      value = NULL)
+    # reset image resolution to make sure that it is checked by user
+    updateNumericInput(session = session,
+                       inputId = 'sampleDPI',
+                       value = NULL)
                   
-                  # reset the markerTable
-                  rv$markerTable <- data.table ( # data.table contains the marker data
-                    no   = integer (),   # no ID
-                    x    = numeric (),   # x
-                    y    = numeric (),   # y
-                    relx = numeric (),   # relative x
-                    rely = numeric (),   # relative y
-                    type = character ()  # type
-                  )
+    # reset the markerTable
+    rv$markerTable <- data.table( # data.table contains the marker data
+      no   = integer(),   # no ID
+      x    = numeric(),   # x
+      y    = numeric(),   # y
+      relx = numeric(),   # relative x
+      rely = numeric(),   # relative y
+      type = character()  # type
+    )
                   
-                  # reset the label and previous label indices 
-                  rv$index <- 0
-                  rv$previousIndex <- 0
-                }
-  )
+    # reset the label and previous label indices 
+    rv$index <- 0
+    rv$previousIndex <- 0
+  })
   
   # whenever a marker file is uploaded update all the labels and plot them
   #--------------------------------------------------------------------------------------
