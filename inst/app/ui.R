@@ -8,87 +8,102 @@
 # Most recent release: https://github.com/bnasr/wiad
 #######################################################################
 
-library(wiad)
-library(data.table)
-library(DT)
-library(plotly)
-library(shiny)
-library(shinyjs)
-library(shinythemes)
+library (wiad)
+library (data.table)
+library (DT)
+library (plotly)
+library (shiny)
+library (shinyjs)
+library (shinythemes)
 
 # load as a fluid page
-fluidPage (
+fluidPage(
   
   # loading the "slate" theme
-  theme = shinytheme ('slate'),
+  theme = shinytheme('slate'),
   
   # adding JS functionalities
-  shinyjs::useShinyjs (),
+  shinyjs::useShinyjs(),
   
   # UI header
-  tags$head (
+  tags$head(
     
-    tags$style (HTML ('
-    .shiny-output-error-validation {color: red;}')),
+    tags$style(HTML('.shiny-output-error-validation {color: red;}')),
     
-    tags$style ('
+    # change colour of links
+    tags$style('
     .link {color: #91b9a4;} 
     .link {float: right;} 
     .link:hover {color: #a41034;}')),
   
+  
+    # change colour of 
+    tags$style(HTML('.dataTables_wrapper .dataTables_length, .dataTables_wrapper .dataTables_filter, .dataTables_wrapper .dataTables_info, .dataTables_wrapper .dataTables_processing, .dataTables_wrapper .dataTables_paginate, .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+                    color: #ffffff;
+                    }
+                    ### ADD THIS HERE ###
+                    .dataTables_wrapper .dataTables_paginate .paginate_button{box-sizing:border-box;display:inline-block;min-width:1.5em;padding:0.5em 1em;margin-left:2px;text-align:center;text-decoration:none !important;cursor:pointer;*cursor:hand;color:#ffffff !important;border:1px solid transparent;border-radius:2px}
+
+                    ###To change text and background color of the `Search` box ###
+                    .dataTables_filter input {color: #ffffff;background-color: #0E334A}
+
+                    thead {color: #ffffff;}
+                    tbody {color: #ffffff;}')),
+  
   # title of the page
-  titlePanel ('WIAD: Wood Image Analysis and Dataset'),
+  titlePanel('WIAD: Wood Image Analysis and Dataset'),
   
   # the tabset containts four tab panels
-  tabsetPanel (
+  tabsetPanel(
     
     # main tab panel
-    tabPanel ('Toolbox',
+    tabPanel('Toolbox',
+             # section breaker
+             br(),
               
-              # section breaker
-              br (),
-              
-              # sidebar panel
-              sidebarPanel (
+             # sidebar panel
+             sidebarPanel(
+               
+               # the file input only accepts jpeg, png or tiff.
+               fileInput(inputId = 'image', 
+                         label = 'Choose image file',
+                         multiple = FALSE,
+                         accept = c('image/jpeg',
+                                    'image/png',
+                                    'image/tiff')),
                 
-                # the file input only accepts jpeg, png or tiff.
-                fileInput (inputId = 'image', 
-                           label = 'Choose image file',
-                           multiple = FALSE,
-                           accept = c ('image/jpeg',
-                                       'image/png',
-                                       'image/tiff')),
+               # the file input only accepts csv and json.
+               fileInput(inputId = 'labelUpload', 
+                         label = 'Upload label file',
+                         multiple = FALSE,
+                         accept = c('text/csv', 
+                                    'text/json',
+                                    '.json')),
                 
-                # the file input only accepts csv and json.
-                fileInput (inputId = 'labelUpload', 
-                           label = 'Upload label file',
-                           multiple = FALSE,
-                           accept = c ('text/csv',
-                                       'text/json')),
+               # the file input only accepts csv and json.
+               fileInput(inputId = 'metadataUpload', 
+                         label = 'Upload metadata or enter it manually below',
+                         multiple = FALSE,
+                         accept = c('text/csv',
+                                    'text/json',
+                                    '.json',
+                                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
                 
-                # the file input only accepts csv and json.
-                fileInput (inputId = 'metadataUpload', 
-                           label = 'Upload metadata or enter it manually below',
-                           multiple = FALSE,
-                           accept = c ('text/csv',
-                                       'text/json',
-                                       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')),
+               # bring the link closer to the metadata upload
+               div(style = "margin-top:-15px; margin-bottom:25px"),
                 
-                # bring the link closer to the metadata upload
-                div (style = "margin-top:-15px; margin-bottom:25px"),
+               # download link to retrieve metadata template
+               downloadLink(outputId = 'downloadTemplate',
+                            label = 'Download metadata template', 
+                            class = 'link'),
                 
-                # download link to retrieve metadata template
-                downloadLink (outputId = 'downloadTemplate',
-                              label = 'Download metadata template', 
-                              class = 'link'),
+               # Horizontal line -----------------------------------------------
+               tags$hr(),
                 
-                # Horizontal line ----
-                tags$hr (),
-                
-                # asking the owner name
-                textInput (inputId = 'ownerName', 
-                           label = 'Name', 
-                           placeholder = 'Your name'),
+               # asking the owner name
+               textInput(inputId = 'ownerName', 
+                         label = 'Name', 
+                         placeholder = 'Your name'),
                 
                 # the owners' email
                 textInput (inputId = 'ownerEmail', 
@@ -142,48 +157,48 @@ fluidPage (
                                 max = 90)),
                 
                 # bounding longitudes of site locaiton
-                strong ('Bounding longitudes (decimal \u00B0)'), # \u00B0 is HTML for degree symbol
-                splitLayout (
-                  numericInput (inputId = 'siteLonW',
-                                label = 'Western', 
-                                value = NULL,
-                                min = -180,
-                                max = 180),
-                  numericInput (inputId = 'siteLonE',
-                                label = 'Eastern', 
-                                value = NULL,
-                                min = -180,
-                                max = 180)),
+                strong('Bounding longitudes (decimal \u00B0)'), # \u00B0 is HTML for degree symbol
+                splitLayout(
+                  numericInput(inputId = 'siteLonW',
+                               label = 'Western', 
+                               value = NULL,
+                               min = -180,
+                               max = 180),
+                  numericInput(inputId = 'siteLonE',
+                               label = 'Eastern', 
+                               value = NULL,
+                               min = -180,
+                               max = 180)),
                 
                 # identifier of the location where the sample was collected
-                textInput (inputId = 'siteLocID',
-                           label = 'Site ID', 
-                           placeholder = 'Internal site identifier.'),
+                textInput(inputId = 'siteLocID',
+                          label = 'Site ID', 
+                          placeholder = 'Internal site identifier.'),
                 
                 # identifier of the plot where the sample was collected
-                textInput (inputId = 'plotID',
-                           label = 'Plot ID', 
-                           placeholder = 'Internal plot identifier.'),
+                textInput(inputId = 'plotID',
+                          label = 'Plot ID', 
+                          placeholder = 'Internal plot identifier.'),
                 
                 # identifier for the sample
-                textInput (inputId = 'sampleID', 
-                           label = 'Sample ID',
-                           placeholder = 'Internal sample identifier.'),
+                textInput(inputId = 'sampleID', 
+                          label = 'Sample ID',
+                          placeholder = 'Internal sample identifier.'),
                 
                 # height above-ground at which the sample was taken
-                numericInput (inputId = 'sampleHeight', 
-                              label = 'Sample height (m)',
-                              value = 1.5),
+                numericInput(inputId = 'sampleHeight', 
+                             label = 'Sample height (m)',
+                             value = 1.5),
                 
                 # azimuth angle at which the sample was taken
-                numericInput (inputId = 'sampleAzimuth', 
-                              label = 'Sample azimuth (\u00B0)', # \u00B0 is HTML for degree symbol
-                              value = NA),
+                numericInput(inputId = 'sampleAzimuth', 
+                             label = 'Sample azimuth (\u00B0)', # \u00B0 is HTML for degree symbol
+                             value = NA),
                 
                 # any additional input metadata that the user might want to record
-                textInput (inputId = 'sampleNote', 
-                           label = 'Sample note',
-                           placeholder = 'Any additional notes? Height of sample.'),
+                textInput(inputId = 'sampleNote', 
+                          label = 'Sample note',
+                          placeholder = 'Any additional notes? Height of sample.'),
                 
                 # name of the collection
                 textInput(inputId = 'collection', 
@@ -199,10 +214,8 @@ fluidPage (
                 hr (),
                 
                 # the user is asked to confirm the metadata each time for verification purposes
-                radioButtons (inputId = 'confirmMeta', 
-                              label = 'Metadata', 
-                              choices  = list ('Not Confirmed', 'Confirmed'),
-                              selected = 'Not Confirmed',
+                actionButton (inputId = 'confirmMeta', 
+                              label = 'Confirm metadata', 
                               inline = TRUE)
                 
               ),
@@ -263,11 +276,17 @@ fluidPage (
                 br (),
                 
                 # main image plot to show the processed image, the raw image is only stored
-                column (12, (div (style = 'width:60vw;overflow-x:auto;overflow-y:auto;',
-                                  plotOutput (outputId = 'imageProc', 
-                                              click    = 'normal_point',
-                                              dblclick = 'misc_point',
-                                              inline   = TRUE)))),
+                # TR - Need to change this to only render the main image once.
+                column(12, (div(id = 'container',
+                                style = 'position:relative;width:60vw;overflow-x:auto;overflow-y:auto;',
+                                div(plotOutput(outputId = 'imageRender',
+                                               inline   = TRUE),
+                                    style = 'position:relative; top:0; left:0;'),
+                                div(plotOutput(outputId = 'imageProc', 
+                                               click    = 'normal_point',
+                                               dblclick = 'misc_point',
+                                               inline   = TRUE),
+                                    style = 'position:absolute; top:0; left:0;')))),
                 
                 # Checkbox input in a single fluid row
                 fluidRow (
@@ -340,35 +359,35 @@ fluidPage (
                                         style = 'font-weight: bold;')), 
                   
                   # Convert type to 'pith' or 'oldest ring'
-                  column (3, 
-                          actionButton (inputId = 'pith', 
-                                        label = 'Oldest ring',
-                                        icon = icon ('bullseye'), 
-                                        class = 'btn-primary', 
-                                        width = '100%', 
-                                        style = 'font-weight: bold;')),
+                  column(3, 
+                         actionButton(inputId = 'pith', 
+                                      label = 'Oldest ring',
+                                      icon = icon ('bullseye'), 
+                                      class = 'btn-primary', 
+                                      width = '100%', 
+                                      style = 'font-weight: bold;')),
                   
                   # Button to switch to demo mode and load a demo image
-                  column (3, uiOutput (outputId = 'demoButton'))
+                  column(3, uiOutput(outputId = 'demoButton'))
                 ),
                 
                 # section breaker
-                br (),
+                br(),
                 
                 # horizontal bar breaker
-                hr (),
+                hr(),
                 
                 # show the growth table 
-                DT::dataTableOutput (outputId = 'growth_table')
+                DT::dataTableOutput(outputId = 'growth_table')
                 
               ), # end of fluid row with datatable
               
               # Two download buttons in a single fluid row
-              fluidRow (
+              fluidRow(
                 
                 # to download the ring table in CSV
-                downloadButton (outputId = 'downloadCSV', 
-                                label    = 'Download CSV'),
+                downloadButton(outputId = 'downloadCSV', 
+                               label    = 'Download CSV'),
                 
                 # to download the ring table in JSON format, this will include metadat
                 downloadButton (outputId = 'downloadJSON', 
