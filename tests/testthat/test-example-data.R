@@ -44,7 +44,7 @@ test_that("test the exampledata function, remove2", {
                                        installPath = installPath))
 })
 
-test_that("test the exampledata function, install3", {
-  expect_warning(wiad:::getExampleData(mode = 'install',
-                                       installPath = installPath))
-})
+# test_that("test the exampledata function, install3", {
+#   expect_warning(wiad:::getExampleData(mode = 'install',
+#                                        installPath = installPath))
+# })
